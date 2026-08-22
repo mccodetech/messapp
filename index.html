@@ -41,6 +41,7 @@
       --card-bg: #ffffff;
       --success-color: #10b981;
       --error-color: #ef4444;
+      --whatsapp-color: #25d366;
       --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     }
 
@@ -86,20 +87,8 @@
     .nav-item:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
     .nav-item.active { background: var(--primary-gradient); color: #fff; font-weight: 600; }
 
-    .main-content {
-      flex: 1;
-      padding: 24px 28px;
-      overflow-y: auto;
-      min-width: 0;
-    }
-    .header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
+    .main-content { flex: 1; padding: 24px 28px; overflow-y: auto; min-width: 0; }
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
     .user-pill {
       background: #fff;
       padding: 6px 14px;
@@ -121,49 +110,30 @@
       margin-bottom: 20px;
     }
 
-    /* Stat Cards for Admin */
-    .stat-cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 14px;
-      margin-bottom: 20px;
-    }
-    .stat-card {
-      background: #fff;
-      padding: 16px;
-      border-radius: 14px;
-      border: 1px solid #e2e8f0;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    .stat-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-    }
-
-    .sub-tab-bar {
+    /* Admin Sub Navigation Tabs */
+    .admin-nav-tabs {
       display: flex;
       gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 12px;
       margin-bottom: 16px;
       border-bottom: 2px solid #e2e8f0;
-      padding-bottom: 10px;
     }
-    .sub-tab-btn {
-      padding: 7px 16px;
+    .admin-tab-btn {
+      padding: 8px 16px;
       border-radius: 50px;
       border: 1px solid #cbd5e1;
       background: #fff;
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
+      white-space: nowrap;
     }
-    .sub-tab-btn.active { background: #1e3c72; color: #fff; border-color: #1e3c72; }
+    .admin-tab-btn.active {
+      background: #1e3c72;
+      color: #fff;
+      border-color: #1e3c72;
+    }
 
     .btn-pill {
       border-radius: 50px;
@@ -180,59 +150,19 @@
     }
     .btn-primary { background: var(--primary-gradient); color: #fff; }
     .btn-success { background-color: var(--success-color); color: #fff; }
+    .btn-whatsapp { background-color: var(--whatsapp-color); color: #fff; }
     .btn-light { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
     /* Compact Weekly Matrix Table */
-    .bulk-table-container {
-      width: 100%;
-      border-radius: 12px;
-      border: 1px solid #e2e8f0;
-      background: #fff;
-    }
-    .bulk-table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: center;
-      table-layout: fixed;
-    }
-    .bulk-table th {
-      background: #f8fafc;
-      color: #475569;
-      font-size: 0.8rem;
-      font-weight: 600;
-      padding: 10px 4px;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .bulk-table td {
-      padding: 8px 4px;
-      border-bottom: 1px solid #f1f5f9;
-      font-size: 0.82rem;
-    }
-    .bulk-table td.day-cell {
-      text-align: left;
-      padding-left: 10px;
-      font-weight: 600;
-      color: #1e293b;
-      line-height: 1.2;
-    }
-    .bulk-table td.day-cell span {
-      display: block;
-      font-size: 0.7rem;
-      font-weight: normal;
-      color: #64748b;
-    }
-    .bulk-table input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      accent-color: #1e3c72;
-      cursor: pointer;
-    }
-    .bulk-table input[type="checkbox"]:disabled {
-      cursor: not-allowed;
-      opacity: 0.4;
-    }
+    .bulk-table-container { width: 100%; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; }
+    .bulk-table { width: 100%; border-collapse: collapse; text-align: center; table-layout: fixed; }
+    .bulk-table th { background: #f8fafc; color: #475569; font-size: 0.8rem; font-weight: 600; padding: 10px 4px; border-bottom: 1px solid #e2e8f0; }
+    .bulk-table td { padding: 8px 4px; border-bottom: 1px solid #f1f5f9; font-size: 0.82rem; }
+    .bulk-table td.day-cell { text-align: left; padding-left: 10px; font-weight: 600; color: #1e293b; line-height: 1.2; }
+    .bulk-table td.day-cell span { display: block; font-size: 0.7rem; font-weight: normal; color: #64748b; }
+    .bulk-table input[type="checkbox"] { width: 20px; height: 20px; accent-color: #1e3c72; cursor: pointer; }
+    .bulk-table input[type="checkbox"]:disabled { cursor: not-allowed; opacity: 0.4; }
 
-    /* Cut-off info bar */
     .timing-notice {
       background: #f0fdf4;
       border: 1px solid #bbf7d0;
@@ -245,6 +175,23 @@
       gap: 8px;
       align-items: center;
     }
+
+    /* Kitchen Summary Box */
+    .kitchen-stat-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .kitchen-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 14px;
+      border-radius: 12px;
+      text-align: center;
+    }
+    .kitchen-box h4 { font-size: 0.85rem; color: #64748b; margin-bottom: 4px; }
+    .kitchen-box .count { font-size: 1.4rem; font-weight: 700; color: #1e3c72; }
 
     table { width: 100%; border-collapse: collapse; text-align: left; }
     th, td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
@@ -278,7 +225,7 @@
 
     @media print {
       body { background: #fff; color: #000; }
-      .sidebar, .header-bar, .btn-pill, .sub-tab-bar, #auth-overlay, .toast-container { display: none !important; }
+      .sidebar, .header-bar, .btn-pill, .admin-nav-tabs, #auth-overlay, .toast-container, .no-print { display: none !important; }
       .main-content { padding: 0; }
       .section-card { border: none; box-shadow: none; padding: 0; }
       table { width: 100%; border: 1px solid #333; }
@@ -431,7 +378,7 @@
       <div id="view-booking" class="tab-view">
         <div class="timing-notice">
           <i class="fa-solid fa-clock"></i>
-          <span><b>Cut-off times:</b> Breakfast: 6:00 AM | Lunch: 10:00 AM | Dinner: 4:00 PM. (Past slots are locked).</span>
+          <span><b>Cut-off times:</b> Breakfast: 6:00 AM | Lunch: 10:00 AM | Dinner: 4:00 PM.</span>
         </div>
 
         <div id="mode-bulk" class="section-card">
@@ -473,7 +420,7 @@
         </div>
       </div>
 
-      <!-- VIEW 2: REPORTS -->
+      <!-- VIEW 2: USER REPORTS -->
       <div id="view-report" class="tab-view" style="display: none;">
         <div class="section-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -500,100 +447,151 @@
 
       <!-- VIEW 3: ADMIN DASHBOARD -->
       <div id="view-admin" class="tab-view" style="display: none;">
-        <!-- Analytics Stat Cards -->
-        <div class="stat-cards-grid">
-          <div class="stat-card">
-            <div class="stat-icon" style="background:#eff6ff; color:#3b82f6;"><i class="fa-solid fa-users"></i></div>
-            <div>
-              <p style="font-size:0.75rem; color:#64748b;">Total Members</p>
-              <h3 id="stat-total-users" style="font-size:1.2rem;">0</h3>
+        
+        <!-- Admin Sub Tabs (Loads data on-demand) -->
+        <div class="admin-nav-tabs no-print">
+          <button class="admin-tab-btn active" id="atab-btn-kitchen" onclick="switchAdminSubTab('kitchen')">
+            <i class="fa-solid fa-kitchen-set"></i> Kitchen Report
+          </button>
+          <button class="admin-tab-btn" id="atab-btn-pending" onclick="switchAdminSubTab('pending')">
+            <i class="fa-solid fa-user-clock"></i> Pending Approvals
+          </button>
+          <button class="admin-tab-btn" id="atab-btn-members" onclick="switchAdminSubTab('members')">
+            <i class="fa-solid fa-users"></i> Members Register
+          </button>
+          <button class="admin-tab-btn" id="atab-btn-allbookings" onclick="switchAdminSubTab('allbookings')">
+            <i class="fa-solid fa-list-check"></i> All Bookings
+          </button>
+        </div>
+
+        <!-- 1. KITCHEN REPORT SECTION -->
+        <div id="admin-sec-kitchen" class="admin-sub-sec">
+          <div class="section-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;" class="no-print">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <label style="font-size:0.85rem; font-weight:600; color:#64748b;">Select Date:</label>
+                <input type="date" id="kitchen-date-picker" class="input-control" style="width:160px; padding:6px 12px;" onchange="loadKitchenReport()" />
+              </div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button class="btn-pill btn-whatsapp" onclick="shareKitchenReportToWhatsApp()">
+                  <i class="fa-brands fa-whatsapp"></i> Share on WhatsApp
+                </button>
+                <button class="btn-pill btn-light" onclick="window.print()">
+                  <i class="fa-solid fa-print"></i> Print Kitchen Slip
+                </button>
+              </div>
             </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon" style="background:#ecfdf5; color:#10b981;"><i class="fa-solid fa-user-check"></i></div>
-            <div>
-              <p style="font-size:0.75rem; color:#64748b;">Active Members</p>
-              <h3 id="stat-active-users" style="font-size:1.2rem;">0</h3>
+
+            <!-- Head Counts -->
+            <div class="kitchen-stat-row">
+              <div class="kitchen-box">
+                <h4>🌅 Breakfast</h4>
+                <div class="count" id="count-breakfast">0</div>
+              </div>
+              <div class="kitchen-box">
+                <h4>☀️ Lunch</h4>
+                <div class="count" id="count-lunch">0</div>
+              </div>
+              <div class="kitchen-box">
+                <h4>🌙 Dinner</h4>
+                <div class="count" id="count-dinner">0</div>
+              </div>
             </div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-icon" style="background:#fef3c7; color:#d97706;"><i class="fa-solid fa-user-clock"></i></div>
-            <div>
-              <p style="font-size:0.75rem; color:#64748b;">Pending Requests</p>
-              <h3 id="stat-pending-users" style="font-size:1.2rem;">0</h3>
+
+            <!-- Detailed Token Lists -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+              <div style="border:1px solid #e2e8f0; border-radius:12px; padding:12px; background:#fff;">
+                <h4 style="font-size:0.9rem; color:#1e3c72; margin-bottom:8px; border-bottom:1px solid #f1f5f9; padding-bottom:4px;">🌅 Breakfast List</h4>
+                <ul id="list-breakfast" style="list-style:none; font-size:0.85rem; max-height:250px; overflow-y:auto;"></ul>
+              </div>
+              <div style="border:1px solid #e2e8f0; border-radius:12px; padding:12px; background:#fff;">
+                <h4 style="font-size:0.9rem; color:#1e3c72; margin-bottom:8px; border-bottom:1px solid #f1f5f9; padding-bottom:4px;">☀️ Lunch List</h4>
+                <ul id="list-lunch" style="list-style:none; font-size:0.85rem; max-height:250px; overflow-y:auto;"></ul>
+              </div>
+              <div style="border:1px solid #e2e8f0; border-radius:12px; padding:12px; background:#fff;">
+                <h4 style="font-size:0.9rem; color:#1e3c72; margin-bottom:8px; border-bottom:1px solid #f1f5f9; padding-bottom:4px;">🌙 Dinner List</h4>
+                <ul id="list-dinner" style="list-style:none; font-size:0.85rem; max-height:250px; overflow-y:auto;"></ul>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Pending Approvals -->
-        <div class="section-card">
-          <h3 style="margin-bottom: 12px; font-size: 0.95rem; color:#1e3c72;">Pending User Approvals</h3>
-          <div style="overflow-x: auto;">
-            <table>
-              <thead>
-                <tr style="color: #64748b;">
-                  <th>Name</th>
-                  <th>Phone</th>
-                  <th>Category</th>
-                  <th>Assign Token</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="admin-pending-users"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Member Register / List -->
-        <div class="section-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-            <h3 style="font-size: 0.95rem;">Members Register</h3>
-            <button class="btn-pill btn-light" onclick="window.print()">
-              <i class="fa-solid fa-print"></i> Print / PDF
-            </button>
-          </div>
-          <div style="overflow-x: auto;">
-            <table>
-              <thead>
-                <tr style="color: #64748b;">
-                  <th>Token</th>
-                  <th>Name</th>
-                  <th>Phone</th>
-                  <th>Category</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="admin-users-list"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Bookings Overview -->
-        <div class="section-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-            <h3 style="font-size: 0.95rem;">All Member Bookings</h3>
-            <div style="display:flex; gap:6px;">
-              <button class="btn-pill btn-light" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
-              <button class="btn-pill btn-primary" onclick="exportAdminTableToCSV()"><i class="fa-solid fa-file-excel"></i> Export CSV</button>
+        <!-- 2. PENDING APPROVALS SECTION -->
+        <div id="admin-sec-pending" class="admin-sub-sec" style="display:none;">
+          <div class="section-card">
+            <h3 style="margin-bottom: 12px; font-size: 0.95rem; color:#1e3c72;">Pending User Approvals</h3>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr style="color: #64748b;">
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Category</th>
+                    <th>Assign Token</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-pending-users"></tbody>
+              </table>
             </div>
           </div>
-          <div style="overflow-x: auto;">
-            <table>
-              <thead>
-                <tr style="color: #64748b;">
-                  <th>Date</th>
-                  <th>Token</th>
-                  <th>Name</th>
-                  <th>Category</th>
-                  <th>Meal</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="admin-table-body"></tbody>
-            </table>
+        </div>
+
+        <!-- 3. MEMBERS REGISTER SECTION -->
+        <div id="admin-sec-members" class="admin-sub-sec" style="display:none;">
+          <div class="section-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+              <h3 style="font-size: 0.95rem;">Members Register</h3>
+              <button class="btn-pill btn-light" onclick="window.print()">
+                <i class="fa-solid fa-print"></i> Print / PDF
+              </button>
+            </div>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr style="color: #64748b;">
+                    <th>Token</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-users-list"></tbody>
+              </table>
+            </div>
           </div>
         </div>
+
+        <!-- 4. ALL BOOKINGS SECTION -->
+        <div id="admin-sec-allbookings" class="admin-sub-sec" style="display:none;">
+          <div class="section-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+              <h3 style="font-size: 0.95rem;">All Member Bookings</h3>
+              <div style="display:flex; gap:6px;">
+                <button class="btn-pill btn-light" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
+                <button class="btn-pill btn-primary" onclick="exportAdminTableToCSV()"><i class="fa-solid fa-file-excel"></i> Export CSV</button>
+              </div>
+            </div>
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr style="color: #64748b;">
+                    <th>Date</th>
+                    <th>Token</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Meal</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
       </div>
 
     </div>
@@ -601,8 +599,12 @@
 
   <script>
     let currentUser = null;
+    let currentKitchenData = { date: '', breakfast: [], lunch: [], dinner: [] };
 
     document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date().toISOString().split('T')[0];
+      const kp = document.getElementById('kitchen-date-picker');
+      if (kp) kp.value = today;
       checkExistingSession();
     });
 
@@ -629,7 +631,7 @@
       const pass = document.getElementById('login-pass').value.trim();
       if (!id || !pass) return showToast('Enter token/username and password', 'error');
 
-      // Admin Logins
+      // Admin Hardcoded Logins
       if (id === 'sadmin' && pass === 'sadmin_4321') {
         currentUser = { token: '0', name: 'Super Admin', role: 'superadmin', status: 'active', category: 'ADMIN' };
         return setSessionAndEnter(currentUser);
@@ -758,9 +760,22 @@
         document.getElementById('nav-admin').classList.add('active');
         document.getElementById('view-admin').style.display = 'block';
         document.getElementById('view-title').textContent = 'Admin Dashboard';
-        loadAdminAnalyticsAndUsers();
-        loadAdminData();
+        switchAdminSubTab('kitchen'); // Default load
       }
+    }
+
+    /* Admin Sub Tabs Logic (On Demand) */
+    function switchAdminSubTab(sec) {
+      document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.admin-sub-sec').forEach(s => s.style.display = 'none');
+
+      document.getElementById(`atab-btn-${sec}`).classList.add('active');
+      document.getElementById(`admin-sec-${sec}`).style.display = 'block';
+
+      if (sec === 'kitchen') loadKitchenReport();
+      if (sec === 'pending') loadAdminPendingUsers();
+      if (sec === 'members') loadAdminMembersRegister();
+      if (sec === 'allbookings') loadAdminAllBookings();
     }
 
     /* Cut-off helper function */
@@ -768,13 +783,9 @@
       const now = new Date();
       const todayStr = now.toISOString().split('T')[0];
 
-      // Past date -> Locked
       if (dateStr < todayStr) return true;
-
-      // Future date -> Open
       if (dateStr > todayStr) return false;
 
-      // Today -> Check Cut-off time
       const currentHour = now.getHours();
       if (mealType === 'breakfast') return currentHour >= 6; // 6 AM
       if (mealType === 'lunch') return currentHour >= 10;    // 10 AM
@@ -807,9 +818,9 @@
           <td class="day-cell">
             ${daysOfWeek[i]} <span>${dateStr.slice(5)}</span>
           </td>
-          <td><input type="checkbox" class="bulk-cb meal-breakfast" data-date="${dateStr}" data-meal="breakfast" ${bLocked ? 'disabled title="Slot locked / passed"' : ''}></td>
-          <td><input type="checkbox" class="bulk-cb meal-lunch" data-date="${dateStr}" data-meal="lunch" ${lLocked ? 'disabled title="Slot locked / passed"' : ''}></td>
-          <td><input type="checkbox" class="bulk-cb meal-dinner" data-date="${dateStr}" data-meal="dinner" ${dLocked ? 'disabled title="Slot locked / passed"' : ''}></td>
+          <td><input type="checkbox" class="bulk-cb meal-breakfast" data-date="${dateStr}" data-meal="breakfast" ${bLocked ? 'disabled title="Slot locked"' : ''}></td>
+          <td><input type="checkbox" class="bulk-cb meal-lunch" data-date="${dateStr}" data-meal="lunch" ${lLocked ? 'disabled title="Slot locked"' : ''}></td>
+          <td><input type="checkbox" class="bulk-cb meal-dinner" data-date="${dateStr}" data-meal="dinner" ${dLocked ? 'disabled title="Slot locked"' : ''}></td>
         `;
         tbody.appendChild(tr);
       }
@@ -899,67 +910,108 @@
       }
     }
 
-    async function loadAdminAnalyticsAndUsers() {
-      const pendingTbody = document.getElementById('admin-pending-users');
-      const usersListTbody = document.getElementById('admin-users-list');
-      pendingTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
-      usersListTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+    /* KITCHEN REPORT LOGIC & WHATSAPP SHARING */
+    async function loadKitchenReport() {
+      const date = document.getElementById('kitchen-date-picker').value;
+      if (!date) return;
+
+      currentKitchenData = { date, breakfast: [], lunch: [], dinner: [] };
+      showToast('Loading Kitchen Report...', 'info');
 
       try {
-        const snap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
-        let total = 0, active = 0, pending = 0;
-        pendingTbody.innerHTML = '';
-        usersListTbody.innerHTML = '';
+        const q = window.fs.query(
+          window.fs.collection(window.db, 'bookings'),
+          window.fs.where('date', '==', date),
+          window.fs.where('action', '==', 'book')
+        );
+        const snap = await window.fs.getDocs(q);
+
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const entry = `#${d.token} ${d.name} (${d.category})`;
+          if (d.meal === 'breakfast') currentKitchenData.breakfast.push(entry);
+          if (d.meal === 'lunch') currentKitchenData.lunch.push(entry);
+          if (d.meal === 'dinner') currentKitchenData.dinner.push(entry);
+        });
+
+        document.getElementById('count-breakfast').textContent = currentKitchenData.breakfast.length;
+        document.getElementById('count-lunch').textContent = currentKitchenData.lunch.length;
+        document.getElementById('count-dinner').textContent = currentKitchenData.dinner.length;
+
+        renderKitchenList('list-breakfast', currentKitchenData.breakfast);
+        renderKitchenList('list-lunch', currentKitchenData.lunch);
+        renderKitchenList('list-dinner', currentKitchenData.dinner);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function renderKitchenList(elementId, items) {
+      const ul = document.getElementById(elementId);
+      ul.innerHTML = '';
+      if (items.length === 0) {
+        ul.innerHTML = '<li style="color:#94a3b8; padding:4px 0;">No bookings</li>';
+        return;
+      }
+      items.forEach(item => {
+        const li = document.createElement('li');
+        li.style.padding = '4px 0';
+        li.style.borderBottom = '1px dashed #f1f5f9';
+        li.textContent = item;
+        ul.appendChild(li);
+      });
+    }
+
+    function shareKitchenReportToWhatsApp() {
+      const { date, breakfast, lunch, dinner } = currentKitchenData;
+      if (!date) return showToast('Please select a date', 'error');
+
+      let text = `🍽️ *SUPRABHATHAM MESS REPORT*\n📅 *Date:* ${date}\n----------------------------\n`;
+      text += `🌅 *Breakfast:* ${breakfast.length} Nos\n`;
+      if (breakfast.length > 0) text += breakfast.map(b => ` • ${b}`).join('\n') + '\n';
+      
+      text += `\n☀️ *Lunch:* ${lunch.length} Nos\n`;
+      if (lunch.length > 0) text += lunch.map(l => ` • ${l}`).join('\n') + '\n';
+
+      text += `\n🌙 *Dinner:* ${dinner.length} Nos\n`;
+      if (dinner.length > 0) text += dinner.map(d => ` • ${d}`).join('\n') + '\n';
+
+      text += `----------------------------\nGenerated via SNEC Mess Portal`;
+
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(url, '_blank');
+    }
+
+    /* PENDING APPROVALS */
+    async function loadAdminPendingUsers() {
+      const tbody = document.getElementById('admin-pending-users');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading requests...</td></tr>';
+      try {
+        const q = window.fs.query(window.fs.collection(window.db, 'users'), window.fs.where('status', '==', 'pending'));
+        const snap = await window.fs.getDocs(q);
+        tbody.innerHTML = '';
+
+        if (snap.empty) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">No pending user requests.</td></tr>';
+          return;
+        }
 
         snap.forEach(docSnap => {
           const u = docSnap.data();
-          if (u.role === 'admin' || u.role === 'superadmin') return;
-
-          total++;
-          if (u.status === 'active') active++;
-          if (u.status === 'pending') pending++;
-
-          // Pending List
-          if (u.status === 'pending') {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td><b>${u.name}</b><br><small style="color:#64748b;">${u.email}</small></td>
-              <td>${u.phone}</td>
-              <td>${u.category}</td>
-              <td><input type="number" id="assign_token_${docSnap.id}" placeholder="Token #" style="width:75px; padding:4px 6px; border:1px solid #cbd5e1; border-radius:6px;"></td>
-              <td>
-                <button class="btn-pill btn-success" style="padding:4px 10px; font-size:0.75rem;" onclick="approveUser('${docSnap.id}')">Approve</button>
-              </td>
-            `;
-            pendingTbody.appendChild(tr);
-          }
-
-          // Full Active/Inactive List
-          if (u.status !== 'pending') {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td><b>#${u.token}</b></td>
-              <td>${u.name}</td>
-              <td>${u.phone}</td>
-              <td>${u.category}</td>
-              <td><span style="color:${u.status === 'active' ? '#10b981':'#ef4444'}; font-weight:600;">${u.status}</span></td>
-              <td>
-                <button class="btn-pill btn-light" style="padding:3px 8px; font-size:0.75rem;" onclick="toggleUserStatus('${u.token}', '${u.status}')">
-                  ${u.status === 'active' ? 'Suspend' : 'Activate'}
-                </button>
-              </td>
-            `;
-            usersListTbody.appendChild(tr);
-          }
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><b>${u.name}</b><br><small style="color:#64748b;">${u.email}</small></td>
+            <td>${u.phone}</td>
+            <td>${u.category}</td>
+            <td><input type="number" id="assign_token_${docSnap.id}" placeholder="Token #" style="width:75px; padding:4px 6px; border:1px solid #cbd5e1; border-radius:6px;"></td>
+            <td>
+              <button class="btn-pill btn-success" style="padding:4px 10px; font-size:0.75rem;" onclick="approveUser('${docSnap.id}')">Approve</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
         });
-
-        document.getElementById('stat-total-users').textContent = total;
-        document.getElementById('stat-active-users').textContent = active;
-        document.getElementById('stat-pending-users').textContent = pending;
-
-        if (!pendingTbody.innerHTML) pendingTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">No pending requests.</td></tr>';
       } catch (err) {
-        console.error(err);
+        tbody.innerHTML = `<tr><td colspan="5" style="color:red;">${err.message}</td></tr>`;
       }
     }
 
@@ -985,9 +1037,40 @@
         }
 
         showModal('User Approved', `Assigned Token #${token} to ${userData.name}`, 'success');
-        loadAdminAnalyticsAndUsers();
+        loadAdminPendingUsers();
       } catch (err) {
         showModal('Error', err.message, 'error');
+      }
+    }
+
+    /* MEMBERS REGISTER */
+    async function loadAdminMembersRegister() {
+      const tbody = document.getElementById('admin-users-list');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading members...</td></tr>';
+      try {
+        const snap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
+        tbody.innerHTML = '';
+        snap.forEach(docSnap => {
+          const u = docSnap.data();
+          if (u.role === 'admin' || u.role === 'superadmin' || u.status === 'pending') return;
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><b>#${u.token}</b></td>
+            <td>${u.name}</td>
+            <td>${u.phone}</td>
+            <td>${u.category}</td>
+            <td><span style="color:${u.status === 'active' ? '#10b981':'#ef4444'}; font-weight:600;">${u.status}</span></td>
+            <td>
+              <button class="btn-pill btn-light" style="padding:3px 8px; font-size:0.75rem;" onclick="toggleUserStatus('${u.token}', '${u.status}')">
+                ${u.status === 'active' ? 'Suspend' : 'Activate'}
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="color:red;">${err.message}</td></tr>`;
       }
     }
 
@@ -996,13 +1079,14 @@
       try {
         await window.fs.updateDoc(window.fs.doc(window.db, 'users', token), { status: nextStatus });
         showToast(`User status updated to ${nextStatus}`, 'info');
-        loadAdminAnalyticsAndUsers();
+        loadAdminMembersRegister();
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
     }
 
-    async function loadAdminData() {
+    /* ALL BOOKINGS */
+    async function loadAdminAllBookings() {
       const tbody = document.getElementById('admin-table-body');
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading records...</td></tr>';
       try {
