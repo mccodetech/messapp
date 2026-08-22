@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suprabhatham Mess Booking - SNEC</title>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Firebase Modular SDK via CDN -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getFirestore, doc, getDoc, setDoc, addDoc, collection, query, where, getDocs 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Your Firebase Configuration directly applied
+    const firebaseConfig = {
+      apiKey: "AIzaSyC__Q5WeSA_vANuryxJTqVplk6NdLWCtZs",
+      authDomain: "messapp-be9e6.firebaseapp.com",
+      projectId: "messapp-be9e6",
+      storageBucket: "messapp-be9e6.firebasestorage.app",
+      messagingSenderId: "873591886739",
+      appId: "1:873591886739:web:0cc14498a55de08c9b0e66",
+      measurementId: "G-4YB9BGBHQS"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    
+    window.db = db;
+    window.fs = { doc, getDoc, setDoc, addDoc, collection, query, where, getDocs };
+  </script>
+
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      --sidebar-bg: #1e1e2f;
+      --sidebar-text: #cbd5e1;
+      --body-bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --success-color: #05c46b;
+      --error-color: #fc5c65;
+      --info-color: #4b7bec;
+      --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-family); }
+    body { background-color: var(--body-bg); color: #333; display: flex; min-height: 100vh; }
+    #app-container { display: flex; width: 100%; min-height: 100vh; }
+
+    .sidebar {
+      width: 280px;
+      background: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 24px;
+    }
+    .brand-header i { font-size: 24px; color: #4b7bec; }
+    .brand-header h2 { font-size: 1.1rem; font-weight: 700; color: #fff; }
+
+    .nav-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 20px;
+      border-radius: 50px;
+      color: var(--sidebar-text);
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .nav-item:hover, .nav-item.active {
+      background: var(--primary-gradient);
+      color: #fff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(30, 60, 114, 0.3);
+    }
+
+    .main-content { flex: 1; padding: 32px; overflow-y: auto; }
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; }
+    .user-pill {
+      background: #fff;
+      padding: 8px 20px;
+      border-radius: 50px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.9rem;
+    }
+    .section-card {
+      background: var(--card-bg);
+      border-radius: 15px;
+      padding: 24px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+      margin-bottom: 24px;
+    }
+    .capsule-card {
+      border-radius: 20px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      padding: 20px;
+      margin-bottom: 16px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .capsule-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+
+    .btn-pill {
+      border-radius: 50px;
+      padding: 12px 24px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size: 0.95rem;
+    }
+    .btn-primary { background: var(--primary-gradient); color: #fff; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(42, 82, 152, 0.4); }
+    .btn-success { background-color: var(--success-color); color: #fff; }
+
+    .weekly-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .meal-toggle-group { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+    .meal-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: #f8fafc;
+      border-radius: 50px;
+      cursor: pointer;
+    }
+    .meal-option input[type="checkbox"] { width: 20px; height: 20px; accent-color: #1e3c72; cursor: pointer; }
+
+    /* Modals & Toasts */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card {
+      background: #fff;
+      border-radius: 30px;
+      width: 90%;
+      max-width: 440px;
+      padding: 28px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      text-align: center;
+      transform: scale(0.9);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .modal-overlay.active .modal-card { transform: scale(1); }
+    .modal-icon { font-size: 48px; margin-bottom: 16px; }
+    .modal-icon.success { color: var(--success-color); }
+    .modal-icon.error { color: var(--error-color); }
+    .modal-icon.info { color: var(--info-color); }
+
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .toast {
+      background: #fff;
+      padding: 14px 24px;
+      border-radius: 50px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.9rem;
+      animation: slideIn 0.3s ease forwards;
+    }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Auth Views */
+    #auth-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      padding: 20px;
+    }
+    .auth-card {
+      background: #fff;
+      border-radius: 30px;
+      padding: 36px 32px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    .auth-toggle-bar {
+      display: flex;
+      background: #f1f5f9;
+      border-radius: 50px;
+      padding: 4px;
+      margin-bottom: 24px;
+    }
+    .auth-toggle-btn {
+      flex: 1;
+      padding: 10px;
+      border-radius: 50px;
+      border: none;
+      background: transparent;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: #64748b;
+    }
+    .auth-toggle-btn.active {
+      background: #fff;
+      color: #1e3c72;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .input-group { margin-bottom: 16px; text-align: left; }
+    .input-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+      color: #64748b;
+      font-weight: 600;
+    }
+    .input-control {
+      width: 100%;
+      padding: 12px 20px;
+      border-radius: 50px;
+      border: 1px solid #cbd5e1;
+      outline: none;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+    .input-control:focus {
+      border-color: #2a5298;
+      box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.15);
+    }
+
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; padding: 16px; }
+      .nav-list { flex-direction: row; overflow-x: auto; }
+      .main-content { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Custom Dialog Modal -->
+  <div class="modal-overlay" id="app-modal">
+    <div class="modal-card">
+      <i class="fa-solid fa-circle-check modal-icon success" id="modal-icon"></i>
+      <h3 id="modal-title" style="margin-bottom: 12px;">Notification</h3>
+      <p id="modal-message" style="color: #64748b; font-size: 0.95rem; margin-bottom: 24px;"></p>
+      <button class="btn-pill btn-primary" onclick="closeModal()" style="width: 100%;">OK</button>
+    </div>
+  </div>
+
+  <!-- AUTH OVERLAY (LOGIN / REGISTER) -->
+  <div id="auth-overlay">
+    <div class="auth-card">
+      <i class="fa-solid fa-utensils" style="font-size: 38px; color: #1e3c72; margin-bottom: 12px;"></i>
+      <h2 style="margin-bottom: 6px; color: #1e293b;">Suprabhatham Mess</h2>
+      <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 20px;">Please login or register to continue</p>
+      
+      <!-- Toggle Bar -->
+      <div class="auth-toggle-bar">
+        <button class="auth-toggle-btn active" id="btn-toggle-login" onclick="switchAuthTab('login')">Login</button>
+        <button class="auth-toggle-btn" id="btn-toggle-register" onclick="switchAuthTab('register')">Register</button>
+      </div>
+
+      <!-- LOGIN FORM -->
+      <div id="form-login">
+        <div class="input-group">
+          <label><i class="fa-solid fa-hashtag"></i> Token Number</label>
+          <input type="number" id="login-token" class="input-control" placeholder="Enter Token Number">
+        </div>
+        <div class="input-group">
+          <label><i class="fa-solid fa-key"></i> Password</label>
+          <input type="password" id="login-pass" class="input-control" placeholder="Enter Password">
+        </div>
+        <button class="btn-pill btn-primary" style="width: 100%; margin-top: 8px;" onclick="handleLogin()">
+          <i class="fa-solid fa-right-to-bracket"></i> Login
+        </button>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div id="form-register" style="display: none;">
+        <div class="input-group">
+          <label><i class="fa-solid fa-hashtag"></i> Token Number</label>
+          <input type="number" id="reg-token" class="input-control" placeholder="Token Number">
+        </div>
+        <div class="input-group">
+          <label><i class="fa-solid fa-user"></i> Full Name</label>
+          <input type="text" id="reg-name" class="input-control" placeholder="Full Name">
+        </div>
+        <div class="input-group">
+          <label><i class="fa-solid fa-layer-group"></i> Category</label>
+          <select id="reg-category" class="input-control">
+            <option value="SUPRABHATHAM">SUPRABHATHAM</option>
+            <option value="E LEARNING">E LEARNING</option>
+            <option value="MASJID">MASJID</option>
+            <option value="SNEC">SNEC</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label><i class="fa-solid fa-key"></i> Password</label>
+          <input type="password" id="reg-pass" class="input-control" placeholder="Create Password">
+        </div>
+        <button class="btn-pill btn-success" style="width: 100%; margin-top: 8px;" onclick="handleRegister()">
+          <i class="fa-solid fa-user-plus"></i> Create Account
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MAIN APP WORKSPACE -->
+  <div id="app-container" style="display: none;">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div>
+        <div class="brand-header">
+          <i class="fa-solid fa-bowl-food"></i>
+          <h2>Suprabhatham Mess</h2>
+        </div>
+        <ul class="nav-list">
+          <li class="nav-item active" onclick="switchTab('weekly')">
+            <i class="fa-solid fa-calendar-week"></i> Weekly Booking
+          </li>
+          <li class="nav-item" onclick="switchTab('report')">
+            <i class="fa-solid fa-chart-pie"></i> Monthly Report
+          </li>
+          <li class="nav-item admin-only" onclick="switchTab('admin')" style="display: none;">
+            <i class="fa-solid fa-user-shield"></i> Admin Panel
+          </li>
+        </ul>
+      </div>
+
+      <a class="nav-item" onclick="handleLogout()" style="margin-top: 20px; background: rgba(252, 92, 101, 0.1); color: #fc5c65;">
+        <i class="fa-solid fa-power-off"></i> Logout
+      </a>
+    </div>
+
+    <!-- Workspace -->
+    <div class="main-content">
+      <div class="header-bar">
+        <h2 id="view-title" style="color: #1e293b;">Weekly Mess Schedule</h2>
+        <div class="user-pill">
+          <i class="fa-solid fa-circle-user" style="color: #4b7bec; font-size: 1.2rem;"></i>
+          <span id="user-display-name">User</span>
+          <span id="user-display-token" style="background: #e2e8f0; padding: 2px 8px; border-radius: 20px; font-size: 0.8rem;">#000</span>
+        </div>
+      </div>
+
+      <!-- VIEW 1: WEEKLY BOOKING MATRIX -->
+      <div id="view-weekly" class="tab-view">
+        <div class="section-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+            <p style="color: #64748b;">Select your meal preferences for the upcoming week.</p>
+            <button class="btn-pill btn-success" onclick="saveWeeklySchedule()">
+              <i class="fa-solid fa-floppy-disk"></i> Save Booking
+            </button>
+          </div>
+          <div class="weekly-grid" id="weekly-grid-container"></div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: MONTHLY REPORT -->
+      <div id="view-report" class="tab-view" style="display: none;">
+        <div class="section-card">
+          <h3 style="margin-bottom: 16px;">Current Month Booking Summary</h3>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 2px solid #e2e8f0; color: #64748b;">
+                  <th style="padding: 12px;">Date</th>
+                  <th style="padding: 12px; text-align: center;">Breakfast</th>
+                  <th style="padding: 12px; text-align: center;">Lunch</th>
+                  <th style="padding: 12px; text-align: center;">Dinner</th>
+                </tr>
+              </thead>
+              <tbody id="report-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: ADMIN PANEL -->
+      <div id="view-admin" class="tab-view" style="display: none;">
+        <div class="section-card">
+          <h3 style="margin-bottom: 16px;">Admin Dashboard</h3>
+          <p style="color: #64748b;">System booking overview and management.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let currentUser = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      checkExistingSession();
+    });
+
+    function checkExistingSession() {
+      const savedSession = localStorage.getItem('snec_mess_session');
+      if (savedSession) {
+        currentUser = JSON.parse(savedSession);
+        renderAuthenticatedUI();
+      } else {
+        document.getElementById('auth-overlay').style.display = 'flex';
+        document.getElementById('app-container').style.display = 'none';
+      }
+    }
+
+    function switchAuthTab(type) {
+      if (type === 'login') {
+        document.getElementById('form-login').style.display = 'block';
+        document.getElementById('form-register').style.display = 'none';
+        document.getElementById('btn-toggle-login').classList.add('active');
+        document.getElementById('btn-toggle-register').classList.remove('active');
+      } else {
+        document.getElementById('form-login').style.display = 'none';
+        document.getElementById('form-register').style.display = 'block';
+        document.getElementById('btn-toggle-login').classList.remove('active');
+        document.getElementById('btn-toggle-register').classList.add('active');
+      }
+    }
+
+    async function handleRegister() {
+      const token = document.getElementById('reg-token').value.trim();
+      const name = document.getElementById('reg-name').value.trim();
+      const category = document.getElementById('reg-category').value;
+      const pass = document.getElementById('reg-pass').value.trim();
+
+      if (!token || !name || !pass) {
+        showToast('Please fill all fields', 'error');
+        return;
+      }
+
+      showToast('Registering user...', 'info');
+
+      try {
+        const userRef = window.fs.doc(window.db, 'users', token);
+        await window.fs.setDoc(userRef, {
+          token: token,
+          name: name,
+          category: category,
+          password: pass,
+          role: 'user',
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+
+        showModal('Success', 'Registration successful! You can now log in.', 'success');
+        switchAuthTab('login');
+        document.getElementById('login-token').value = token;
+        document.getElementById('login-pass').value = pass;
+      } catch (err) {
+        showModal('Error', err.message, 'error');
+      }
+    }
+
+    async function handleLogin() {
+      const token = document.getElementById('login-token').value.trim();
+      const pass = document.getElementById('login-pass').value.trim();
+
+      if (!token || !pass) {
+        showToast('Enter token and password', 'error');
+        return;
+      }
+
+      showToast('Authenticating...', 'info');
+
+      try {
+        const userRef = window.fs.doc(window.db, 'users', token);
+        const docSnap = await window.fs.getDoc(userRef);
+
+        if (!docSnap.exists()) {
+          showModal('Login Failed', 'Token not found. Please register first.', 'error');
+          return;
+        }
+
+        const userData = docSnap.data();
+        if (userData.password !== pass) {
+          showModal('Login Failed', 'Incorrect password. Try again.', 'error');
+          return;
+        }
+
+        currentUser = userData;
+        localStorage.setItem('snec_mess_session', JSON.stringify(currentUser));
+        document.getElementById('auth-overlay').style.display = 'none';
+        renderAuthenticatedUI();
+        showModal('Success', `Welcome ${currentUser.name}!`, 'success');
+      } catch (err) {
+        showModal('Error', err.message, 'error');
+      }
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('snec_mess_session');
+      currentUser = null;
+      document.getElementById('app-container').style.display = 'none';
+      document.getElementById('auth-overlay').style.display = 'flex';
+      showToast('Successfully logged out', 'info');
+    }
+
+    function renderAuthenticatedUI() {
+      document.getElementById('app-container').style.display = 'flex';
+      document.getElementById('user-display-name').textContent = currentUser.name;
+      document.getElementById('user-display-token').textContent = '#' + currentUser.token;
+
+      if (currentUser.role === 'admin') {
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
+      }
+
+      renderWeeklyMatrix();
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-view').forEach(el => el.style.display = 'none');
+
+      if (tabName === 'weekly') {
+        document.getElementById('view-weekly').style.display = 'block';
+        document.getElementById('view-title').textContent = 'Weekly Mess Schedule';
+      } else if (tabName === 'report') {
+        document.getElementById('view-report').style.display = 'block';
+        document.getElementById('view-title').textContent = 'Monthly Report';
+        loadMonthlyReport();
+      } else if (tabName === 'admin') {
+        document.getElementById('view-admin').style.display = 'block';
+        document.getElementById('view-title').textContent = 'Admin Dashboard';
+      }
+    }
+
+    function renderWeeklyMatrix() {
+      const container = document.getElementById('weekly-grid-container');
+      container.innerHTML = '';
+
+      const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      const today = new Date();
+      
+      const currentDay = today.getDay();
+      const distanceToMon = (currentDay === 0 ? -6 : 1) - currentDay;
+      const monday = new Date(today);
+      monday.setDate(today.getDate() + distanceToMon);
+
+      for (let i = 0; i < 7; i++) {
+        const dayDate = new Date(monday);
+        dayDate.setDate(monday.getDate() + i);
+        const dateStr = dayDate.toISOString().split('T')[0];
+
+        const card = document.createElement('div');
+        card.className = 'capsule-card';
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h4 style="color:#1e3c72;">${daysOfWeek[i]}</h4>
+            <span style="font-size:0.8rem; color:#64748b;">${dateStr}</span>
+          </div>
+          <div class="meal-toggle-group">
+            <label class="meal-option">
+              <span>🌅 Breakfast</span>
+              <input type="checkbox" data-date="${dateStr}" data-meal="breakfast">
+            </label>
+            <label class="meal-option">
+              <span>☀️ Lunch</span>
+              <input type="checkbox" data-date="${dateStr}" data-meal="lunch">
+            </label>
+            <label class="meal-option">
+              <span>🌙 Dinner</span>
+              <input type="checkbox" data-date="${dateStr}" data-meal="dinner">
+            </label>
+          </div>
+        `;
+        container.appendChild(card);
+      }
+    }
+
+    async function saveWeeklySchedule() {
+      const checkboxes = document.querySelectorAll('#weekly-grid-container input[type="checkbox"]');
+      const timestamp = new Date().toISOString();
+
+      showToast('Saving bookings...', 'info');
+
+      try {
+        const promises = [];
+        checkboxes.forEach(cb => {
+          const bookingDoc = {
+            timestamp: timestamp,
+            date: cb.dataset.date,
+            meal: cb.dataset.meal,
+            action: cb.checked ? 'book' : 'cancel',
+            token: currentUser.token,
+            name: currentUser.name,
+            category: currentUser.category
+          };
+          promises.push(window.fs.addDoc(window.fs.collection(window.db, 'bookings'), bookingDoc));
+        });
+
+        await Promise.all(promises);
+        showModal('Success', 'Weekly bookings updated successfully!', 'success');
+      } catch (err) {
+        showModal('Error', err.message, 'error');
+      }
+    }
+
+    async function loadMonthlyReport() {
+      const tbody = document.getElementById('report-table-body');
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 12px;">Loading data...</td></tr>';
+
+      try {
+        const q = window.fs.query(
+          window.fs.collection(window.db, 'bookings'),
+          window.fs.where('token', '==', currentUser.token)
+        );
+
+        const querySnapshot = await window.fs.getDocs(q);
+        const processedData = {};
+
+        querySnapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const dateStr = data.date;
+          if (!processedData[dateStr]) {
+            processedData[dateStr] = { date: dateStr, breakfast: '❌', lunch: '❌', dinner: '❌' };
+          }
+          if (data.action === 'book') {
+            processedData[dateStr][data.meal] = '✔️';
+          } else if (data.action === 'cancel') {
+            processedData[dateStr][data.meal] = '❌';
+          }
+        });
+
+        tbody.innerHTML = '';
+        const rows = Object.values(processedData);
+
+        if (rows.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 12px;">No bookings found for this user.</td></tr>';
+          return;
+        }
+
+        rows.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.style.borderBottom = '1px solid #f1f5f9';
+          tr.innerHTML = `
+            <td style="padding: 12px;">${row.date}</td>
+            <td style="padding: 12px; text-align: center;">${row.breakfast}</td>
+            <td style="padding: 12px; text-align: center;">${row.lunch}</td>
+            <td style="padding: 12px; text-align: center;">${row.dinner}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red; padding: 12px;">${err.message}</td></tr>`;
+      }
+    }
+
+    function showModal(title, message, type = 'info') {
+      const modal = document.getElementById('app-modal');
+      const icon = document.getElementById('modal-icon');
+      
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-message').textContent = message;
+
+      icon.className = 'modal-icon fa-solid ' + 
+        (type === 'success' ? 'fa-circle-check success' : type === 'error' ? 'fa-circle-xmark error' : 'fa-circle-info info');
+
+      modal.classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('app-modal').classList.remove('active');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `<i class="fa-solid fa-bell" style="color:#4b7bec;"></i> <span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
