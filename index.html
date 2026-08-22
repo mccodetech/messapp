@@ -5,17 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Suprabhatham Mess Booking - SNEC</title>
   
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-  <!-- Firebase Modular SDK -->
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { 
-      getAuth, sendPasswordResetEmail 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { 
-      getFirestore, doc, getDoc, setDoc, collection, query, where, getDocs 
+      getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -29,13 +26,10 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    window.auth = auth;
-    window.db = db;
+    window.auth = getAuth(app);
+    window.db = getFirestore(app);
     window.sendPasswordResetEmail = sendPasswordResetEmail;
-    window.fs = { doc, getDoc, setDoc, collection, query, where, getDocs };
+    window.fs = { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs };
   </script>
 
   <style>
@@ -47,7 +41,6 @@
       --card-bg: #ffffff;
       --success-color: #05c46b;
       --error-color: #fc5c65;
-      --info-color: #4b7bec;
       --font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     }
 
@@ -56,7 +49,6 @@
 
     #app-container { display: flex; width: 100%; min-height: 100vh; }
 
-    /* Desktop Sidebar */
     .sidebar {
       width: 250px;
       background: var(--sidebar-bg);
@@ -90,26 +82,10 @@
       font-size: 0.9rem;
       transition: 0.2s ease;
     }
-    .nav-item:hover, .nav-item.active {
-      background: var(--primary-gradient);
-      color: #fff;
-    }
+    .nav-item:hover, .nav-item.active { background: var(--primary-gradient); color: #fff; }
 
-    /* Main Workspace */
-    .main-content {
-      flex: 1;
-      padding: 24px;
-      overflow-y: auto;
-      max-width: 100%;
-    }
-    .header-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
+    .main-content { flex: 1; padding: 24px; overflow-y: auto; }
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
     .user-pill {
       background: #fff;
       padding: 6px 16px;
@@ -129,14 +105,12 @@
       margin-bottom: 20px;
     }
 
-    /* Tabs & Buttons */
     .sub-tab-bar {
       display: flex;
       gap: 10px;
       margin-bottom: 18px;
       border-bottom: 2px solid #e2e8f0;
       padding-bottom: 10px;
-      overflow-x: auto;
     }
     .sub-tab-btn {
       padding: 8px 18px;
@@ -146,17 +120,12 @@
       font-size: 0.85rem;
       font-weight: 600;
       cursor: pointer;
-      white-space: nowrap;
     }
-    .sub-tab-btn.active {
-      background: #1e3c72;
-      color: #fff;
-      border-color: #1e3c72;
-    }
+    .sub-tab-btn.active { background: #1e3c72; color: #fff; border-color: #1e3c72; }
 
     .btn-pill {
       border-radius: 50px;
-      padding: 10px 18px;
+      padding: 9px 18px;
       border: none;
       font-weight: 600;
       cursor: pointer;
@@ -171,42 +140,18 @@
     .btn-success { background-color: var(--success-color); color: #fff; }
     .btn-light { background: #e2e8f0; color: #334155; }
 
-    /* Bulk Booking Matrix Table */
     .bulk-table-container {
       overflow-x: auto;
       margin-top: 14px;
       border-radius: 10px;
       border: 1px solid #e2e8f0;
     }
-    .bulk-table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: center;
-      min-width: 550px;
-    }
-    .bulk-table th, .bulk-table td {
-      padding: 12px 10px;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .bulk-table th {
-      background: #f8fafc;
-      color: #475569;
-      font-size: 0.85rem;
-    }
-    .bulk-table input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      accent-color: #1e3c72;
-      cursor: pointer;
-    }
+    .bulk-table { width: 100%; border-collapse: collapse; text-align: center; min-width: 500px; }
+    .bulk-table th, .bulk-table td { padding: 12px 10px; border-bottom: 1px solid #e2e8f0; }
+    .bulk-table th { background: #f8fafc; color: #475569; font-size: 0.85rem; }
+    .bulk-table input[type="checkbox"] { width: 18px; height: 18px; accent-color: #1e3c72; cursor: pointer; }
 
-    /* Daily Selection Card */
-    .daily-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 14px;
-      margin-top: 16px;
-    }
+    .daily-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 14px; margin-top: 16px; }
     .daily-meal-card {
       border: 2px solid #e2e8f0;
       border-radius: 12px;
@@ -215,108 +160,48 @@
       cursor: pointer;
       transition: 0.2s ease;
     }
-    .daily-meal-card.selected {
-      border-color: #1e3c72;
-      background: #ebf3ff;
-    }
+    .daily-meal-card.selected { border-color: #1e3c72; background: #ebf3ff; }
     .daily-meal-card i { font-size: 24px; margin-bottom: 8px; color: #1e3c72; }
 
-    /* Tables */
     table { width: 100%; border-collapse: collapse; text-align: left; }
     th, td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.88rem; }
 
-    /* Toast & Modals */
-    .toast-container {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 2000;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .toast {
-      background: #fff;
-      padding: 12px 18px;
-      border-radius: 50px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
-      font-size: 0.85rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+    .toast { background: #fff; padding: 12px 18px; border-radius: 50px; box-shadow: 0 4px 15px rgba(0,0,0,0.12); font-size: 0.85rem; }
 
     .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(3px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      pointer-events: none;
-      transition: 0.2s ease;
-      padding: 16px;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(3px);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 1000; opacity: 0; pointer-events: none; transition: 0.2s ease; padding: 16px;
     }
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
-    .modal-card {
-      background: #fff;
-      border-radius: 20px;
-      width: 100%;
-      max-width: 400px;
-      padding: 24px;
-      text-align: center;
-    }
+    .modal-card { background: #fff; border-radius: 20px; width: 100%; max-width: 400px; padding: 24px; text-align: center; }
 
-    /* Auth Screens */
     #auth-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: var(--primary-gradient);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 500;
-      padding: 16px;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--primary-gradient); display: flex; align-items: center; justify-content: center;
+      z-index: 500; padding: 16px;
     }
     .auth-card {
-      background: #fff;
-      border-radius: 20px;
-      padding: 28px 24px;
-      width: 100%;
-      max-width: 380px;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-      text-align: center;
+      background: #fff; border-radius: 20px; padding: 28px 24px;
+      width: 100%; max-width: 380px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center;
     }
     .input-group { margin-bottom: 14px; text-align: left; }
     .input-group label { display: block; margin-bottom: 4px; font-size: 0.8rem; color: #64748b; font-weight: 600; }
     .input-control {
-      width: 100%;
-      padding: 10px 16px;
-      border-radius: 50px;
-      border: 1px solid #cbd5e1;
-      outline: none;
-      font-size: 0.9rem;
+      width: 100%; padding: 10px 16px; border-radius: 50px; border: 1px solid #cbd5e1; outline: none; font-size: 0.9rem;
     }
 
-    /* Mobile Responsiveness */
     @media (max-width: 768px) {
       #app-container { flex-direction: column; }
-      .sidebar {
-        width: 100%;
-        padding: 12px 16px;
-        flex-direction: row;
-        align-items: center;
-      }
+      .sidebar { width: 100%; padding: 12px 16px; flex-direction: row; align-items: center; }
       .brand-header { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
       .brand-header h2 { display: none; }
       .nav-list { flex-direction: row; gap: 6px; }
       .nav-item { padding: 8px 12px; font-size: 0.8rem; }
       .nav-item span { display: none; }
       .main-content { padding: 16px; }
-      .header-bar h2 { font-size: 1.1rem; }
     }
   </style>
 </head>
@@ -339,70 +224,63 @@
     <div class="auth-card">
       <i class="fa-solid fa-utensils" style="font-size: 32px; color: #1e3c72; margin-bottom: 8px;"></i>
       <h2 style="color: #1e293b; font-size: 1.3rem; margin-bottom: 4px;">Suprabhatham Mess</h2>
-      <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 16px;">Sign in to your account</p>
+      <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 16px;">Mess Management System</p>
 
       <div style="display: flex; background: #f1f5f9; border-radius: 50px; padding: 4px; margin-bottom: 16px;">
-        <button class="btn-pill" id="tab-btn-login" onclick="switchAuthTab('login')" style="flex:1; background:#fff; color:#1e3c72; padding:8px;">Login</button>
-        <button class="btn-pill" id="tab-btn-reg" onclick="switchAuthTab('register')" style="flex:1; background:transparent; color:#64748b; padding:8px;">Register</button>
-        <button class="btn-pill" id="tab-btn-reset" onclick="switchAuthTab('reset')" style="flex:1; background:transparent; color:#64748b; padding:8px;">Forgot</button>
+        <button class="btn-pill" id="tab-btn-login" onclick="switchAuthTab('login')" style="flex:1; background:#fff; color:#1e3c72; padding:8px;">Sign In</button>
+        <button class="btn-pill" id="tab-btn-reg" onclick="switchAuthTab('register')" style="flex:1; background:transparent; color:#64748b; padding:8px;">Sign Up</button>
       </div>
 
       <!-- Login Form -->
       <div id="form-login">
         <div class="input-group">
-          <label><i class="fa-solid fa-hashtag"></i> Token Number</label>
-          <input type="number" id="login-token" class="input-control" placeholder="e.g. 61">
+          <label><i class="fa-solid fa-user"></i> Token / Username</label>
+          <input type="text" id="login-identifier" class="input-control" placeholder="Token number or admin user">
         </div>
         <div class="input-group">
           <label><i class="fa-solid fa-key"></i> Password</label>
           <input type="password" id="login-pass" class="input-control" placeholder="Password">
         </div>
         <button class="btn-pill btn-primary" style="width: 100%; margin-top: 6px;" onclick="handleLogin()">
-          <i class="fa-solid fa-right-to-bracket"></i> Login
+          <i class="fa-solid fa-right-to-bracket"></i> Sign In
         </button>
+        <p style="margin-top: 14px; font-size: 0.8rem;">
+          <a href="javascript:void(0)" onclick="openResetModal()" style="color: #1e3c72; text-decoration: none;">Forgot Password?</a>
+        </p>
       </div>
 
       <!-- Register Form -->
       <div id="form-register" style="display: none;">
         <div class="input-group">
-          <label><i class="fa-solid fa-hashtag"></i> Token Number</label>
-          <input type="number" id="reg-token" class="input-control" placeholder="Token Number">
-        </div>
-        <div class="input-group">
           <label><i class="fa-solid fa-user"></i> Full Name</label>
           <input type="text" id="reg-name" class="input-control" placeholder="Your Name">
         </div>
         <div class="input-group">
-          <label><i class="fa-solid fa-envelope"></i> Email (For Password Reset)</label>
-          <input type="email" id="reg-email" class="input-control" placeholder="example@mail.com">
+          <label><i class="fa-solid fa-mobile-screen"></i> Mobile Number</label>
+          <input type="tel" id="reg-phone" class="input-control" placeholder="Phone Number">
         </div>
         <div class="input-group">
-          <label><i class="fa-solid fa-layer-group"></i> Category</label>
+          <label><i class="fa-solid fa-envelope"></i> Email Address</label>
+          <input type="email" id="reg-email" class="input-control" placeholder="Email (for password reset)">
+        </div>
+        <div class="input-group">
+          <label><i class="fa-solid fa-layer-group"></i> Department / Category</label>
           <select id="reg-category" class="input-control">
-            <option value="SUPRABHATHAM">SUPRABHATHAM</option>
-            <option value="E LEARNING">E LEARNING</option>
-            <option value="MASJID">MASJID</option>
             <option value="SNEC">SNEC</option>
+            <option value="E LEARNING">E LEARNING</option>
+            <option value="SUPRABHATHAM">SUPRABHATHAM</option>
+            <option value="MASJID">MASJID</option>
+            <option value="BOOK DEPOT">BOOK DEPOT</option>
+            <option value="GUEST">GUEST</option>
+            <option value="OTHER">OTHER</option>
           </select>
         </div>
         <div class="input-group">
-          <label><i class="fa-solid fa-key"></i> Password</label>
-          <input type="password" id="reg-pass" class="input-control" placeholder="Create Password">
+          <label><i class="fa-solid fa-key"></i> Set Password</label>
+          <input type="password" id="reg-pass" class="input-control" placeholder="Password">
         </div>
         <button class="btn-pill btn-success" style="width: 100%; margin-top: 6px;" onclick="handleRegister()">
-          <i class="fa-solid fa-user-plus"></i> Create Account
-        </button>
-      </div>
-
-      <!-- Forgot / Reset Password Form -->
-      <div id="form-reset" style="display: none;">
-        <p style="color:#64748b; font-size:0.8rem; margin-bottom:12px;">Enter your registered Email to receive a secure password reset link.</p>
-        <div class="input-group">
-          <label><i class="fa-solid fa-envelope"></i> Registered Email</label>
-          <input type="email" id="reset-email" class="input-control" placeholder="your-email@example.com">
-        </div>
-        <button class="btn-pill btn-primary" style="width: 100%; margin-top: 6px;" onclick="handleSendResetEmail()">
-          <i class="fa-solid fa-paper-plane"></i> Send Reset Link
+          <i class="fa-solid fa-user-plus"></i> Submit Registration
         </button>
       </div>
 
@@ -411,7 +289,6 @@
 
   <!-- MAIN APP CONTAINER -->
   <div id="app-container" style="display: none;">
-    <!-- Sidebar / Topbar on Mobile -->
     <div class="sidebar">
       <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
         <div class="brand-header">
@@ -419,13 +296,13 @@
           <h2>Suprabhatham</h2>
         </div>
         <ul class="nav-list">
-          <li class="nav-item active" onclick="switchNav('booking')">
+          <li class="nav-item active" id="nav-booking" onclick="switchNav('booking')">
             <i class="fa-solid fa-calendar-check"></i> <span>Booking</span>
           </li>
-          <li class="nav-item" onclick="switchNav('report')">
+          <li class="nav-item" id="nav-report" onclick="switchNav('report')">
             <i class="fa-solid fa-clock-rotate-left"></i> <span>Reports</span>
           </li>
-          <li class="nav-item admin-only" onclick="switchNav('admin')" style="display: none;">
+          <li class="nav-item admin-only" id="nav-admin" onclick="switchNav('admin')" style="display: none;">
             <i class="fa-solid fa-user-shield"></i> <span>Admin</span>
           </li>
           <li class="nav-item" onclick="handleLogout()" style="color: #fc5c65;">
@@ -435,7 +312,6 @@
       </div>
     </div>
 
-    <!-- Workspace -->
     <div class="main-content">
       <div class="header-bar">
         <h2 id="view-title" style="color: #1e293b;">Mess Booking Portal</h2>
@@ -446,7 +322,7 @@
         </div>
       </div>
 
-      <!-- VIEW 1: BOOKING MODES -->
+      <!-- VIEW 1: BOOKING -->
       <div id="view-booking" class="tab-view">
         <div class="sub-tab-bar">
           <button class="sub-tab-btn active" id="btn-mode-bulk" onclick="switchBookingMode('bulk')">
@@ -457,7 +333,7 @@
           </button>
         </div>
 
-        <!-- MODE A: BULK BOOKING -->
+        <!-- BULK -->
         <div id="mode-bulk" class="section-card">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
             <div>
@@ -468,7 +344,7 @@
               <button class="btn-pill btn-light" onclick="bulkSetAll(true)">Select All</button>
               <button class="btn-pill btn-light" onclick="bulkSetAll(false)">Clear</button>
               <button class="btn-pill btn-success" onclick="saveBulkBookings()">
-                <i class="fa-solid fa-floppy-disk"></i> Save Weekly Booking
+                <i class="fa-solid fa-floppy-disk"></i> Save Bookings
               </button>
             </div>
           </div>
@@ -478,18 +354,9 @@
               <thead>
                 <tr>
                   <th style="text-align: left;">Day & Date</th>
-                  <th>
-                    🌅 Breakfast<br/>
-                    <a href="javascript:void(0)" onclick="toggleColumnMeals('breakfast')" style="font-size:0.75rem; color:#4b7bec;">Toggle All</a>
-                  </th>
-                  <th>
-                    ☀️ Lunch<br/>
-                    <a href="javascript:void(0)" onclick="toggleColumnMeals('lunch')" style="font-size:0.75rem; color:#4b7bec;">Toggle All</a>
-                  </th>
-                  <th>
-                    🌙 Dinner<br/>
-                    <a href="javascript:void(0)" onclick="toggleColumnMeals('dinner')" style="font-size:0.75rem; color:#4b7bec;">Toggle All</a>
-                  </th>
+                  <th>🌅 Breakfast<br/><a href="javascript:void(0)" onclick="toggleColumnMeals('breakfast')" style="font-size:0.75rem; color:#4b7bec;">Toggle All</a></th>
+                  <th>☀️ Lunch<br/><a href="javascript:void(0)" onclick="toggleColumnMeals('lunch')" style="font-size:0.75rem; color:#4b7bec;">Toggle All</a></th>
+                  <th>🌙 Dinner<br/><a href="javascript:void(0)" onclick="toggleColumnMeals('dinner')" style="font-size:0.75rem; color:#4b7bec;">Toggle All</a></th>
                 </tr>
               </thead>
               <tbody id="bulk-table-body"></tbody>
@@ -497,7 +364,7 @@
           </div>
         </div>
 
-        <!-- MODE B: DAILY BOOKING -->
+        <!-- DAILY -->
         <div id="mode-daily" class="section-card" style="display: none;">
           <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 16px;">
             <div>
@@ -549,11 +416,32 @@
         </div>
       </div>
 
-      <!-- VIEW 3: ADMIN PANEL -->
+      <!-- VIEW 3: ADMIN -->
       <div id="view-admin" class="tab-view" style="display: none;">
+        <!-- Pending Approvals -->
+        <div class="section-card">
+          <h3 style="margin-bottom: 12px; font-size: 1rem; color:#1e3c72;">Pending User Approvals</h3>
+          <div style="overflow-x: auto;">
+            <table>
+              <thead>
+                <tr style="color: #64748b;">
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Category</th>
+                  <th>Assign Token</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="admin-pending-users"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Bookings Overview -->
         <div class="section-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
-            <h3>All Registered Bookings</h3>
+            <h3>All Member Bookings</h3>
             <button class="btn-pill btn-primary" onclick="exportAdminTableToCSV()">
               <i class="fa-solid fa-file-excel"></i> Export CSV
             </button>
@@ -606,67 +494,92 @@
     function switchAuthTab(type) {
       document.getElementById('form-login').style.display = type === 'login' ? 'block' : 'none';
       document.getElementById('form-register').style.display = type === 'register' ? 'block' : 'none';
-      document.getElementById('form-reset').style.display = type === 'reset' ? 'block' : 'none';
-
       document.getElementById('tab-btn-login').style.background = type === 'login' ? '#fff' : 'transparent';
       document.getElementById('tab-btn-reg').style.background = type === 'register' ? '#fff' : 'transparent';
-      document.getElementById('tab-btn-reset').style.background = type === 'reset' ? '#fff' : 'transparent';
     }
 
     async function handleLogin() {
-      const token = document.getElementById('login-token').value.trim();
+      const id = document.getElementById('login-identifier').value.trim();
       const pass = document.getElementById('login-pass').value.trim();
-      if (!token || !pass) return showToast('Enter token and password', 'error');
+      if (!id || !pass) return showToast('Enter token/username and password', 'error');
 
+      // 1. Check Hardcoded Super Admin & Admin Credentials
+      if (id === 'sadmin' && pass === 'sadmin_4321') {
+        currentUser = { token: '0', name: 'Super Admin', role: 'superadmin', status: 'active', category: 'ADMIN' };
+        return setSessionAndEnter(currentUser);
+      }
+      if (id === 'admin' && pass === 'admin123') {
+        currentUser = { token: '1', name: 'Admin', role: 'admin', status: 'active', category: 'ADMIN' };
+        return setSessionAndEnter(currentUser);
+      }
+
+      // 2. Regular User Lookup in Firestore
       try {
-        const userRef = window.fs.doc(window.db, 'users', token);
+        const userRef = window.fs.doc(window.db, 'users', id);
         const docSnap = await window.fs.getDoc(userRef);
 
         if (!docSnap.exists() || docSnap.data().password !== pass) {
-          return showModal('Login Failed', 'Invalid Token or Password', 'error');
+          return showModal('Login Failed', 'Invalid Token/Username or Password', 'error');
         }
 
-        currentUser = docSnap.data();
-        localStorage.setItem('snec_mess_session', JSON.stringify(currentUser));
-        document.getElementById('auth-overlay').style.display = 'none';
-        renderAuthenticatedUI();
+        const data = docSnap.data();
+        if (data.status === 'pending') {
+          return showModal('Pending Approval', 'Your registration is awaiting Admin approval. Please contact the administrator.', 'info');
+        }
+
+        currentUser = data;
+        setSessionAndEnter(currentUser);
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
     }
 
+    function setSessionAndEnter(user) {
+      localStorage.setItem('snec_mess_session', JSON.stringify(user));
+      document.getElementById('auth-overlay').style.display = 'none';
+      renderAuthenticatedUI();
+    }
+
     async function handleRegister() {
-      const token = document.getElementById('reg-token').value.trim();
       const name = document.getElementById('reg-name').value.trim();
+      const phone = document.getElementById('reg-phone').value.trim();
       const email = document.getElementById('reg-email').value.trim();
       const category = document.getElementById('reg-category').value;
       const pass = document.getElementById('reg-pass').value.trim();
 
-      if (!token || !name || !email || !pass) return showToast('Fill all fields', 'error');
+      if (!name || !phone || !email || !pass) return showToast('Please fill all fields', 'error');
 
       try {
-        const userRef = window.fs.doc(window.db, 'users', token);
+        const tempId = 'temp_' + Date.now();
+        const userRef = window.fs.doc(window.db, 'users', tempId);
         await window.fs.setDoc(userRef, {
-          token, name, email, category, password: pass, role: (token === '1' || token === '100') ? 'admin' : 'user'
-        }, { merge: true });
+          tempId,
+          token: '',
+          name,
+          phone,
+          email,
+          category,
+          password: pass,
+          role: 'user',
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        });
 
-        showModal('Success', 'Account created! You can now log in.', 'success');
+        showModal('Submitted', 'Registration submitted successfully! You will be able to log in once an Admin approves your account.', 'success');
         switchAuthTab('login');
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
     }
 
-    async function handleSendResetEmail() {
-      const email = document.getElementById('reset-email').value.trim();
-      if (!email) return showToast('Please enter your email', 'error');
-
+    async function openResetModal() {
+      const email = prompt('Enter your registered Email address:');
+      if (!email) return;
       try {
-        await window.sendPasswordResetEmail(window.auth, email);
-        showModal('Email Sent', 'Password reset instructions have been sent to your email inbox.', 'success');
-        switchAuthTab('login');
+        await window.sendPasswordResetEmail(window.auth, email.trim());
+        showModal('Reset Sent', 'Password reset instructions have been sent to your email.', 'success');
       } catch (err) {
-        showModal('Reset Error', err.message, 'error');
+        showModal('Error', err.message, 'error');
       }
     }
 
@@ -680,14 +593,17 @@
     function renderAuthenticatedUI() {
       document.getElementById('app-container').style.display = 'flex';
       document.getElementById('user-display-name').textContent = currentUser.name;
-      document.getElementById('user-display-token').textContent = '#' + currentUser.token;
+      document.getElementById('user-display-token').textContent = '#' + (currentUser.token || 'Pending');
 
-      if (currentUser.role === 'admin') {
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
+      const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+      document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? 'flex' : 'none');
+
+      if (isAdmin) {
+        switchNav('admin');
+      } else {
+        renderBulkTable();
+        loadDailySelection();
       }
-
-      renderBulkTable();
-      loadDailySelection();
     }
 
     function switchNav(name) {
@@ -695,15 +611,19 @@
       document.querySelectorAll('.tab-view').forEach(el => el.style.display = 'none');
 
       if (name === 'booking') {
+        document.getElementById('nav-booking').classList.add('active');
         document.getElementById('view-booking').style.display = 'block';
         document.getElementById('view-title').textContent = 'Mess Booking Portal';
       } else if (name === 'report') {
+        document.getElementById('nav-report').classList.add('active');
         document.getElementById('view-report').style.display = 'block';
         document.getElementById('view-title').textContent = 'My Bookings Overview';
         loadMonthlyReport();
       } else if (name === 'admin') {
+        document.getElementById('nav-admin').classList.add('active');
         document.getElementById('view-admin').style.display = 'block';
         document.getElementById('view-title').textContent = 'Admin Dashboard';
+        loadAdminPendingUsers();
         loadAdminData();
       }
     }
@@ -715,7 +635,6 @@
       document.getElementById('mode-daily').style.display = mode === 'daily' ? 'block' : 'none';
     }
 
-    /* Bulk Weekly Table Generation */
     function renderBulkTable() {
       const tbody = document.getElementById('bulk-table-body');
       tbody.innerHTML = '';
@@ -780,7 +699,6 @@
       }
     }
 
-    /* Daily Booking Logic */
     function toggleDailyMeal(m) {
       dailyMeals[m] = !dailyMeals[m];
       updateDailyUI(m);
@@ -866,6 +784,69 @@
         });
       } catch (err) {
         tbody.innerHTML = `<tr><td colspan="4" style="color:red;">${err.message}</td></tr>`;
+      }
+    }
+
+    async function loadAdminPendingUsers() {
+      const tbody = document.getElementById('admin-pending-users');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading pending users...</td></tr>';
+      try {
+        const q = window.fs.query(window.fs.collection(window.db, 'users'), window.fs.where('status', '==', 'pending'));
+        const snap = await window.fs.getDocs(q);
+        tbody.innerHTML = '';
+
+        if (snap.empty) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">No pending user requests.</td></tr>';
+          return;
+        }
+
+        snap.forEach(docSnap => {
+          const u = docSnap.data();
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${u.name}</td>
+            <td>${u.phone}</td>
+            <td>${u.email}</td>
+            <td>${u.category}</td>
+            <td><input type="number" id="assign_token_${docSnap.id}" placeholder="e.g. 101" style="width:90px; padding:4px 8px; border:1px solid #cbd5e1; border-radius:4px;"></td>
+            <td>
+              <button class="btn-pill btn-success" style="padding:4px 10px; font-size:0.75rem;" onclick="approveUser('${docSnap.id}')">Approve</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="color:red;">${err.message}</td></tr>`;
+      }
+    }
+
+    async function approveUser(tempDocId) {
+      const tokenInput = document.getElementById(`assign_token_${tempDocId}`);
+      const token = tokenInput.value.trim();
+      if (!token) return showToast('Please assign a token number first', 'error');
+
+      try {
+        const tempRef = window.fs.doc(window.db, 'users', tempDocId);
+        const docSnap = await window.fs.getDoc(tempRef);
+        const userData = docSnap.data();
+
+        // Create permanent user with Token as doc ID
+        const targetRef = window.fs.doc(window.db, 'users', token);
+        await window.fs.setDoc(targetRef, {
+          ...userData,
+          token: token,
+          status: 'active'
+        });
+
+        // If docId differs from token, update old record status
+        if (tempDocId !== token) {
+          await window.fs.updateDoc(tempRef, { status: 'approved' });
+        }
+
+        showModal('User Approved', `Assigned Token #${token} to ${userData.name}`, 'success');
+        loadAdminPendingUsers();
+      } catch (err) {
+        showModal('Error', err.message, 'error');
       }
     }
 
