@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Suprabhatham Mess Booking - SNEC</title>
   
-  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <!-- Firebase SDK -->
@@ -50,7 +49,6 @@
 
     #app-container { display: flex; width: 100%; min-height: 100vh; }
 
-    /* Desktop Sidebar */
     .sidebar {
       width: 240px;
       background: var(--sidebar-bg);
@@ -88,7 +86,6 @@
     .nav-item:hover { color: #fff; background: rgba(255, 255, 255, 0.05); }
     .nav-item.active { background: var(--primary-gradient); color: #fff; font-weight: 600; }
 
-    /* Main Workspace */
     .main-content {
       flex: 1;
       padding: 24px 28px;
@@ -122,6 +119,32 @@
       border: 1px solid #e2e8f0;
       box-shadow: 0 1px 3px rgba(0,0,0,0.02);
       margin-bottom: 20px;
+    }
+
+    /* Stat Cards for Admin */
+    .stat-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: #fff;
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
     }
 
     .sub-tab-bar {
@@ -159,7 +182,7 @@
     .btn-success { background-color: var(--success-color); color: #fff; }
     .btn-light { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
-    /* Compact Weekly Matrix Table (Optimized for Mobile) */
+    /* Compact Weekly Matrix Table */
     .bulk-table-container {
       width: 100%;
       border-radius: 12px;
@@ -204,19 +227,24 @@
       accent-color: #1e3c72;
       cursor: pointer;
     }
-
-    /* Daily Selection Grid */
-    .daily-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 12px; margin-top: 14px; }
-    .daily-meal-card {
-      border: 2px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 14px 8px;
-      text-align: center;
-      cursor: pointer;
-      transition: 0.2s ease;
+    .bulk-table input[type="checkbox"]:disabled {
+      cursor: not-allowed;
+      opacity: 0.4;
     }
-    .daily-meal-card.selected { border-color: #1e3c72; background: #ebf3ff; }
-    .daily-meal-card i { font-size: 22px; margin-bottom: 6px; color: #1e3c72; }
+
+    /* Cut-off info bar */
+    .timing-notice {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      margin-bottom: 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
 
     table { width: 100%; border-collapse: collapse; text-align: left; }
     th, td { padding: 10px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
@@ -248,41 +276,27 @@
       width: 100%; padding: 10px 16px; border-radius: 50px; border: 1px solid #cbd5e1; outline: none; font-size: 0.9rem;
     }
 
-    /* Mobile Responsive Overhaul */
+    @media print {
+      body { background: #fff; color: #000; }
+      .sidebar, .header-bar, .btn-pill, .sub-tab-bar, #auth-overlay, .toast-container { display: none !important; }
+      .main-content { padding: 0; }
+      .section-card { border: none; box-shadow: none; padding: 0; }
+      table { width: 100%; border: 1px solid #333; }
+      th, td { border: 1px solid #333; color: #000; }
+    }
+
     @media (max-width: 768px) {
       #app-container { flex-direction: column; padding-bottom: 65px; }
-      
-      /* Fixed Bottom Navigation for Mobile */
       .sidebar {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 60px;
-        padding: 6px 12px;
-        flex-direction: row;
-        align-items: center;
-        border-top: 1px solid rgba(255,255,255,0.1);
-        box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
+        position: fixed; bottom: 0; left: 0; width: 100%; height: 60px;
+        padding: 6px 12px; flex-direction: row; align-items: center;
+        border-top: 1px solid rgba(255,255,255,0.1); box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
       }
-      .brand-header { display: none; }
-      .sidebar-footer { display: none; }
-      .nav-list {
-        flex-direction: row;
-        width: 100%;
-        justify-content: space-around;
-        gap: 0;
-      }
-      .nav-item {
-        padding: 6px 10px;
-        flex-direction: column;
-        gap: 4px;
-        font-size: 0.72rem;
-        border-radius: 8px;
-      }
+      .brand-header, .sidebar-footer { display: none; }
+      .nav-list { flex-direction: row; width: 100%; justify-content: space-around; gap: 0; }
+      .nav-item { padding: 6px 10px; flex-direction: column; gap: 4px; font-size: 0.72rem; border-radius: 8px; }
       .nav-item i { font-size: 16px; }
       .main-content { padding: 14px; }
-      .header-bar { margin-bottom: 16px; }
       .section-card { padding: 14px; }
     }
   </style>
@@ -371,7 +385,6 @@
 
   <!-- MAIN APP CONTAINER -->
   <div id="app-container" style="display: none;">
-    <!-- Sidebar -->
     <div class="sidebar">
       <div>
         <div class="brand-header">
@@ -416,16 +429,11 @@
 
       <!-- VIEW 1: BOOKING -->
       <div id="view-booking" class="tab-view">
-        <div class="sub-tab-bar">
-          <button class="sub-tab-btn active" id="btn-mode-bulk" onclick="switchBookingMode('bulk')">
-            <i class="fa-solid fa-table-cells"></i> Bulk Weekly
-          </button>
-          <button class="sub-tab-btn" id="btn-mode-daily" onclick="switchBookingMode('daily')">
-            <i class="fa-solid fa-calendar-day"></i> Daily Single
-          </button>
+        <div class="timing-notice">
+          <i class="fa-solid fa-clock"></i>
+          <span><b>Cut-off times:</b> Breakfast: 6:00 AM | Lunch: 10:00 AM | Dinner: 4:00 PM. (Past slots are locked).</span>
         </div>
 
-        <!-- BULK BOOKING MATRIX -->
         <div id="mode-bulk" class="section-card">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
             <div>
@@ -435,7 +443,7 @@
               <button class="btn-pill btn-light" onclick="bulkSetAll(true)">All</button>
               <button class="btn-pill btn-light" onclick="bulkSetAll(false)">Clear</button>
               <button class="btn-pill btn-success" onclick="saveBulkBookings()">
-                <i class="fa-solid fa-floppy-disk"></i> Save All
+                <i class="fa-solid fa-floppy-disk"></i> Save / Update
               </button>
             </div>
           </div>
@@ -447,15 +455,15 @@
                   <th style="width: 34%; text-align: left; padding-left: 10px;">Day</th>
                   <th style="width: 22%;">
                     🌅 Brk<br/>
-                    <a href="javascript:void(0)" onclick="toggleColumnMeals('breakfast')" style="font-size:0.68rem; color:#3b82f6;">All</a>
+                    <a href="javascript:void(0)" onclick="toggleColumnMeals('breakfast')" style="font-size:0.68rem; color:#3b82f6;">Toggle</a>
                   </th>
                   <th style="width: 22%;">
                     ☀️ Lun<br/>
-                    <a href="javascript:void(0)" onclick="toggleColumnMeals('lunch')" style="font-size:0.68rem; color:#3b82f6;">All</a>
+                    <a href="javascript:void(0)" onclick="toggleColumnMeals('lunch')" style="font-size:0.68rem; color:#3b82f6;">Toggle</a>
                   </th>
                   <th style="width: 22%;">
                     🌙 Din<br/>
-                    <a href="javascript:void(0)" onclick="toggleColumnMeals('dinner')" style="font-size:0.68rem; color:#3b82f6;">All</a>
+                    <a href="javascript:void(0)" onclick="toggleColumnMeals('dinner')" style="font-size:0.68rem; color:#3b82f6;">Toggle</a>
                   </th>
                 </tr>
               </thead>
@@ -463,43 +471,17 @@
             </table>
           </div>
         </div>
-
-        <!-- DAILY BOOKING -->
-        <div id="mode-daily" class="section-card" style="display: none;">
-          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 14px;">
-            <div>
-              <label style="font-size:0.8rem; font-weight:600; color:#64748b; display:block; margin-bottom:4px;">Date</label>
-              <input type="date" id="daily-date-picker" class="input-control" style="width:160px; padding:6px 12px;" onchange="loadDailySelection()" />
-            </div>
-            <button class="btn-pill btn-success" style="margin-top: 18px;" onclick="saveDailyBooking()">
-              <i class="fa-solid fa-floppy-disk"></i> Save Date
-            </button>
-          </div>
-
-          <div class="daily-grid">
-            <div class="daily-meal-card" id="daily-card-breakfast" onclick="toggleDailyMeal('breakfast')">
-              <i class="fa-solid fa-mug-saucer"></i>
-              <h4>Breakfast</h4>
-              <p id="daily-status-breakfast" style="font-size:0.75rem; color:#64748b; margin-top:2px;">Not Booked</p>
-            </div>
-            <div class="daily-meal-card" id="daily-card-lunch" onclick="toggleDailyMeal('lunch')">
-              <i class="fa-solid fa-sun"></i>
-              <h4>Lunch</h4>
-              <p id="daily-status-lunch" style="font-size:0.75rem; color:#64748b; margin-top:2px;">Not Booked</p>
-            </div>
-            <div class="daily-meal-card" id="daily-card-dinner" onclick="toggleDailyMeal('dinner')">
-              <i class="fa-solid fa-moon"></i>
-              <h4>Dinner</h4>
-              <p id="daily-status-dinner" style="font-size:0.75rem; color:#64748b; margin-top:2px;">Not Booked</p>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- VIEW 2: REPORTS -->
       <div id="view-report" class="tab-view" style="display: none;">
         <div class="section-card">
-          <h3 style="margin-bottom: 12px; font-size: 0.95rem;">My Booking Summary</h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="font-size: 0.95rem;">My Booking Summary</h3>
+            <button class="btn-pill btn-light" onclick="window.print()">
+              <i class="fa-solid fa-print"></i> Print
+            </button>
+          </div>
           <div style="overflow-x: auto;">
             <table>
               <thead>
@@ -516,8 +498,33 @@
         </div>
       </div>
 
-      <!-- VIEW 3: ADMIN -->
+      <!-- VIEW 3: ADMIN DASHBOARD -->
       <div id="view-admin" class="tab-view" style="display: none;">
+        <!-- Analytics Stat Cards -->
+        <div class="stat-cards-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#eff6ff; color:#3b82f6;"><i class="fa-solid fa-users"></i></div>
+            <div>
+              <p style="font-size:0.75rem; color:#64748b;">Total Members</p>
+              <h3 id="stat-total-users" style="font-size:1.2rem;">0</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#ecfdf5; color:#10b981;"><i class="fa-solid fa-user-check"></i></div>
+            <div>
+              <p style="font-size:0.75rem; color:#64748b;">Active Members</p>
+              <h3 id="stat-active-users" style="font-size:1.2rem;">0</h3>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#fef3c7; color:#d97706;"><i class="fa-solid fa-user-clock"></i></div>
+            <div>
+              <p style="font-size:0.75rem; color:#64748b;">Pending Requests</p>
+              <h3 id="stat-pending-users" style="font-size:1.2rem;">0</h3>
+            </div>
+          </div>
+        </div>
+
         <!-- Pending Approvals -->
         <div class="section-card">
           <h3 style="margin-bottom: 12px; font-size: 0.95rem; color:#1e3c72;">Pending User Approvals</h3>
@@ -537,13 +544,39 @@
           </div>
         </div>
 
+        <!-- Member Register / List -->
+        <div class="section-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <h3 style="font-size: 0.95rem;">Members Register</h3>
+            <button class="btn-pill btn-light" onclick="window.print()">
+              <i class="fa-solid fa-print"></i> Print / PDF
+            </button>
+          </div>
+          <div style="overflow-x: auto;">
+            <table>
+              <thead>
+                <tr style="color: #64748b;">
+                  <th>Token</th>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-list"></tbody>
+            </table>
+          </div>
+        </div>
+
         <!-- Bookings Overview -->
         <div class="section-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
             <h3 style="font-size: 0.95rem;">All Member Bookings</h3>
-            <button class="btn-pill btn-primary" onclick="exportAdminTableToCSV()">
-              <i class="fa-solid fa-file-excel"></i> Export CSV
-            </button>
+            <div style="display:flex; gap:6px;">
+              <button class="btn-pill btn-light" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
+              <button class="btn-pill btn-primary" onclick="exportAdminTableToCSV()"><i class="fa-solid fa-file-excel"></i> Export CSV</button>
+            </div>
           </div>
           <div style="overflow-x: auto;">
             <table>
@@ -568,15 +601,8 @@
 
   <script>
     let currentUser = null;
-    let dailyMeals = { breakfast: false, lunch: false, dinner: false };
 
     document.addEventListener('DOMContentLoaded', () => {
-      const today = new Date().toISOString().split('T')[0];
-      const dp = document.getElementById('daily-date-picker');
-      if (dp) {
-        dp.min = today;
-        dp.value = today;
-      }
       checkExistingSession();
     });
 
@@ -613,7 +639,6 @@
         return setSessionAndEnter(currentUser);
       }
 
-      // Member Lookup
       try {
         const userRef = window.fs.doc(window.db, 'users', id);
         const docSnap = await window.fs.getDoc(userRef);
@@ -624,7 +649,10 @@
 
         const data = docSnap.data();
         if (data.status === 'pending') {
-          return showModal('Pending Approval', 'Your registration is awaiting Admin approval. Please contact the admin.', 'info');
+          return showModal('Pending Approval', 'Your account is waiting for Admin approval.', 'info');
+        }
+        if (data.status === 'inactive') {
+          return showModal('Account Suspended', 'Your account is currently suspended. Contact Admin.', 'error');
         }
 
         currentUser = data;
@@ -707,7 +735,7 @@
         switchNav('admin');
       } else {
         renderBulkTable();
-        loadDailySelection();
+        loadExistingBookings();
       }
     }
 
@@ -719,6 +747,8 @@
         document.getElementById('nav-booking').classList.add('active');
         document.getElementById('view-booking').style.display = 'block';
         document.getElementById('view-title').textContent = 'Mess Booking Portal';
+        renderBulkTable();
+        loadExistingBookings();
       } else if (name === 'report') {
         document.getElementById('nav-report').classList.add('active');
         document.getElementById('view-report').style.display = 'block';
@@ -728,16 +758,28 @@
         document.getElementById('nav-admin').classList.add('active');
         document.getElementById('view-admin').style.display = 'block';
         document.getElementById('view-title').textContent = 'Admin Dashboard';
-        loadAdminPendingUsers();
+        loadAdminAnalyticsAndUsers();
         loadAdminData();
       }
     }
 
-    function switchBookingMode(mode) {
-      document.getElementById('btn-mode-bulk').classList.toggle('active', mode === 'bulk');
-      document.getElementById('btn-mode-daily').classList.toggle('active', mode === 'daily');
-      document.getElementById('mode-bulk').style.display = mode === 'bulk' ? 'block' : 'none';
-      document.getElementById('mode-daily').style.display = mode === 'daily' ? 'block' : 'none';
+    /* Cut-off helper function */
+    function isMealSlotLocked(dateStr, mealType) {
+      const now = new Date();
+      const todayStr = now.toISOString().split('T')[0];
+
+      // Past date -> Locked
+      if (dateStr < todayStr) return true;
+
+      // Future date -> Open
+      if (dateStr > todayStr) return false;
+
+      // Today -> Check Cut-off time
+      const currentHour = now.getHours();
+      if (mealType === 'breakfast') return currentHour >= 6; // 6 AM
+      if (mealType === 'lunch') return currentHour >= 10;    // 10 AM
+      if (mealType === 'dinner') return currentHour >= 16;   // 4 PM
+      return false;
     }
 
     function renderBulkTable() {
@@ -756,31 +798,55 @@
         dayDate.setDate(monday.getDate() + i);
         const dateStr = dayDate.toISOString().split('T')[0];
 
+        const bLocked = isMealSlotLocked(dateStr, 'breakfast');
+        const lLocked = isMealSlotLocked(dateStr, 'lunch');
+        const dLocked = isMealSlotLocked(dateStr, 'dinner');
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td class="day-cell">
             ${daysOfWeek[i]} <span>${dateStr.slice(5)}</span>
           </td>
-          <td><input type="checkbox" class="bulk-cb meal-breakfast" data-date="${dateStr}" data-meal="breakfast"></td>
-          <td><input type="checkbox" class="bulk-cb meal-lunch" data-date="${dateStr}" data-meal="lunch"></td>
-          <td><input type="checkbox" class="bulk-cb meal-dinner" data-date="${dateStr}" data-meal="dinner"></td>
+          <td><input type="checkbox" class="bulk-cb meal-breakfast" data-date="${dateStr}" data-meal="breakfast" ${bLocked ? 'disabled title="Slot locked / passed"' : ''}></td>
+          <td><input type="checkbox" class="bulk-cb meal-lunch" data-date="${dateStr}" data-meal="lunch" ${lLocked ? 'disabled title="Slot locked / passed"' : ''}></td>
+          <td><input type="checkbox" class="bulk-cb meal-dinner" data-date="${dateStr}" data-meal="dinner" ${dLocked ? 'disabled title="Slot locked / passed"' : ''}></td>
         `;
         tbody.appendChild(tr);
       }
     }
 
+    async function loadExistingBookings() {
+      if (!currentUser) return;
+      try {
+        const q = window.fs.query(
+          window.fs.collection(window.db, 'bookings'),
+          window.fs.where('token', '==', currentUser.token)
+        );
+        const querySnapshot = await window.fs.getDocs(q);
+        querySnapshot.forEach(docSnap => {
+          const d = docSnap.data();
+          const cb = document.querySelector(`.bulk-cb[data-date="${d.date}"][data-meal="${d.meal}"]`);
+          if (cb) {
+            cb.checked = (d.action === 'book');
+          }
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
     function bulkSetAll(state) {
-      document.querySelectorAll('.bulk-cb').forEach(cb => cb.checked = state);
+      document.querySelectorAll('.bulk-cb:not(:disabled)').forEach(cb => cb.checked = state);
     }
 
     function toggleColumnMeals(meal) {
-      const cbs = document.querySelectorAll(`.meal-${meal}`);
+      const cbs = document.querySelectorAll(`.meal-${meal}:not(:disabled)`);
       const allChecked = Array.from(cbs).every(cb => cb.checked);
       cbs.forEach(cb => cb.checked = !allChecked);
     }
 
     async function saveBulkBookings() {
-      const cbs = document.querySelectorAll('.bulk-cb');
+      const cbs = document.querySelectorAll('.bulk-cb:not(:disabled)');
       showToast('Saving bookings...', 'info');
       const timestamp = new Date().toISOString();
 
@@ -798,68 +864,7 @@
             timestamp
           });
         }
-        showModal('Success', 'Weekly bookings successfully saved!', 'success');
-      } catch (err) {
-        showModal('Error', err.message, 'error');
-      }
-    }
-
-    function toggleDailyMeal(m) {
-      dailyMeals[m] = !dailyMeals[m];
-      updateDailyUI(m);
-    }
-
-    function updateDailyUI(m) {
-      const card = document.getElementById(`daily-card-${m}`);
-      const status = document.getElementById(`daily-status-${m}`);
-      card.classList.toggle('selected', dailyMeals[m]);
-      status.textContent = dailyMeals[m] ? 'Booked' : 'Not Booked';
-    }
-
-    async function loadDailySelection() {
-      const date = document.getElementById('daily-date-picker').value;
-      if (!currentUser || !date) return;
-
-      dailyMeals = { breakfast: false, lunch: false, dinner: false };
-      ['breakfast', 'lunch', 'dinner'].forEach(updateDailyUI);
-
-      try {
-        const q = window.fs.query(
-          window.fs.collection(window.db, 'bookings'),
-          window.fs.where('token', '==', currentUser.token),
-          window.fs.where('date', '==', date)
-        );
-        const querySnapshot = await window.fs.getDocs(q);
-        querySnapshot.forEach(docSnap => {
-          const d = docSnap.data();
-          if (d.action === 'book') dailyMeals[d.meal] = true;
-        });
-        ['breakfast', 'lunch', 'dinner'].forEach(updateDailyUI);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    async function saveDailyBooking() {
-      const date = document.getElementById('daily-date-picker').value;
-      const timestamp = new Date().toISOString();
-      showToast('Updating...', 'info');
-
-      try {
-        for (let m of ['breakfast', 'lunch', 'dinner']) {
-          const docId = `${currentUser.token}_${date}_${m}`;
-          const ref = window.fs.doc(window.db, 'bookings', docId);
-          await window.fs.setDoc(ref, {
-            token: currentUser.token,
-            name: currentUser.name,
-            category: currentUser.category,
-            date,
-            meal: m,
-            action: dailyMeals[m] ? 'book' : 'cancel',
-            timestamp
-          });
-        }
-        showModal('Saved', `Updated booking for ${date}`, 'success');
+        showModal('Success', 'Weekly bookings successfully updated/saved!', 'success');
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
@@ -882,7 +887,9 @@
         });
 
         tbody.innerHTML = '';
-        Object.values(dataMap).forEach(row => {
+        const sortedDates = Object.keys(dataMap).sort();
+        sortedDates.forEach(date => {
+          const row = dataMap[date];
           const tr = document.createElement('tr');
           tr.innerHTML = `<td>${row.date}</td><td style="text-align:center;">${row.breakfast}</td><td style="text-align:center;">${row.lunch}</td><td style="text-align:center;">${row.dinner}</td>`;
           tbody.appendChild(tr);
@@ -892,35 +899,67 @@
       }
     }
 
-    async function loadAdminPendingUsers() {
-      const tbody = document.getElementById('admin-pending-users');
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading requests...</td></tr>';
-      try {
-        const q = window.fs.query(window.fs.collection(window.db, 'users'), window.fs.where('status', '==', 'pending'));
-        const snap = await window.fs.getDocs(q);
-        tbody.innerHTML = '';
+    async function loadAdminAnalyticsAndUsers() {
+      const pendingTbody = document.getElementById('admin-pending-users');
+      const usersListTbody = document.getElementById('admin-users-list');
+      pendingTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+      usersListTbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
 
-        if (snap.empty) {
-          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">No pending user requests.</td></tr>';
-          return;
-        }
+      try {
+        const snap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
+        let total = 0, active = 0, pending = 0;
+        pendingTbody.innerHTML = '';
+        usersListTbody.innerHTML = '';
 
         snap.forEach(docSnap => {
           const u = docSnap.data();
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td><b>${u.name}</b><br><small style="color:#64748b;">${u.email}</small></td>
-            <td>${u.phone}</td>
-            <td>${u.category}</td>
-            <td><input type="number" id="assign_token_${docSnap.id}" placeholder="Token #" style="width:75px; padding:4px 6px; border:1px solid #cbd5e1; border-radius:6px;"></td>
-            <td>
-              <button class="btn-pill btn-success" style="padding:4px 10px; font-size:0.75rem;" onclick="approveUser('${docSnap.id}')">Approve</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
+          if (u.role === 'admin' || u.role === 'superadmin') return;
+
+          total++;
+          if (u.status === 'active') active++;
+          if (u.status === 'pending') pending++;
+
+          // Pending List
+          if (u.status === 'pending') {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><b>${u.name}</b><br><small style="color:#64748b;">${u.email}</small></td>
+              <td>${u.phone}</td>
+              <td>${u.category}</td>
+              <td><input type="number" id="assign_token_${docSnap.id}" placeholder="Token #" style="width:75px; padding:4px 6px; border:1px solid #cbd5e1; border-radius:6px;"></td>
+              <td>
+                <button class="btn-pill btn-success" style="padding:4px 10px; font-size:0.75rem;" onclick="approveUser('${docSnap.id}')">Approve</button>
+              </td>
+            `;
+            pendingTbody.appendChild(tr);
+          }
+
+          // Full Active/Inactive List
+          if (u.status !== 'pending') {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><b>#${u.token}</b></td>
+              <td>${u.name}</td>
+              <td>${u.phone}</td>
+              <td>${u.category}</td>
+              <td><span style="color:${u.status === 'active' ? '#10b981':'#ef4444'}; font-weight:600;">${u.status}</span></td>
+              <td>
+                <button class="btn-pill btn-light" style="padding:3px 8px; font-size:0.75rem;" onclick="toggleUserStatus('${u.token}', '${u.status}')">
+                  ${u.status === 'active' ? 'Suspend' : 'Activate'}
+                </button>
+              </td>
+            `;
+            usersListTbody.appendChild(tr);
+          }
         });
+
+        document.getElementById('stat-total-users').textContent = total;
+        document.getElementById('stat-active-users').textContent = active;
+        document.getElementById('stat-pending-users').textContent = pending;
+
+        if (!pendingTbody.innerHTML) pendingTbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">No pending requests.</td></tr>';
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="5" style="color:red;">${err.message}</td></tr>`;
+        console.error(err);
       }
     }
 
@@ -946,7 +985,18 @@
         }
 
         showModal('User Approved', `Assigned Token #${token} to ${userData.name}`, 'success');
-        loadAdminPendingUsers();
+        loadAdminAnalyticsAndUsers();
+      } catch (err) {
+        showModal('Error', err.message, 'error');
+      }
+    }
+
+    async function toggleUserStatus(token, currentStatus) {
+      const nextStatus = currentStatus === 'active' ? 'inactive' : 'active';
+      try {
+        await window.fs.updateDoc(window.fs.doc(window.db, 'users', token), { status: nextStatus });
+        showToast(`User status updated to ${nextStatus}`, 'info');
+        loadAdminAnalyticsAndUsers();
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
