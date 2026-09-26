@@ -1345,19 +1345,22 @@
         <head>
           <title>${title} - ${date}</title>
           <style>
-            body { font-family: sans-serif; padding: 20px; color: #000; }
-            h2, h4 { margin: 0 0 10px 0; }
-            ul { padding-left: 20px; }
-            li { padding: 4px 0; border-bottom: 1px dashed #ccc; font-size: 14px; }
+            body { font-family: sans-serif; padding: 25px; color: #000; font-size: 16px; }
+            h2 { font-size: 22px; margin-bottom: 5px; }
+            h4 { font-size: 16px; margin-top: 0; margin-bottom: 15px; color: #333; }
+            ol { padding-left: 20px; }
+            li { padding: 8px 0; border-bottom: 1px dashed #bbb; font-size: 18px; font-weight: 500; display: flex; align-items: center; justify-content: space-between; }
+            .checkbox-box { width: 20px; height: 20px; border: 2px solid #000; display: inline-block; margin-left: 15px; }
+            .item-text { flex: 1; }
           </style>
         </head>
         <body>
           <h2>Suprabhatham Mess - ${title}</h2>
-          <h4>Date: ${date} | Total: ${list.length} Nos</h4>
-          <hr/>
-          <ul>
-            ${list.length > 0 ? list.map(i => `<li>${i}</li>`).join('') : '<li>No bookings</li>'}
-          </ul>
+          <h4>Date: ${date} | Total Bookings: ${list.length} Nos</h4>
+          <hr style="border: 1px solid #000; margin-bottom: 15px;"/>
+          <ol>
+            ${list.length > 0 ? list.map(i => `<li><span class="item-text">${i}</span> <span class="checkbox-box"></span></li>`).join('') : '<p>No bookings for this meal.</p>'}
+          </ol>
         </body>
         </html>
       `);
@@ -1365,7 +1368,6 @@
       printWindow.focus();
       setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
     }
-
     async function loadAdminPendingUsers() {
       const tbody = document.getElementById('admin-pending-users');
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading requests...</td></tr>';
