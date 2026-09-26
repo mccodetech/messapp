@@ -276,7 +276,9 @@
       <i class="fa-solid fa-circle-check" id="modal-icon" style="font-size: 38px; margin-bottom: 10px; color: var(--success-color);"></i>
       <h3 id="modal-title" style="margin-bottom: 6px; font-size: 1.1rem;">Notice</h3>
       <p id="modal-message" style="color: #64748b; font-size: 0.88rem; margin-bottom: 16px;"></p>
-      <button class="btn-pill btn-primary" onclick="closeModal()" style="width: 100%;">OK</button>
+      <div id="modal-actions" style="display: flex; gap: 8px;">
+        <button class="btn-pill btn-primary" onclick="closeModal()" style="width: 100%;">OK</button>
+      </div>
     </div>
   </div>
 
@@ -720,9 +722,10 @@
 
     function checkExistingSession() {
       const saved = localStorage.getItem('snec_mess_session');
+      const savedNav = localStorage.getItem('snec_mess_active_nav') || 'booking';
       if (saved) {
         currentUser = JSON.parse(saved);
-        renderAuthenticatedUI();
+        renderAuthenticatedUI(savedNav);
       } else {
         document.getElementById('auth-overlay').style.display = 'flex';
         document.getElementById('app-container').style.display = 'none';
@@ -775,8 +778,9 @@
 
     function setSessionAndEnter(user) {
       localStorage.setItem('snec_mess_session', JSON.stringify(user));
+      localStorage.setItem('snec_mess_active_nav', 'booking');
       document.getElementById('auth-overlay').style.display = 'none';
-      renderAuthenticatedUI();
+      renderAuthenticatedUI('booking');
     }
 
     async function handleRegister() {
@@ -830,14 +834,16 @@
     }
 
     function handleLogout() {
-      if (!confirm('നിങ്ങൾക്ക് തീർച്ചയായും ലോഗ് ഔട്ട് ചെയ്യണമെന്നുണ്ടോ?')) return;
-      localStorage.removeItem('snec_mess_session');
-      currentUser = null;
-      document.getElementById('app-container').style.display = 'none';
-      document.getElementById('auth-overlay').style.display = 'flex';
+      showConfirmModal('ലോഗ് ഔട്ട്', 'നിങ്ങൾക്ക് തീർച്ചയായും ലോഗ് ഔട്ട് ചെയ്യണമെന്നുണ്ടോ?', () => {
+        localStorage.removeItem('snec_mess_session');
+        localStorage.removeItem('snec_mess_active_nav');
+        currentUser = null;
+        document.getElementById('app-container').style.display = 'none';
+        document.getElementById('auth-overlay').style.display = 'flex';
+      });
     }
 
-    async function renderAuthenticatedUI() {
+    async function renderAuthenticatedUI(navTab = 'booking') {
       document.getElementById('app-container').style.display = 'flex';
       document.getElementById('user-display-name').textContent = currentUser.name;
       document.getElementById('user-display-token').textContent = '#' + (currentUser.token || 'Pending');
@@ -859,9 +865,7 @@
       }
 
       await loadWeeklyMenuConfig();
-      renderBulkTable();
-      loadExistingBookings();
-      checkSpecialNotice();
+      switchNav(navTab, false);
     }
 
     async function loadWeeklyMenuConfig() {
@@ -1010,9 +1014,13 @@
       loadExistingBookings();
     }
 
-    function switchNav(name) {
+    function switchNav(name, saveState = true) {
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-view').forEach(el => el.style.display = 'none');
+
+      if (saveState) {
+        localStorage.setItem('snec_mess_active_nav', name);
+      }
 
       if (name === 'booking') {
         document.getElementById('nav-booking').classList.add('active');
@@ -1020,6 +1028,7 @@
         document.getElementById('view-title').textContent = 'Mess Booking Portal';
         renderBulkTable();
         loadExistingBookings();
+        checkSpecialNotice();
       } else if (name === 'report') {
         document.getElementById('nav-report').classList.add('active');
         document.getElementById('view-report').style.display = 'block';
@@ -1600,8 +1609,21 @@
       const modal = document.getElementById('app-modal');
       document.getElementById('modal-title').textContent = title;
       document.getElementById('modal-message').textContent = msg;
+      document.getElementById('modal-actions').innerHTML = `<button class="btn-pill btn-primary" onclick="closeModal()" style="width: 100%;">OK</button>`;
       modal.classList.add('active');
     }
+
+    function showConfirmModal(title, msg, onConfirm) {
+      const modal = document.getElementById('app-modal');
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-message').textContent = msg;
+      document.getElementById('modal-actions').innerHTML = `
+        <button class="btn-pill btn-light" onclick="closeModal()" style="flex:1;">Cancel</button>
+        <button class="btn-pill btn-danger" onclick="closeModal(); (${onConfirm.toString()})();" style="flex:1; background-color:#ef4444; color:#fff;">Confirm</button>
+      `;
+      modal.classList.add('active');
+    }
+
     function closeModal() { document.getElementById('app-modal').classList.remove('active'); }
     function showToast(msg, type = 'info') {
       const c = document.getElementById('toast-container');
