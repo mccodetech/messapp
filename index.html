@@ -755,6 +755,7 @@
     }
 
     function handleLogout() {
+      if (!confirm('നിങ്ങൾക്ക് തീർച്ചയായും ലോഗ് ഔട്ട് ചെയ്യണമെന്നുണ്ടോ?')) return;
       localStorage.removeItem('snec_mess_session');
       currentUser = null;
       document.getElementById('app-container').style.display = 'none';
