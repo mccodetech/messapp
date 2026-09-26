@@ -486,7 +486,7 @@
             <i class="fa-solid fa-kitchen-set"></i> Kitchen Report
           </button>
           <button class="admin-tab-btn" id="atab-btn-menu" onclick="switchAdminSubTab('menu')">
-            <i class="fa-solid fa-utensils"></i> Date Menu & Holiday Manager
+            <i class="fa-solid fa-utensils"></i> Weekly Menu & Holiday Manager
           </button>
           <button class="admin-tab-btn" id="atab-btn-pending" onclick="switchAdminSubTab('pending')">
             <i class="fa-solid fa-user-clock"></i> Pending Approvals
@@ -581,58 +581,43 @@
           </div>
         </div>
 
-        <!-- 2. DATE MENU & HOLIDAY MANAGER SECTION -->
+        <!-- 2. WEEKLY MENU & HOLIDAY MANAGER SECTION -->
         <div id="admin-sec-menu" class="admin-sub-sec" style="display:none;">
-          <div class="section-card" style="max-width: 650px;">
+          <div class="section-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
               <div>
-                <h3 style="font-size: 0.95rem; color:#1e3c72;">Date Specific Menu & Holiday Manager</h3>
-                <p style="font-size: 0.8rem; color:#64748b;">Select any date to set custom menu items, points, or declare Mess Leave / Holiday.</p>
-              </div>
-              <div>
-                <input type="date" id="manager-date-picker" class="input-control" style="padding:6px 12px; width: 160px;" onchange="loadDateConfigForAdmin()">
+                <h3 style="font-size: 0.95rem; color:#1e3c72;">Weekly Menu, Points & Holiday Manager</h3>
+                <p style="font-size: 0.8rem; color:#64748b;">Set weekly menu items, points, or declare any day as Mess Holiday/Leave.</p>
               </div>
             </div>
 
-            <!-- Holiday / Leave Toggle -->
-            <div style="background:#fef2f2; border:1px solid #fecaca; padding:12px; border-radius:12px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;">
-              <div>
-                <strong style="color:#991b1b; font-size:0.9rem;">Declare Mess Leave / Holiday for this Date</strong>
-                <p style="font-size:0.75rem; color:#7f1d1d;">If enabled, existing bookings for this date will be automatically cancelled and members cannot book.</p>
-              </div>
-              <input type="checkbox" id="admin-date-holiday" style="width:22px; height:22px; accent-color:#ef4444; cursor:pointer;">
+            <!-- Special Announcement Broadcast to Users -->
+            <div style="background:#f1f5f9; padding:14px; border-radius:12px; margin-bottom:16px;">
+              <h4 style="font-size:0.85rem; color:#1e3c72; margin-bottom:6px;"><i class="fa-solid fa-bullhorn"></i> Special Announcement / Notice</h4>
+              <input type="text" id="admin-special-notice" class="input-control" placeholder="e.g., TODAY MESS LEAVE or Special Biryani" style="margin-bottom:8px; background:#fff;">
+              <button class="btn-pill btn-primary" style="font-size:0.75rem; padding:5px 12px;" onclick="saveSpecialNotice()">Broadcast Notice</button>
             </div>
 
-            <!-- Special Notice for this Date -->
-            <div class="input-group" style="margin-bottom: 14px;">
-              <label>Special Notice / Announcement for this Date</label>
-              <input type="text" id="admin-date-notice" class="input-control" placeholder="e.g., TODAY MESS LEAVE or Special Biryani">
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                  <tr style="background: #f8fafc; color: #475569; font-size: 0.8rem;">
+                    <th style="padding: 10px;">Day</th>
+                    <th style="padding: 10px;">Status / Holiday</th>
+                    <th style="padding: 10px;">Breakfast (Item / Pts)</th>
+                    <th style="padding: 10px;">Lunch (Item / Pts)</th>
+                    <th style="padding: 10px;">Dinner (Item / Pts)</th>
+                  </tr>
+                </thead>
+                <tbody id="weekly-menu-tbody"></tbody>
+              </table>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px;">
-              <!-- Breakfast -->
-              <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:10px;">
-                <h4 style="font-size:0.85rem; color:#1e3c72; margin-bottom:8px;">🌅 Breakfast</h4>
-                <div class="input-group"><label>Item</label><input type="text" id="adm-b-item" class="input-control" placeholder="Item"></div>
-                <div class="input-group"><label>Points</label><input type="number" id="adm-b-pts" class="input-control" value="1" step="0.5"></div>
-              </div>
-              <!-- Lunch -->
-              <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:10px;">
-                <h4 style="font-size:0.85rem; color:#1e3c72; margin-bottom:8px;">☀️ Lunch</h4>
-                <div class="input-group"><label>Item</label><input type="text" id="adm-l-item" class="input-control" placeholder="Item"></div>
-                <div class="input-group"><label>Points</label><input type="number" id="adm-l-pts" class="input-control" value="2" step="0.5"></div>
-              </div>
-              <!-- Dinner -->
-              <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:10px;">
-                <h4 style="font-size:0.85rem; color:#1e3c72; margin-bottom:8px;">🌙 Dinner</h4>
-                <div class="input-group"><label>Item</label><input type="text" id="adm-d-item" class="input-control" placeholder="Item"></div>
-                <div class="input-group"><label>Points</label><input type="number" id="adm-d-pts" class="input-control" value="2" step="0.5"></div>
-              </div>
+            <div style="margin-top: 16px;">
+              <button class="btn-pill btn-success" onclick="saveWeeklyMenuConfig()">
+                <i class="fa-solid fa-floppy-disk"></i> Save Weekly Menu & Holiday Settings
+              </button>
             </div>
-
-            <button class="btn-pill btn-success" onclick="saveDateSpecificConfig()">
-              <i class="fa-solid fa-floppy-disk"></i> Save Date Configuration & Update Bookings
-            </button>
           </div>
         </div>
 
@@ -725,14 +710,12 @@
     let currentUser = null;
     let currentKitchenData = { date: '', breakfast: [], lunch: [], dinner: [] };
     let adminSelectedTargetUser = null;
-    let dateConfigsCache = {};
+    let weeklyMenuConfig = {};
 
     document.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
       const kp = document.getElementById('kitchen-date-picker');
       if (kp) kp.value = today;
-      const mp = document.getElementById('manager-date-picker');
-      if (mp) mp.value = today;
 
       checkExistingSession();
     });
@@ -880,108 +863,155 @@
         if (mobLogout) mobLogout.style.display = 'inline-flex';
       }
 
-      await loadAllDateConfigs();
+      await loadWeeklyMenuConfig();
       switchNav(navTab, false);
     }
 
-    async function loadAllDateConfigs() {
-      dateConfigsCache = {};
+    async function loadWeeklyMenuConfig() {
       try {
-        const snap = await window.fs.getDocs(window.fs.collection(window.db, 'date_configs'));
-        snap.forEach(docSnap => {
-          dateConfigsCache[docSnap.id] = docSnap.data();
-        });
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    async function loadDateConfigForAdmin() {
-      const date = document.getElementById('manager-date-picker').value;
-      if (!date) return;
-      try {
-        const docSnap = await window.fs.getDoc(window.fs.doc(window.db, 'date_configs', date));
+        const docSnap = await window.fs.getDoc(window.fs.doc(window.db, 'settings', 'weekly_menu'));
         if (docSnap.exists()) {
-          const d = docSnap.data();
-          document.getElementById('admin-date-holiday').checked = d.isHoliday || false;
-          document.getElementById('admin-date-notice').value = d.notice || '';
-          document.getElementById('adm-b-item').value = d.breakfast?.item || '';
-          document.getElementById('adm-b-pts').value = d.breakfast?.points || 1;
-          document.getElementById('adm-l-item').value = d.lunch?.item || '';
-          document.getElementById('adm-l-pts').value = d.lunch?.points || 2;
-          document.getElementById('adm-d-item').value = d.dinner?.item || '';
-          document.getElementById('adm-d-pts').value = d.dinner?.points || 2;
+          weeklyMenuConfig = docSnap.data();
         } else {
-          document.getElementById('admin-date-holiday').checked = false;
-          document.getElementById('admin-date-notice').value = '';
-          document.getElementById('adm-b-item').value = '';
-          document.getElementById('adm-b-pts').value = 1;
-          document.getElementById('adm-l-item').value = '';
-          document.getElementById('adm-l-pts').value = 2;
-          document.getElementById('adm-d-item').value = '';
-          document.getElementById('adm-d-pts').value = 2;
+          weeklyMenuConfig = {};
         }
       } catch (e) {
         console.error(e);
+        weeklyMenuConfig = {};
       }
     }
 
-    async function saveDateSpecificConfig() {
-      const date = document.getElementById('manager-date-picker').value;
-      if (!date) return showToast('Please select a date', 'error');
+    function checkSpecialNotice() {
+      const box = document.getElementById('user-special-notice-box');
+      const txt = document.getElementById('user-special-notice-text');
+      const today = new Date();
+      const daysNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const todayName = daysNames[today.getDay()];
+      const todayCfg = weeklyMenuConfig[todayName];
 
-      const isH = document.getElementById('admin-date-holiday').checked;
-      const notice = document.getElementById('admin-date-notice').value.trim();
+      let noticeText = weeklyMenuConfig.notice || '';
+      if (todayCfg && todayCfg.isHoliday) {
+        noticeText = noticeText ? `${noticeText} | TODAYS MESS LEAVE` : 'TODAYS MESS LEAVE';
+      }
 
-      const configData = {
-        isHoliday: isH,
-        notice: notice,
-        breakfast: {
-          item: document.getElementById('adm-b-item').value.trim() || 'Standard Breakfast',
-          points: parseFloat(document.getElementById('adm-b-pts').value) || 1
-        },
-        lunch: {
-          item: document.getElementById('adm-l-item').value.trim() || 'Standard Lunch',
-          points: parseFloat(document.getElementById('adm-l-pts').value) || 2
-        },
-        dinner: {
-          item: document.getElementById('adm-d-item').value.trim() || 'Standard Dinner',
-          points: parseFloat(document.getElementById('adm-d-pts').value) || 2
-        }
-      };
+      if (noticeText.trim() !== '') {
+        txt.textContent = noticeText;
+        box.style.display = 'flex';
+      } else {
+        box.style.display = 'none';
+      }
+    }
+
+    function renderWeeklyMenuManagerTable() {
+      const tbody = document.getElementById('weekly-menu-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+      days.forEach(day => {
+        const dayData = weeklyMenuConfig[day] || {
+          isHoliday: (day === 'Sunday'),
+          breakfast: { item: '', points: 1 },
+          lunch: { item: '', points: 2 },
+          dinner: { item: '', points: 2 }
+        };
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="padding: 10px; font-weight: 600;">${day}</td>
+          <td style="padding: 10px;">
+            <label style="font-size: 0.78rem; cursor: pointer;">
+              <input type="checkbox" id="wm-${day}-holiday" ${dayData.isHoliday ? 'checked' : ''} style="accent-color: #ef4444;"> Holiday
+            </label>
+          </td>
+          <td style="padding: 10px;">
+            <input type="text" id="wm-${day}-b-item" class="input-control" placeholder="Item name" value="${dayData.breakfast.item || ''}" style="margin-bottom:4px; padding:6px 12px; font-size:0.8rem;">
+            <input type="number" id="wm-${day}-b-pts" class="input-control" placeholder="Pts" value="${dayData.breakfast.points ?? 1}" step="0.5" style="padding:6px 12px; font-size:0.8rem; width:80px;">
+          </td>
+          <td style="padding: 10px;">
+            <input type="text" id="wm-${day}-l-item" class="input-control" placeholder="Item name" value="${dayData.lunch.item || ''}" style="margin-bottom:4px; padding:6px 12px; font-size:0.8rem;">
+            <input type="number" id="wm-${day}-l-pts" class="input-control" placeholder="Pts" value="${dayData.lunch.points ?? 2}" step="0.5" style="padding:6px 12px; font-size:0.8rem; width:80px;">
+          </td>
+          <td style="padding: 10px;">
+            <input type="text" id="wm-${day}-d-item" class="input-control" placeholder="Item name" value="${dayData.dinner.item || ''}" style="margin-bottom:4px; padding:6px 12px; font-size:0.8rem;">
+            <input type="number" id="wm-${day}-d-pts" class="input-control" placeholder="Pts" value="${dayData.dinner.points ?? 2}" step="0.5" style="padding:6px 12px; font-size:0.8rem; width:80px;">
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (document.getElementById('admin-special-notice')) {
+        document.getElementById('admin-special-notice').value = weeklyMenuConfig.notice || '';
+      }
+    }
+
+    async function saveWeeklyMenuConfig() {
+      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      const newConfig = { notice: document.getElementById('admin-special-notice').value.trim() };
+
+      days.forEach(day => {
+        const isH = document.getElementById(`wm-${day}-holiday`).checked;
+        newConfig[day] = {
+          isHoliday: isH,
+          breakfast: {
+            item: document.getElementById(`wm-${day}-b-item`).value.trim() || 'Standard Breakfast',
+            points: parseFloat(document.getElementById(`wm-${day}-b-pts`).value) || 1
+          },
+          lunch: {
+            item: document.getElementById(`wm-${day}-l-item`).value.trim() || 'Standard Lunch',
+            points: parseFloat(document.getElementById(`wm-${day}-l-pts`).value) || 2
+          },
+          dinner: {
+            item: document.getElementById(`wm-${day}-d-item`).value.trim() || 'Standard Dinner',
+            points: parseFloat(document.getElementById(`wm-${day}-d-pts`).value) || 2
+          }
+        };
+      });
 
       try {
-        await window.fs.setDoc(window.fs.doc(window.db, 'date_configs', date), configData);
-        
-        // If declared holiday, automatically cancel all bookings for this date
-        if (isH) {
-          const q = window.fs.query(window.fs.collection(window.db, 'bookings'), window.fs.where('date', '==', date));
-          const snap = await window.fs.getDocs(q);
-          const updatePromises = [];
-          snap.forEach(docSnap => {
-            updatePromises.push(window.fs.updateDoc(docSnap.ref, { action: 'cancel' }));
-          });
-          await Promise.all(updatePromises);
+        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'weekly_menu'), newConfig);
+        weeklyMenuConfig = newConfig;
+
+        // Automatically cancel existing bookings for any day set as holiday in the current week
+        const today = new Date();
+        const currentDay = today.getDay();
+        const distanceToMon = (currentDay === 0 ? -6 : 1) - currentDay;
+        const monday = new Date(today);
+        monday.setDate(today.getDate() + distanceToMon);
+
+        for (let i = 0; i < 7; i++) {
+          const dayDate = new Date(monday);
+          dayDate.setDate(monday.getDate() + i);
+          const dateStr = dayDate.toISOString().split('T')[0];
+          const dayName = days[i];
+
+          if (newConfig[dayName].isHoliday) {
+            const q = window.fs.query(window.fs.collection(window.db, 'bookings'), window.fs.where('date', '==', dateStr));
+            const snap = await window.fs.getDocs(q);
+            const updatePromises = [];
+            snap.forEach(docSnap => {
+              updatePromises.push(window.fs.updateDoc(docSnap.ref, { action: 'cancel' }));
+            });
+            await Promise.all(updatePromises);
+          }
         }
 
-        showModal('Success', 'Date configuration saved successfully!', 'success');
-        await loadAllDateConfigs();
+        showModal('Success', 'Weekly menu and holiday settings saved successfully!', 'success');
         renderBulkTable();
+        checkSpecialNotice();
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
     }
 
-    function checkTodaySpecialNotice() {
-      const todayStr = new Date().toISOString().split('T')[0];
-      const cfg = dateConfigsCache[todayStr];
-      const box = document.getElementById('user-special-notice-box');
-      const txt = document.getElementById('user-special-notice-text');
-      if (cfg && cfg.notice && cfg.notice.trim() !== '') {
-        txt.textContent = cfg.notice;
-        box.style.display = 'flex';
-      } else {
-        box.style.display = 'none';
+    async function saveSpecialNotice() {
+      weeklyMenuConfig.notice = document.getElementById('admin-special-notice').value.trim();
+      try {
+        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'weekly_menu'), weeklyMenuConfig, { merge: true });
+        showToast('Announcement broadcasted successfully!', 'success');
+        checkSpecialNotice();
+      } catch (err) {
+        showModal('Error', err.message, 'error');
       }
     }
 
@@ -1032,7 +1062,7 @@
         document.getElementById('view-title').textContent = 'Mess Booking Portal';
         renderBulkTable();
         loadExistingBookings();
-        checkTodaySpecialNotice();
+        checkSpecialNotice();
       } else if (name === 'report') {
         document.getElementById('nav-report').classList.add('active');
         document.getElementById('view-report').style.display = 'block';
@@ -1054,7 +1084,7 @@
       document.getElementById(`admin-sec-${sec}`).style.display = 'block';
 
       if (sec === 'kitchen') loadKitchenReport();
-      if (sec === 'menu') loadDateConfigForAdmin();
+      if (sec === 'menu') renderWeeklyMenuManagerTable();
       if (sec === 'pending') loadAdminPendingUsers();
       if (sec === 'members') loadAdminMembersRegister();
       if (sec === 'allbookings') loadAdminAllBookings();
@@ -1081,7 +1111,9 @@
       const tbody = document.getElementById('bulk-table-body');
       tbody.innerHTML = '';
 
+      const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
       const shortDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      
       const today = new Date();
       const currentDay = today.getDay();
       const distanceToMon = (currentDay === 0 ? -6 : 1) - currentDay;
@@ -1092,22 +1124,23 @@
         const dayDate = new Date(monday);
         dayDate.setDate(monday.getDate() + i);
         const dateStr = dayDate.toISOString().split('T')[0];
+        const dayName = daysOfWeek[i];
 
-        const dayCfg = dateConfigsCache[dateStr] || {
-          isHoliday: false,
-          breakfast: { item: 'Standard Breakfast', points: 1 },
-          lunch: { item: 'Standard Lunch', points: 2 },
-          dinner: { item: 'Standard Dinner', points: 2 }
+        const dayMenu = weeklyMenuConfig[dayName] || {
+          isHoliday: (dayName === 'Sunday'),
+          breakfast: { item: 'Breakfast', points: 1 },
+          lunch: { item: 'Lunch', points: 2 },
+          dinner: { item: 'Dinner', points: 2 }
         };
 
-        if (dayCfg.isHoliday) {
+        if (dayMenu.isHoliday) {
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td class="day-cell">
               <b>${shortDays[i]}</b> <span>${dateStr.slice(5)}</span>
             </td>
             <td colspan="3" style="text-align: center; color: #ef4444; font-weight: 600; background: #fef2f2;">
-              Mess Holiday / Leave
+              Mess Holiday / Leave (${dayName})
             </td>
           `;
           tbody.appendChild(tr);
@@ -1124,15 +1157,15 @@
             <b>${shortDays[i]}</b> <span>${dateStr.slice(5)}</span>
           </td>
           <td>
-            <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${dayCfg.breakfast.item} (${dayCfg.breakfast.points}Pts)</div>
+            <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${dayMenu.breakfast.item} (${dayMenu.breakfast.points}Pts)</div>
             <input type="checkbox" class="bulk-cb meal-breakfast" data-date="${dateStr}" data-meal="breakfast" ${bLocked ? 'disabled title="Slot locked"' : ''}>
           </td>
           <td>
-            <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${dayCfg.lunch.item} (${dayCfg.lunch.points}Pts)</div>
+            <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${dayMenu.lunch.item} (${dayMenu.lunch.points}Pts)</div>
             <input type="checkbox" class="bulk-cb meal-lunch" data-date="${dateStr}" data-meal="lunch" ${lLocked ? 'disabled title="Slot locked"' : ''}>
           </td>
           <td>
-            <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${dayCfg.dinner.item} (${dayCfg.dinner.points}Pts)</div>
+            <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${dayMenu.dinner.item} (${dayMenu.dinner.points}Pts)</div>
             <input type="checkbox" class="bulk-cb meal-dinner" data-date="${dateStr}" data-meal="dinner" ${dLocked ? 'disabled title="Slot locked"' : ''}>
           </td>
         `;
@@ -1208,7 +1241,7 @@
       const tbody = document.getElementById('report-table-body');
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
       try {
-        await loadAllDateConfigs();
+        await loadWeeklyMenuConfig();
         const q = window.fs.query(
           window.fs.collection(window.db, 'bookings'),
           window.fs.where('token', '==', currentUser.token)
@@ -1233,16 +1266,20 @@
 
         sortedDates.forEach(date => {
           const row = dataMap[date];
-          const dayCfg = dateConfigsCache[date] || {
+          const dateObj = new Date(date);
+          const daysNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          const dayName = daysNames[dateObj.getDay()];
+
+          const dayMenu = weeklyMenuConfig[dayName] || {
             breakfast: { points: 1 },
             lunch: { points: 2 },
             dinner: { points: 2 }
           };
 
           let dayPts = 0;
-          if (row.breakfast === '✔️') dayPts += dayCfg.breakfast.points;
-          if (row.lunch === '✔️') dayPts += dayCfg.lunch.points;
-          if (row.dinner === '✔️') dayPts += dayCfg.dinner.points;
+          if (row.breakfast === '✔️') dayPts += dayMenu.breakfast.points;
+          if (row.lunch === '✔️') dayPts += dayMenu.lunch.points;
+          if (row.dinner === '✔️') dayPts += dayMenu.dinner.points;
           totalUserPoints += dayPts;
 
           const tr = document.createElement('tr');
