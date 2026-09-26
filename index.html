@@ -1469,30 +1469,31 @@
         <head>
           <title>${title} - ${date}</title>
           <style>
-            body { font-family: sans-serif; padding: 20px; color: #000; font-size: 15px; }
-            h2 { font-size: 22px; margin-bottom: 4px; }
-            h4 { font-size: 15px; margin-top: 0; margin-bottom: 15px; color: #333; }
+            @page { size: portrait; margin: 15mm; }
+            body { font-family: sans-serif; padding: 10px; color: #000; font-size: 14px; }
+            h2 { font-size: 18px; margin-bottom: 4px; }
+            h4 { font-size: 13px; margin-top: 0; margin-bottom: 12px; color: #333; }
             .container {
               display: grid;
               grid-template-columns: 1fr 1fr;
-              gap: 15px 35px;
+              gap: 12px 20px;
             }
             .item-row {
               display: flex;
               align-items: center;
               justify-content: space-between;
-              padding: 8px 0;
+              padding: 6px 0;
               border-bottom: 1px dashed #ccc;
-              font-size: 16px;
+              font-size: 14px;
               font-weight: 600;
             }
             .checkbox-box {
-              width: 20px;
-              height: 20px;
+              width: 18px;
+              height: 18px;
               border: 2px solid #000;
               display: inline-block;
               flex-shrink: 0;
-              margin-left: 10px;
+              margin-left: 8px;
             }
             .item-text { flex: 1; }
           </style>
@@ -1500,14 +1501,18 @@
         <body>
           <h2>Suprabhatham Mess - ${title}</h2>
           <h4>Date: ${date} | Total Bookings: ${list.length} Nos</h4>
-          <hr style="border: 1px solid #000; margin-bottom: 15px;"/>
+          <hr style="border: 1px solid #000; margin-bottom: 12px;"/>
           <div class="container">
-            ${list.length > 0 ? list.map((i) => `
-              <div class="item-row">
-                <span class="item-text">${i}</span>
-                <span class="checkbox-box"></span>
-              </div>
-            `).join('') : '<p>No bookings for this meal.</p>'}
+            ${list.length > 0 ? list.map((i) => {
+              // Remove '#' from the item string
+              const cleanedItem = i.replace('#', '');
+              return `
+                <div class="item-row">
+                  <span class="item-text">${cleanedItem}</span>
+                  <span class="checkbox-box"></span>
+                </div>
+              `;
+            }).join('') : '<p>No bookings for this meal.</p>'}
           </div>
           <script>
             window.onload = function() {
