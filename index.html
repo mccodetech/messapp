@@ -1013,6 +1013,16 @@
       }
     }
 
+    function toggleFullDayLeave(fullCb) {
+      const isFull = fullCb.checked;
+      document.getElementById('leave-breakfast').checked = isFull;
+      document.getElementById('leave-lunch').checked = isFull;
+      document.getElementById('leave-dinner').checked = isFull;
+      document.getElementById('leave-breakfast').disabled = isFull;
+      document.getElementById('leave-lunch').disabled = isFull;
+      document.getElementById('leave-dinner').disabled = isFull;
+    }
+
     async function loadHolidayConfigForAdmin() {
       const date = document.getElementById('holiday-date-picker').value;
       if (!date) return;
@@ -1021,10 +1031,18 @@
         if (docSnap.exists()) {
           const d = docSnap.data();
           document.getElementById('admin-holiday-cb').checked = d.isHoliday || false;
+          document.getElementById('leave-breakfast').checked = d.mealLeaves?.breakfast || false;
+          document.getElementById('leave-lunch').checked = d.mealLeaves?.lunch || false;
+          document.getElementById('leave-dinner').checked = d.mealLeaves?.dinner || false;
           document.getElementById('admin-holiday-notice').value = d.notice || '';
+          toggleFullDayLeave(document.getElementById('admin-holiday-cb'));
         } else {
           document.getElementById('admin-holiday-cb').checked = false;
+          document.getElementById('leave-breakfast').checked = false;
+          document.getElementById('leave-lunch').checked = false;
+          document.getElementById('leave-dinner').checked = false;
           document.getElementById('admin-holiday-notice').value = '';
+          toggleFullDayLeave(document.getElementById('admin-holiday-cb'));
         }
       } catch (e) {
         console.error(e);
@@ -1036,29 +1054,35 @@
       if (!date) return showToast('Please select a date', 'error');
 
       const isH = document.getElementById('admin-holiday-cb').checked;
+      const bLeave = document.getElementById('leave-breakfast').checked;
+      const lLeave = document.getElementById('leave-lunch').checked;
+      const dLeave = document.getElementById('leave-dinner').checked;
       const notice = document.getElementById('admin-holiday-notice').value.trim();
 
       try {
         const docRef = window.fs.doc(window.db, 'date_configs', date);
-        const existingSnap = await window.fs.getDoc(docRef);
-        let existingData = existingSnap.exists() ? existingSnap.data() : {};
+        const configData = {
+          isHoliday: isH,
+          mealLeaves: { breakfast: bLeave, lunch: lLeave, dinner: dLeave },
+          notice: notice
+        };
 
-        existingData.isHoliday = isH;
-        existingData.notice = notice;
+        await window.fs.setDoc(docRef, configData, { merge: true });
 
-        await window.fs.setDoc(docRef, existingData, { merge: true });
-
-        if (isH) {
-          const q = window.fs.query(window.fs.collection(window.db, 'bookings'), window.fs.where('date', '==', date));
-          const snap = await window.fs.getDocs(q);
-          const updatePromises = [];
-          snap.forEach(docSnap => {
+        // Automatically cancel bookings for full holiday or specific meal leaves
+        const q = window.fs.query(window.fs.collection(window.db, 'bookings'), window.fs.where('date', '==', date));
+        const snap = await window.fs.getDocs(q);
+        const updatePromises = [];
+        
+        snap.forEach(docSnap => {
+          const bData = docSnap.data();
+          if (isH || (bData.meal === 'breakfast' && bLeave) || (bData.meal === 'lunch' && lLeave) || (bData.meal === 'dinner' && dLeave)) {
             updatePromises.push(window.fs.updateDoc(docSnap.ref, { action: 'cancel' }));
-          });
-          await Promise.all(updatePromises);
-        }
+          }
+        });
+        await Promise.all(updatePromises);
 
-        showModal('Success', 'Holiday and leave settings saved successfully!', 'success');
+        showModal('Success', 'Holiday and meal leave settings saved successfully!', 'success');
         await loadAllDateConfigs();
         renderBulkTable();
       } catch (err) {
