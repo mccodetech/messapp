@@ -621,25 +621,29 @@
           <div class="section-card" style="max-width: 650px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
               <div>
-                <h3 style="font-size: 0.95rem; color:#1e3c72;">Date Specific Holiday & Leave Manager</h3>
-                <p style="font-size: 0.8rem; color:#64748b;">Select any specific date to declare Mess Leave / Holiday or broadcast special notice.</p>
+                <h3 style="font-size: 0.95rem; color:#1e3c72;">Date Specific Holiday & Meal Leave Manager</h3>
+                <p style="font-size: 0.8rem; color:#64748b;">Select any specific date to declare full day or specific meal leave.</p>
               </div>
               <div>
                 <input type="date" id="holiday-date-picker" class="input-control" style="padding:6px 12px; width: 160px;" onchange="loadHolidayConfigForAdmin()">
               </div>
             </div>
 
-            <div style="background:#fef2f2; border:1px solid #fecaca; padding:12px; border-radius:12px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between;">
-              <div>
-                <strong style="color:#991b1b; font-size:0.9rem;">Declare Mess Leave / Holiday for this Date</strong>
-                <p style="font-size:0.75rem; color:#7f1d1d;">If enabled, existing bookings for this date will be automatically cancelled and members cannot book.</p>
+            <div style="background:#fef2f2; border:1px solid #fecaca; padding:12px; border-radius:12px; margin-bottom:14px;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-bottom: 8px;">
+                <input type="checkbox" id="admin-holiday-cb" style="width:18px; height:18px; accent-color:#ef4444;" onchange="toggleFullDayLeave(this)">
+                <strong style="color:#991b1b; font-size:0.9rem;">Declare Full Day Mess Leave / Holiday</strong>
+              </label>
+              <div id="specific-meal-leaves" style="display:flex; gap:15px; margin-top:10px; padding-left:24px;">
+                <label style="font-size:0.82rem; cursor:pointer;"><input type="checkbox" id="leave-breakfast" style="accent-color:#ef4444;"> Breakfast Leave</label>
+                <label style="font-size:0.82rem; cursor:pointer;"><input type="checkbox" id="leave-lunch" style="accent-color:#ef4444;"> Lunch Leave</label>
+                <label style="font-size:0.82rem; cursor:pointer;"><input type="checkbox" id="leave-dinner" style="accent-color:#ef4444;"> Dinner Leave</label>
               </div>
-              <input type="checkbox" id="admin-holiday-cb" style="width:22px; height:22px; accent-color:#ef4444; cursor:pointer;">
             </div>
 
             <div class="input-group" style="margin-bottom: 14px;">
               <label>Special Announcement / Notice for this Date</label>
-              <input type="text" id="admin-holiday-notice" class="input-control" placeholder="e.g., TODAY MESS LEAVE or Special Biryani">
+              <input type="text" id="admin-holiday-notice" class="input-control" placeholder="e.g., Only lunch available today or Special Biryani">
             </div>
 
             <button class="btn-pill btn-success" onclick="saveHolidayConfig()">
