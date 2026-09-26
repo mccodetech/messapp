@@ -230,16 +230,17 @@
     #auth-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: var(--primary-gradient); display: flex; align-items: center; justify-content: center;
-      z-index: 500; padding: 16px;
+      z-index: 500; padding: 16px; overflow-y: auto;
     }
     .auth-card {
-      background: #fff; border-radius: 20px; padding: 28px 24px;
+      background: #fff; border-radius: 20px; padding: 24px 20px;
       width: 100%; max-width: 380px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); text-align: center;
+      max-height: 95vh; overflow-y: auto;
     }
-    .input-group { margin-bottom: 12px; text-align: left; }
-    .input-group label { display: block; margin-bottom: 4px; font-size: 0.8rem; color: #64748b; font-weight: 600; }
+    .input-group { margin-bottom: 10px; text-align: left; }
+    .input-group label { display: block; margin-bottom: 3px; font-size: 0.78rem; color: #64748b; font-weight: 600; }
     .input-control {
-      width: 100%; padding: 10px 16px; border-radius: 50px; border: 1px solid #cbd5e1; outline: none; font-size: 0.9rem;
+      width: 100%; padding: 9px 14px; border-radius: 50px; border: 1px solid #cbd5e1; outline: none; font-size: 0.88rem;
     }
 
     @media print {
@@ -247,7 +248,6 @@
       .sidebar, .header-bar, .btn-pill, .admin-nav-tabs, #auth-overlay, .toast-container, .no-print { display: none !important; }
       .main-content { padding: 0; }
       .section-card { border: none; box-shadow: none; padding: 0; }
-      .print-only-container { display: block !important; }
     }
 
     @media (max-width: 768px) {
@@ -283,13 +283,13 @@
   <!-- AUTH SCREEN -->
   <div id="auth-overlay">
     <div class="auth-card">
-      <i class="fa-solid fa-utensils" style="font-size: 32px; color: #1e3c72; margin-bottom: 8px;"></i>
-      <h2 style="color: #1e293b; font-size: 1.25rem; margin-bottom: 4px;">Suprabhatham Mess</h2>
-      <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 16px;">Mess Management System</p>
+      <i class="fa-solid fa-utensils" style="font-size: 28px; color: #1e3c72; margin-bottom: 6px;"></i>
+      <h2 style="color: #1e293b; font-size: 1.15rem; margin-bottom: 2px;">Suprabhatham Mess</h2>
+      <p style="color: #64748b; font-size: 0.75rem; margin-bottom: 12px;">Mess Management System</p>
 
-      <div style="display: flex; background: #f1f5f9; border-radius: 50px; padding: 4px; margin-bottom: 16px;">
-        <button class="btn-pill" id="tab-btn-login" onclick="switchAuthTab('login')" style="flex:1; background:#fff; color:#1e3c72; padding:7px;">Sign In</button>
-        <button class="btn-pill" id="tab-btn-reg" onclick="switchAuthTab('register')" style="flex:1; background:transparent; color:#64748b; padding:7px;">Sign Up</button>
+      <div style="display: flex; background: #f1f5f9; border-radius: 50px; padding: 3px; margin-bottom: 12px;">
+        <button class="btn-pill" id="tab-btn-login" onclick="switchAuthTab('login')" style="flex:1; background:#fff; color:#1e3c72; padding:6px;">Sign In</button>
+        <button class="btn-pill" id="tab-btn-reg" onclick="switchAuthTab('register')" style="flex:1; background:transparent; color:#64748b; padding:6px;">Sign Up</button>
       </div>
 
       <!-- Login Form -->
@@ -302,10 +302,10 @@
           <label><i class="fa-solid fa-key"></i> Password</label>
           <input type="password" id="login-pass" class="input-control" placeholder="Password">
         </div>
-        <button class="btn-pill btn-primary" style="width: 100%; margin-top: 6px;" onclick="handleLogin()">
+        <button class="btn-pill btn-primary" style="width: 100%; margin-top: 4px;" onclick="handleLogin()">
           <i class="fa-solid fa-right-to-bracket"></i> Sign In
         </button>
-        <p style="margin-top: 12px; font-size: 0.8rem;">
+        <p style="margin-top: 10px; font-size: 0.8rem;">
           <a href="javascript:void(0)" onclick="openResetModal()" style="color: #1e3c72; text-decoration: none; font-weight:600;">Forgot Password?</a>
         </p>
       </div>
@@ -337,10 +337,14 @@
           </select>
         </div>
         <div class="input-group">
-          <label><i class="fa-solid fa-key"></i> Set Password</label>
+          <label><i class="fa-solid fa-key"></i> Password</label>
           <input type="password" id="reg-pass" class="input-control" placeholder="Password">
         </div>
-        <button class="btn-pill btn-success" style="width: 100%; margin-top: 6px;" onclick="handleRegister()">
+        <div class="input-group">
+          <label><i class="fa-solid fa-key"></i> Confirm Password</label>
+          <input type="password" id="reg-pass-confirm" class="input-control" placeholder="Confirm Password">
+        </div>
+        <button class="btn-pill btn-success" style="width: 100%; margin-top: 4px;" onclick="handleRegister()">
           <i class="fa-solid fa-user-plus"></i> Submit Registration
         </button>
       </div>
@@ -781,8 +785,15 @@
       const email = document.getElementById('reg-email').value.trim();
       const category = document.getElementById('reg-category').value;
       const pass = document.getElementById('reg-pass').value.trim();
+      const passConfirm = document.getElementById('reg-pass-confirm').value.trim();
 
-      if (!name || !phone || !email || !pass) return showToast('Please fill all fields', 'error');
+      if (!name || !phone || !email || !pass || !passConfirm) {
+        return showToast('Please fill all fields', 'error');
+      }
+
+      if (pass !== passConfirm) {
+        return showModal('Password Mismatch', 'Password and Confirm Password do not match!', 'error');
+      }
 
       try {
         const tempId = 'temp_' + Date.now();
@@ -1339,7 +1350,6 @@
       if (mealType === 'lunch') { title = '☀️ Lunch List'; list = lunch; }
       if (mealType === 'dinner') { title = '🌙 Dinner List'; list = dinner; }
 
-      // Sort list numerically by token number if possible
       list.sort((a, b) => {
         const numA = parseInt((a.match(/#(\d+)/) || [])[1]) || 0;
         const numB = parseInt((b.match(/#(\d+)/) || [])[1]) || 0;
@@ -1399,6 +1409,7 @@
       printWindow.focus();
       setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
     }
+
     async function loadAdminPendingUsers() {
       const tbody = document.getElementById('admin-pending-users');
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading requests...</td></tr>';
