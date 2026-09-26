@@ -1607,7 +1607,8 @@
         tbody.innerHTML = '';
         snap.forEach(docSnap => {
           const u = docSnap.data();
-          if (u.role === 'admin' || u.role === 'superadmin' || u.status === 'pending') return;
+          // Skip if admin, superadmin, pending, or missing valid token/name
+          if (u.role === 'admin' || u.role === 'superadmin' || u.status === 'pending' || !u.token || u.token === 'N/A' || !u.name || u.name === 'N/A') return;
 
           let formattedDate = 'N/A';
           if (u.createdAt) {
@@ -1619,8 +1620,8 @@
 
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td><b>#${u.token || 'N/A'}</b></td>
-            <td>${u.name || 'N/A'}</td>
+            <td><b>#${u.token}</b></td>
+            <td>${u.name}</td>
             <td>${u.phone || 'N/A'}</td>
             <td>${u.category || 'N/A'}</td>
             <td><small style="color:#64748b;">${formattedDate}</small></td>
