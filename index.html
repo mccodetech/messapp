@@ -11,8 +11,8 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { 
-      getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs 
+    import {  
+      getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs  
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -29,7 +29,7 @@
     window.auth = getAuth(app);
     window.db = getFirestore(app);
     window.sendPasswordResetEmail = sendPasswordResetEmail;
-    window.fs = { doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs };
+    window.fs = { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs };
   </script>
 
   <style>
@@ -150,6 +150,7 @@
     }
     .btn-primary { background: var(--primary-gradient); color: #fff; }
     .btn-success { background-color: var(--success-color); color: #fff; }
+    .btn-danger { background-color: var(--error-color); color: #fff; }
     .btn-whatsapp { background-color: var(--whatsapp-color); color: #fff; }
     .btn-light { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
@@ -392,15 +393,23 @@
         <div id="mode-bulk" class="section-card">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
             <div>
-              <h3 style="font-size: 0.95rem; color: #1e293b;">Weekly Booking Schedule</h3>
+              <h3 style="font-size: 0.95rem; color: #1e293b;" id="booking-section-title">Weekly Booking Schedule</h3>
             </div>
-            <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="booking-action-buttons">
               <button class="btn-pill btn-light" onclick="bulkSetAll(true)">All</button>
               <button class="btn-pill btn-light" onclick="bulkSetAll(false)">Clear</button>
               <button class="btn-pill btn-success" onclick="saveBulkBookings()">
                 <i class="fa-solid fa-floppy-disk"></i> Save / Update
               </button>
             </div>
+          </div>
+
+          <!-- Target User Selector for Admin Booking on Behalf -->
+          <div id="admin-proxy-container" style="display:none; margin-bottom: 12px; padding: 10px; background: #f1f5f9; border-radius: 10px; align-items: center; gap: 8px;">
+            <label style="font-size: 0.82rem; font-weight: 600;">Booking for User:</label>
+            <select id="admin-target-token" class="input-control" style="flex: 1; padding: 6px 12px;" onchange="onAdminTargetUserChange()">
+              <option value="">-- Select Member / Self --</option>
+            </select>
           </div>
 
           <div class="bulk-table-container">
@@ -597,7 +606,10 @@
           <div class="section-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
               <h3 style="font-size: 0.95rem;">All Member Bookings</h3>
-              <div style="display:flex; gap:6px;">
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button class="btn-pill btn-danger" onclick="clearAllBookingsHistory()">
+                  <i class="fa-solid fa-trash-can"></i> Clear All History
+                </button>
                 <button class="btn-pill btn-light" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
                 <button class="btn-pill btn-primary" onclick="exportAdminTableToCSV()"><i class="fa-solid fa-file-excel"></i> Export CSV</button>
               </div>
@@ -628,6 +640,7 @@
   <script>
     let currentUser = null;
     let currentKitchenData = { date: '', breakfast: [], lunch: [], dinner: [] };
+    let adminSelectedTargetUser = null; // Keeps track if admin is booking on behalf of someone else
 
     document.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
@@ -756,17 +769,56 @@
       const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
       document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? 'flex' : 'none');
       
+      // Show or hide admin proxy booking selector
+      const proxyContainer = document.getElementById('admin-proxy-container');
+      if (isAdmin && proxyContainer) {
+        proxyContainer.style.display = 'flex';
+        loadAdminTargetMembersDropdown();
+      } else if (proxyContainer) {
+        proxyContainer.style.display = 'none';
+      }
+      
       if (window.innerWidth <= 768) {
         const mobLogout = document.querySelector('.mobile-logout-btn');
         if (mobLogout) mobLogout.style.display = 'inline-flex';
       }
 
-      if (isAdmin) {
-        switchNav('admin');
-      } else {
-        renderBulkTable();
-        loadExistingBookings();
+      renderBulkTable();
+      loadExistingBookings();
+    }
+
+    async function loadAdminTargetMembersDropdown() {
+      const select = document.getElementById('admin-target-token');
+      if (!select) return;
+      select.innerHTML = `<option value="">-- Book for Myself (${currentUser.name}) --</option>`;
+      try {
+        const snap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
+        snap.forEach(docSnap => {
+          const u = docSnap.data();
+          if (u.status === 'active' && u.token && u.role === 'user') {
+            const opt = document.createElement('option');
+            opt.value = u.token;
+            opt.textContent = `#${u.token} - ${u.name} (${u.category})`;
+            select.appendChild(opt);
+          }
+        });
+      } catch (err) {
+        console.error(err);
       }
+    }
+
+    function onAdminTargetUserChange() {
+      const select = document.getElementById('admin-target-token');
+      const val = select.value;
+      if (!val) {
+        adminSelectedTargetUser = null;
+        document.getElementById('booking-section-title').textContent = 'Weekly Booking Schedule';
+      } else {
+        // Find user info
+        adminSelectedTargetUser = val;
+        document.getElementById('booking-section-title').textContent = `Weekly Booking (For Token #${val})`;
+      }
+      loadExistingBookings();
     }
 
     function switchNav(name) {
@@ -808,6 +860,10 @@
 
     /* Cut-off helper function */
     function isMealSlotLocked(dateStr, mealType) {
+      // Admins can bypass cut-off locks if they are booking on behalf, but let's keep basic check or allow admin bypass
+      const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+      if (isAdmin) return false; // Admin can book anytime
+
       const now = new Date();
       const todayStr = now.toISOString().split('T')[0];
 
@@ -817,7 +873,7 @@
       const currentHour = now.getHours();
       if (mealType === 'breakfast') return currentHour >= 6; // 6 AM
       if (mealType === 'lunch') return currentHour >= 10;    // 10 AM
-      if (mealType === 'dinner') return currentHour >= 16;   // 4 PM
+      if (mealType === 'dinner') return currentHour >= 16;    // 4 PM
       return false;
     }
 
@@ -856,10 +912,16 @@
 
     async function loadExistingBookings() {
       if (!currentUser) return;
+      // Clear checkboxes first
+      document.querySelectorAll('.bulk-cb').forEach(cb => cb.checked = false);
+
+      const targetToken = adminSelectedTargetUser || currentUser.token;
+      if (!targetToken) return;
+
       try {
         const q = window.fs.query(
           window.fs.collection(window.db, 'bookings'),
-          window.fs.where('token', '==', currentUser.token)
+          window.fs.where('token', '==', targetToken)
         );
         const querySnapshot = await window.fs.getDocs(q);
         querySnapshot.forEach(docSnap => {
@@ -889,14 +951,25 @@
       showToast('Saving bookings...', 'info');
       const timestamp = new Date().toISOString();
 
+      let activeUserToBook = currentUser;
+      if (adminSelectedTargetUser) {
+        // Fetch target user details from Firestore to keep consistent name and category
+        try {
+          const userDoc = await window.fs.getDoc(window.fs.doc(window.db, 'users', adminSelectedTargetUser));
+          if (userDoc.exists()) {
+            activeUserToBook = userDoc.data();
+          }
+        } catch(e) { console.error(e); }
+      }
+
       try {
         for (let cb of cbs) {
-          const docId = `${currentUser.token}_${cb.dataset.date}_${cb.dataset.meal}`;
+          const docId = `${activeUserToBook.token}_${cb.dataset.date}_${cb.dataset.meal}`;
           const ref = window.fs.doc(window.db, 'bookings', docId);
           await window.fs.setDoc(ref, {
-            token: currentUser.token,
-            name: currentUser.name,
-            category: currentUser.category,
+            token: activeUserToBook.token,
+            name: activeUserToBook.name,
+            category: activeUserToBook.category || 'OTHER',
             date: cb.dataset.date,
             meal: cb.dataset.meal,
             action: cb.checked ? 'book' : 'cancel',
@@ -927,6 +1000,10 @@
 
         tbody.innerHTML = '';
         const sortedDates = Object.keys(dataMap).sort();
+        if (sortedDates.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#64748b;">No booking records found.</td></tr>';
+          return;
+        }
         sortedDates.forEach(date => {
           const row = dataMap[date];
           const tr = document.createElement('tr');
@@ -938,7 +1015,7 @@
       }
     }
 
-    /* KITCHEN REPORT LOGIC (WITHOUT CATEGORY IN LISTS) */
+    /* KITCHEN REPORT LOGIC */
     async function loadKitchenReport() {
       const date = document.getElementById('kitchen-date-picker').value;
       if (!date) return;
@@ -956,7 +1033,7 @@
 
         snap.forEach(docSnap => {
           const d = docSnap.data();
-          const entry = `#${d.token} ${d.name}`; // Cleaned: No category included
+          const entry = `#${d.token} ${d.name}`;
           if (d.meal === 'breakfast') currentKitchenData.breakfast.push(entry);
           if (d.meal === 'lunch') currentKitchenData.lunch.push(entry);
           if (d.meal === 'dinner') currentKitchenData.dinner.push(entry);
@@ -990,7 +1067,7 @@
       });
     }
 
-    /* WHATSAPP SHARING: SINGLE OR ALL MEALS (NO CATEGORY) */
+    /* WHATSAPP SHARING */
     function shareSingleMealWhatsApp(type) {
       const { date, breakfast, lunch, dinner } = currentKitchenData;
       if (!date) return showToast('Please select a date', 'error');
@@ -1127,13 +1204,17 @@
       }
     }
 
-    /* ALL BOOKINGS */
+    /* ALL BOOKINGS & CLEAR HISTORY WITH AUDIT LOG */
     async function loadAdminAllBookings() {
       const tbody = document.getElementById('admin-table-body');
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading records...</td></tr>';
       try {
         const querySnapshot = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
         tbody.innerHTML = '';
+        if (querySnapshot.empty) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">No booking records found.</td></tr>';
+          return;
+        }
         querySnapshot.forEach(docSnap => {
           const d = docSnap.data();
           const tr = document.createElement('tr');
@@ -1149,6 +1230,25 @@
         });
       } catch (err) {
         tbody.innerHTML = `<tr><td colspan="6" style="color:red;">${err.message}</td></tr>`;
+      }
+    }
+
+    async function clearAllBookingsHistory() {
+      if (!confirm('Are you sure you want to clear/delete all booking history records?')) return;
+      showToast('Clearing history records...', 'info');
+      try {
+        const querySnapshot = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
+        const deletePromises = [];
+        querySnapshot.forEach(docSnap => {
+          deletePromises.push(window.fs.deleteDoc(docSnap.ref));
+        });
+        await Promise.all(deletePromises);
+        
+        // Save an audit record or log of clearance if needed
+        showModal('Cleared', 'All booking history records have been successfully cleared.', 'success');
+        loadAdminAllBookings();
+      } catch (err) {
+        showModal('Error', err.message, 'error');
       }
     }
 
@@ -1171,7 +1271,7 @@
       document.getElementById('modal-message').textContent = msg;
       modal.classList.add('active');
     }
-    function closeModal() { document.getElementById('app-modal').classList.remove('active'); }
+    function closeModal() { document.getElementById('app-modal').classList.remove('close') || document.getElementById('app-modal').classList.remove('active'); }
     function showToast(msg, type = 'info') {
       const c = document.getElementById('toast-container');
       const t = document.createElement('div');
