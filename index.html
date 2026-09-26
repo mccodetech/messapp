@@ -1179,7 +1179,7 @@
     /* MEMBERS REGISTER */
     async function loadAdminMembersRegister() {
       const tbody = document.getElementById('admin-users-list');
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading members...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading members...</td></tr>';
       try {
         const snap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
         tbody.innerHTML = '';
@@ -1187,12 +1187,22 @@
           const u = docSnap.data();
           if (u.role === 'admin' || u.role === 'superadmin' || u.status === 'pending') return;
 
+          // Format registration date and time neatly
+          let formattedDate = 'N/A';
+          if (u.createdAt) {
+            const dateObj = new Date(u.createdAt);
+            if (!isNaN(dateObj.getTime())) {
+              formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+          }
+
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td><b>#${u.token}</b></td>
-            <td>${u.name}</td>
-            <td>${u.phone}</td>
-            <td>${u.category}</td>
+            <td><b>#${u.token || 'N/A'}</b></td>
+            <td>${u.name || 'N/A'}</td>
+            <td>${u.phone || 'N/A'}</td>
+            <td>${u.category || 'N/A'}</td>
+            <td><small style="color:#64748b;">${formattedDate}</small></td>
             <td><span style="color:${u.status === 'active' ? '#10b981':'#ef4444'}; font-weight:600;">${u.status}</span></td>
             <td>
               <button class="btn-pill btn-light" style="padding:3px 8px; font-size:0.75rem;" onclick="toggleUserStatus('${u.token}', '${u.status}')">
@@ -1203,7 +1213,7 @@
           tbody.appendChild(tr);
         });
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" style="color:red;">${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="color:red;">${err.message}</td></tr>`;
       }
     }
 
