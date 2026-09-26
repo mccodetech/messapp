@@ -154,11 +154,11 @@
     .btn-light { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
     .bulk-table-container { width: 100%; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; }
-    .bulk-table { width: 100%; border-collapse: collapse; text-align: center; table-layout: fixed; }
-    .bulk-table th { background: #f8fafc; color: #475569; font-size: 0.8rem; font-weight: 600; padding: 10px 4px; border-bottom: 1px solid #e2e8f0; }
-    .bulk-table td { padding: 8px 4px; border-bottom: 1px solid #f1f5f9; font-size: 0.82rem; }
-    .bulk-table td.day-cell { text-align: left; padding-left: 10px; font-weight: 600; color: #1e293b; line-height: 1.2; }
-    .bulk-table td.day-cell span { display: block; font-size: 0.7rem; font-weight: normal; color: #64748b; }
+    .bulk-table { width: 100%; border-collapse: collapse; text-align: center; }
+    .bulk-table th { background: #f8fafc; color: #475569; font-size: 0.8rem; font-weight: 600; padding: 10px 8px; border-bottom: 1px solid #e2e8f0; }
+    .bulk-table td { padding: 10px 8px; border-bottom: 1px solid #f1f5f9; font-size: 0.82rem; }
+    .bulk-table td.day-cell { text-align: left; padding-left: 10px; font-weight: 600; color: #1e293b; line-height: 1.3; }
+    .bulk-table td.day-cell span { display: block; font-size: 0.72rem; font-weight: normal; color: #64748b; }
     .bulk-table input[type="checkbox"] { width: 20px; height: 20px; accent-color: #1e3c72; cursor: pointer; }
     .bulk-table input[type="checkbox"]:disabled { cursor: not-allowed; opacity: 0.4; }
 
@@ -172,6 +172,19 @@
       margin-bottom: 12px;
       display: flex;
       gap: 8px;
+      align-items: center;
+    }
+
+    .special-notice-banner {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      margin-bottom: 14px;
+      display: flex;
+      gap: 10px;
       align-items: center;
     }
 
@@ -387,10 +400,18 @@
           <span><b>Cut-off times:</b> Breakfast: 6:00 AM | Lunch: 10:00 AM | Dinner: 4:00 PM.</span>
         </div>
 
+        <!-- Special Notice Banner for Users -->
+        <div id="user-special-notice-box" class="special-notice-banner" style="display:none;">
+          <i class="fa-solid fa-triangle-exclamation" style="font-size: 18px;"></i>
+          <div>
+            <strong>Special Announcement:</strong> <span id="user-special-notice-text"></span>
+          </div>
+        </div>
+
         <div id="mode-bulk" class="section-card">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
             <div>
-              <h3 style="font-size: 0.95rem; color: #1e293b;" id="booking-section-title">Weekly Booking Schedule</h3>
+              <h3 style="font-size: 0.95rem; color: #1e293b;" id="booking-section-title">Weekly Booking Schedule & Menu</h3>
             </div>
             <div style="display: flex; gap: 6px; flex-wrap: wrap;" id="booking-action-buttons">
               <button class="btn-pill btn-light" onclick="bulkSetAll(true)">All</button>
@@ -413,19 +434,10 @@
             <table class="bulk-table">
               <thead>
                 <tr>
-                  <th style="width: 34%; text-align: left; padding-left: 10px;">Day</th>
-                  <th style="width: 22%;">
-                    🌅 Brk<br/>
-                    <a href="javascript:void(0)" onclick="toggleColumnMeals('breakfast')" style="font-size:0.68rem; color:#3b82f6;">Toggle</a>
-                  </th>
-                  <th style="width: 22%;">
-                    ☀️ Lun<br/>
-                    <a href="javascript:void(0)" onclick="toggleColumnMeals('lunch')" style="font-size:0.68rem; color:#3b82f6;">Toggle</a>
-                  </th>
-                  <th style="width: 22%;">
-                    🌙 Din<br/>
-                    <a href="javascript:void(0)" onclick="toggleColumnMeals('dinner')" style="font-size:0.68rem; color:#3b82f6;">Toggle</a>
-                  </th>
+                  <th style="width: 28%; text-align: left; padding-left: 10px;">Day & Menu</th>
+                  <th style="width: 24%;">🌅 Breakfast</th>
+                  <th style="width: 24%;">☀️ Lunch</th>
+                  <th style="width: 24%;">🌙 Dinner</th>
                 </tr>
               </thead>
               <tbody id="bulk-table-body"></tbody>
@@ -468,8 +480,8 @@
           <button class="admin-tab-btn active" id="atab-btn-kitchen" onclick="switchAdminSubTab('kitchen')">
             <i class="fa-solid fa-kitchen-set"></i> Kitchen Report
           </button>
-          <button class="admin-tab-btn" id="atab-btn-settings" onclick="switchAdminSubTab('settings')">
-            <i class="fa-solid fa-gear"></i> Meal Points Settings
+          <button class="admin-tab-btn" id="atab-btn-menu" onclick="switchAdminSubTab('menu')">
+            <i class="fa-solid fa-utensils"></i> Menu & Points Manager
           </button>
           <button class="admin-tab-btn" id="atab-btn-pending" onclick="switchAdminSubTab('pending')">
             <i class="fa-solid fa-user-clock"></i> Pending Approvals
@@ -502,7 +514,6 @@
 
             <!-- Head Counts with individual WhatsApp Share -->
             <div class="kitchen-stat-row">
-              <!-- Breakfast Card -->
               <div class="kitchen-box">
                 <div class="kitchen-box-header">
                   <h4>🌅 Breakfast</h4>
@@ -513,7 +524,6 @@
                 </button>
               </div>
 
-              <!-- Lunch Card -->
               <div class="kitchen-box">
                 <div class="kitchen-box-header">
                   <h4>☀️ Lunch</h4>
@@ -524,7 +534,6 @@
                 </button>
               </div>
 
-              <!-- Dinner Card -->
               <div class="kitchen-box">
                 <div class="kitchen-box-header">
                   <h4>🌙 Dinner</h4>
@@ -554,30 +563,75 @@
           </div>
         </div>
 
-        <!-- 1.5 MEAL POINTS SETTINGS SECTION -->
-        <div id="admin-sec-settings" class="admin-sub-sec" style="display:none;">
-          <div class="section-card" style="max-width: 450px;">
-            <h3 style="margin-bottom: 12px; font-size: 0.95rem; color:#1e3c72;">Configure Meal Points / Charges</h3>
-            <p style="font-size: 0.8rem; color:#64748b; margin-bottom: 16px;">Set the point/charge value for each meal type. These values will be used to calculate total points for members.</p>
-            <div class="input-group">
-              <label>🌅 Breakfast Points</label>
-              <input type="number" id="pts-breakfast" class="input-control" value="1" step="0.5">
+        <!-- 2. MENU & POINTS MANAGER SECTION -->
+        <div id="admin-sec-menu" class="admin-sub-sec" style="display:none;">
+          <div class="section-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+              <div>
+                <h3 style="font-size: 0.95rem; color:#1e3c72;">Daily Menu & Points Manager</h3>
+                <p style="font-size: 0.8rem; color:#64748b;">Set specific menu items and points/charges for each date.</p>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <label style="font-size:0.82rem; font-weight:600;">Select Date:</label>
+                <input type="date" id="menu-date-picker" class="input-control" style="width:160px; padding:6px 12px;" onchange="loadDateMenuConfig()" />
+              </div>
             </div>
-            <div class="input-group">
-              <label>☀️ Lunch Points</label>
-              <input type="number" id="pts-lunch" class="input-control" value="2" step="0.5">
+
+            <!-- Special Announcement Broadcast to Users -->
+            <div style="background:#f1f5f9; padding:14px; border-radius:12px; margin-bottom:16px;">
+              <h4 style="font-size:0.85rem; color:#1e3c72; margin-bottom:6px;"><i class="fa-solid fa-bullhorn"></i> Special Announcement / Change Notice for this Date</h4>
+              <input type="text" id="admin-special-notice" class="input-control" placeholder="e.g., Special chicken biryani for lunch today!" style="margin-bottom:8px; background:#fff;">
+              <button class="btn-pill btn-primary" style="font-size:0.75rem; padding:5px 12px;" onclick="saveSpecialNotice()">Broadcast Notice</button>
             </div>
-            <div class="input-group">
-              <label>🌙 Dinner Points</label>
-              <input type="number" id="pts-dinner" class="input-control" value="2" step="0.5">
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; margin-bottom: 16px;">
+              <!-- Breakfast Card -->
+              <div style="border:1px solid #e2e8f0; border-radius:12px; padding:14px; background:#fff;">
+                <h4 style="font-size:0.9rem; color:#1e3c72; margin-bottom:10px;">🌅 Breakfast</h4>
+                <div class="input-group">
+                  <label>Menu Item</label>
+                  <input type="text" id="menu-b-item" class="input-control" placeholder="e.g., Appam & Stew">
+                </div>
+                <div class="input-group">
+                  <label>Points / Charge</label>
+                  <input type="number" id="menu-b-pts" class="input-control" value="1" step="0.5">
+                </div>
+              </div>
+
+              <!-- Lunch Card -->
+              <div style="border:1px solid #e2e8f0; border-radius:12px; padding:14px; background:#fff;">
+                <h4 style="font-size:0.9rem; color:#1e3c72; margin-bottom:10px;">☀️ Lunch</h4>
+                <div class="input-group">
+                  <label>Menu Item</label>
+                  <input type="text" id="menu-l-item" class="input-control" placeholder="e.g., Meals & Fish Curry">
+                </div>
+                <div class="input-group">
+                  <label>Points / Charge</label>
+                  <input type="number" id="menu-l-pts" class="input-control" value="2" step="0.5">
+                </div>
+              </div>
+
+              <!-- Dinner Card -->
+              <div style="border:1px solid #e2e8f0; border-radius:12px; padding:14px; background:#fff;">
+                <h4 style="font-size:0.9rem; color:#1e3c72; margin-bottom:10px;">🌙 Dinner</h4>
+                <div class="input-group">
+                  <label>Menu & Points</label>
+                  <input type="text" id="menu-d-item" class="input-control" placeholder="e.g., Chappathi & Chicken">
+                </div>
+                <div class="input-group">
+                  <label>Points / Charge</label>
+                  <input type="number" id="menu-d-pts" class="input-control" value="2" step="0.5">
+                </div>
+              </div>
             </div>
-            <button class="btn-pill btn-primary" style="width:100%; margin-top:8px;" onclick="saveMealPointsConfig()">
-              <i class="fa-solid fa-floppy-disk"></i> Save Point Values
+
+            <button class="btn-pill btn-success" onclick="saveDateMenuConfig()">
+              <i class="fa-solid fa-floppy-disk"></i> Save Date Menu & Points
             </button>
           </div>
         </div>
 
-        <!-- 2. PENDING APPROVALS SECTION -->
+        <!-- 3. PENDING APPROVALS SECTION -->
         <div id="admin-sec-pending" class="admin-sub-sec" style="display:none;">
           <div class="section-card">
             <h3 style="margin-bottom: 12px; font-size: 0.95rem; color:#1e3c72;">Pending User Approvals</h3>
@@ -598,7 +652,7 @@
           </div>
         </div>
 
-        <!-- 3. MEMBERS REGISTER SECTION -->
+        <!-- 4. MEMBERS REGISTER SECTION -->
         <div id="admin-sec-members" class="admin-sub-sec" style="display:none;">
           <div class="section-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
@@ -626,7 +680,7 @@
           </div>
         </div>
 
-        <!-- 4. ALL BOOKINGS SECTION -->
+        <!-- 5. ALL BOOKINGS SECTION -->
         <div id="admin-sec-allbookings" class="admin-sub-sec" style="display:none;">
           <div class="section-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
@@ -666,45 +720,17 @@
     let currentUser = null;
     let currentKitchenData = { date: '', breakfast: [], lunch: [], dinner: [] };
     let adminSelectedTargetUser = null;
-    
-    // Default meal points configuration
-    let mealPoints = { breakfast: 1, lunch: 2, dinner: 2 };
+    let weeklyMenusCache = {}; // Cache for week menu details
 
     document.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
       const kp = document.getElementById('kitchen-date-picker');
       if (kp) kp.value = today;
-      loadMealPointsConfig();
+      const mp = document.getElementById('menu-date-picker');
+      if (mp) mp.value = today;
+
       checkExistingSession();
     });
-
-    async function loadMealPointsConfig() {
-      try {
-        const docSnap = await window.fs.getDoc(window.fs.doc(window.db, 'settings', 'meal_points'));
-        if (docSnap.exists()) {
-          mealPoints = docSnap.data();
-          if(document.getElementById('pts-breakfast')) {
-            document.getElementById('pts-breakfast').value = mealPoints.breakfast;
-            document.getElementById('pts-lunch').value = mealPoints.lunch;
-            document.getElementById('pts-dinner').value = mealPoints.dinner;
-          }
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    async function saveMealPointsConfig() {
-      mealPoints.breakfast = parseFloat(document.getElementById('pts-breakfast').value) || 1;
-      mealPoints.lunch = parseFloat(document.getElementById('pts-lunch').value) || 2;
-      mealPoints.dinner = parseFloat(document.getElementById('pts-dinner').value) || 2;
-      try {
-        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'meal_points'), mealPoints);
-        showModal('Success', 'Meal points configuration saved successfully!', 'success');
-      } catch (err) {
-        showModal('Error', err.message, 'error');
-      }
-    }
 
     function checkExistingSession() {
       const saved = localStorage.getItem('snec_mess_session');
@@ -818,7 +844,7 @@
       document.getElementById('auth-overlay').style.display = 'flex';
     }
 
-    function renderAuthenticatedUI() {
+    async function renderAuthenticatedUI() {
       document.getElementById('app-container').style.display = 'flex';
       document.getElementById('user-display-name').textContent = currentUser.name;
       document.getElementById('user-display-token').textContent = '#' + (currentUser.token || 'Pending');
@@ -839,8 +865,113 @@
         if (mobLogout) mobLogout.style.display = 'inline-flex';
       }
 
+      await loadWeeklyMenusCache();
       renderBulkTable();
       loadExistingBookings();
+      checkTodaySpecialNotice();
+    }
+
+    async function loadWeeklyMenusCache() {
+      weeklyMenusCache = {};
+      try {
+        const snap = await window.fs.getDocs(window.fs.collection(window.db, 'daily_menus'));
+        snap.forEach(docSnap => {
+          weeklyMenusCache[docSnap.id] = docSnap.data();
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function checkTodaySpecialNotice() {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const menuData = weeklyMenusCache[todayStr];
+      const box = document.getElementById('user-special-notice-box');
+      const txt = document.getElementById('user-special-notice-text');
+      if (menuData && menuData.notice && menuData.notice.trim() !== '') {
+        txt.textContent = menuData.notice;
+        box.style.display = 'flex';
+      } else {
+        box.style.display = 'none';
+      }
+    }
+
+    async function loadDateMenuConfig() {
+      const date = document.getElementById('menu-date-picker').value;
+      if (!date) return;
+      try {
+        const docSnap = await window.fs.getDoc(window.fs.doc(window.db, 'daily_menus', date));
+        if (docSnap.exists()) {
+          const d = docSnap.data();
+          document.getElementById('menu-b-item').value = d.breakfast?.item || '';
+          document.getElementById('menu-b-pts').value = d.breakfast?.points || 1;
+          document.getElementById('menu-l-item').value = d.lunch?.item || '';
+          document.getElementById('menu-l-pts').value = d.lunch?.points || 2;
+          document.getElementById('menu-d-item').value = d.dinner?.item || '';
+          document.getElementById('menu-d-pts').value = d.dinner?.points || 2;
+          document.getElementById('admin-special-notice').value = d.notice || '';
+        } else {
+          document.getElementById('menu-b-item').value = '';
+          document.getElementById('menu-b-pts').value = 1;
+          document.getElementById('menu-l-item').value = '';
+          document.getElementById('menu-l-pts').value = 2;
+          document.getElementById('menu-d-item').value = '';
+          document.getElementById('menu-d-pts').value = 2;
+          document.getElementById('admin-special-notice').value = '';
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function saveDateMenuConfig() {
+      const date = document.getElementById('menu-date-picker').value;
+      if (!date) return showToast('Please select a date', 'error');
+
+      const data = {
+        breakfast: {
+          item: document.getElementById('menu-b-item').value.trim() || 'Standard Breakfast',
+          points: parseFloat(document.getElementById('menu-b-pts').value) || 1
+        },
+        lunch: {
+          item: document.getElementById('menu-l-item').value.trim() || 'Standard Lunch',
+          points: parseFloat(document.getElementById('menu-l-pts').value) || 2
+        },
+        dinner: {
+          item: document.getElementById('menu-d-item').value.trim() || 'Standard Dinner',
+          points: parseFloat(document.getElementById('menu-d-pts').value) || 2
+        },
+        notice: document.getElementById('admin-special-notice').value.trim()
+      };
+
+      try {
+        await window.fs.setDoc(window.fs.doc(window.db, 'daily_menus', date), data);
+        showModal('Success', 'Daily menu, points and notice saved successfully!', 'success');
+        await loadWeeklyMenusCache();
+        renderBulkTable();
+      } catch (err) {
+        showModal('Error', err.message, 'error');
+      }
+    }
+
+    async function saveSpecialNotice() {
+      const date = document.getElementById('menu-date-picker').value;
+      if (!date) return showToast('Please select a date first', 'error');
+      try {
+        const ref = window.fs.doc(window.db, 'daily_menus', date);
+        const docSnap = await window.fs.getDoc(ref);
+        let existing = docSnap.exists() ? docSnap.data() : {
+          breakfast: { item: 'Standard Breakfast', points: 1 },
+          lunch: { item: 'Standard Lunch', points: 2 },
+          dinner: { item: 'Standard Dinner', points: 2 }
+        };
+        existing.notice = document.getElementById('admin-special-notice').value.trim();
+        await window.fs.setDoc(ref, existing);
+        showToast('Announcement broadcasted successfully!', 'success');
+        await loadWeeklyMenusCache();
+      } catch (err) {
+        showModal('Error', err.message, 'error');
+      }
     }
 
     async function loadAdminTargetMembersDropdown() {
@@ -868,7 +999,7 @@
       const val = select.value;
       if (!val) {
         adminSelectedTargetUser = null;
-        document.getElementById('booking-section-title').textContent = 'Weekly Booking Schedule';
+        document.getElementById('booking-section-title').textContent = 'Weekly Booking Schedule & Menu';
       } else {
         adminSelectedTargetUser = val;
         document.getElementById('booking-section-title').textContent = `Weekly Booking (For Token #${val})`;
@@ -907,6 +1038,7 @@
       document.getElementById(`admin-sec-${sec}`).style.display = 'block';
 
       if (sec === 'kitchen') loadKitchenReport();
+      if (sec === 'menu') loadDateMenuConfig();
       if (sec === 'pending') loadAdminPendingUsers();
       if (sec === 'members') loadAdminMembersRegister();
       if (sec === 'allbookings') loadAdminAllBookings();
@@ -945,6 +1077,12 @@
         dayDate.setDate(monday.getDate() + i);
         const dateStr = dayDate.toISOString().split('T')[0];
 
+        const dayMenu = weeklyMenusCache[dateStr] || {
+          breakfast: { item: 'Breakfast', points: 1 },
+          lunch: { item: 'Lunch', points: 2 },
+          dinner: { item: 'Dinner', points: 2 }
+        };
+
         const bLocked = isMealSlotLocked(dateStr, 'breakfast');
         const lLocked = isMealSlotLocked(dateStr, 'lunch');
         const dLocked = isMealSlotLocked(dateStr, 'dinner');
@@ -952,11 +1090,20 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td class="day-cell">
-            ${daysOfWeek[i]} <span>${dateStr.slice(5)}</span>
+            <b>${daysOfWeek[i]}</b> <span>${dateStr.slice(5)}</span>
           </td>
-          <td><input type="checkbox" class="bulk-cb meal-breakfast" data-date="${dateStr}" data-meal="breakfast" ${bLocked ? 'disabled title="Slot locked"' : ''}></td>
-          <td><input type="checkbox" class="bulk-cb meal-lunch" data-date="${dateStr}" data-meal="lunch" ${lLocked ? 'disabled title="Slot locked"' : ''}></td>
-          <td><input type="checkbox" class="bulk-cb meal-dinner" data-date="${dateStr}" data-meal="dinner" ${dLocked ? 'disabled title="Slot locked"' : ''}></td>
+          <td>
+            <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${dayMenu.breakfast.item} (${dayMenu.breakfast.points}Pts)</div>
+            <input type="checkbox" class="bulk-cb meal-breakfast" data-date="${dateStr}" data-meal="breakfast" ${bLocked ? 'disabled title="Slot locked"' : ''}>
+          </td>
+          <td>
+            <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${dayMenu.lunch.item} (${dayMenu.lunch.points}Pts)</div>
+            <input type="checkbox" class="bulk-cb meal-lunch" data-date="${dateStr}" data-meal="lunch" ${lLocked ? 'disabled title="Slot locked"' : ''}>
+          </td>
+          <td>
+            <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${dayMenu.dinner.item} (${dayMenu.dinner.points}Pts)</div>
+            <input type="checkbox" class="bulk-cb meal-dinner" data-date="${dateStr}" data-meal="dinner" ${dLocked ? 'disabled title="Slot locked"' : ''}>
+          </td>
         `;
         tbody.appendChild(tr);
       }
@@ -989,12 +1136,6 @@
 
     function bulkSetAll(state) {
       document.querySelectorAll('.bulk-cb:not(:disabled)').forEach(cb => cb.checked = state);
-    }
-
-    function toggleColumnMeals(meal) {
-      const cbs = document.querySelectorAll(`.meal-${meal}:not(:disabled)`);
-      const allChecked = Array.from(cbs).every(cb => cb.checked);
-      cbs.forEach(cb => cb.checked = !allChecked);
     }
 
     async function saveBulkBookings() {
@@ -1036,7 +1177,7 @@
       const tbody = document.getElementById('report-table-body');
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
       try {
-        await loadMealPointsConfig();
+        await loadWeeklyMenusCache();
         const q = window.fs.query(
           window.fs.collection(window.db, 'bookings'),
           window.fs.where('token', '==', currentUser.token)
@@ -1061,10 +1202,16 @@
 
         sortedDates.forEach(date => {
           const row = dataMap[date];
+          const dayMenu = weeklyMenusCache[date] || {
+            breakfast: { points: 1 },
+            lunch: { points: 2 },
+            dinner: { points: 2 }
+          };
+
           let dayPts = 0;
-          if (row.breakfast === '✔️') dayPts += mealPoints.breakfast;
-          if (row.lunch === '✔️') dayPts += mealPoints.lunch;
-          if (row.dinner === '✔️') dayPts += mealPoints.dinner;
+          if (row.breakfast === '✔️') dayPts += dayMenu.breakfast.points;
+          if (row.lunch === '✔️') dayPts += dayMenu.lunch.points;
+          if (row.dinner === '✔️') dayPts += dayMenu.dinner.points;
           totalUserPoints += dayPts;
 
           const tr = document.createElement('tr');
@@ -1337,7 +1484,7 @@
         showModal('Cleared', 'All booking history records have been successfully cleared.', 'success');
         loadAdminAllBookings();
       } catch (err) {
-        showModal('Error', err.message, 'error');
+        showModal('Error', err.message, 'error, err.message');
       }
     }
 
@@ -1364,7 +1511,7 @@
     function showToast(msg, type = 'info') {
       const c = document.getElementById('toast-container');
       const t = document.createElement('div');
-      t.className, t.className = 'toast';
+      t.className = 'toast';
       t.innerHTML = `<i class="fa-solid fa-bell" style="color:#3b82f6;"></i> <span>${msg}</span>`;
       c.appendChild(t);
       setTimeout(() => t.remove(), 2500);
