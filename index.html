@@ -814,7 +814,7 @@
     }
 
     async function handleRegister() {
-      const name = document.getElementById('reg-name').value.trim();
+      const name = document.getElementById('reg-name').value.trim().toUpperCase();
       const phone = document.getElementById('reg-phone').value.trim();
       const email = document.getElementById('reg-email').value.trim();
       const category = document.getElementById('reg-category').value;
@@ -834,7 +834,7 @@
         await window.fs.setDoc(userRef, {
           tempId,
           token: '',
-          name,
+          name, // Will be saved in uppercase automatically
           phone,
           email,
           category,
