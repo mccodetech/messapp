@@ -617,8 +617,8 @@
           <div class="section-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
               <div>
-                <h3 style="font-size: 0.95rem; color:#1e3c72;">Weekly Menu & Points Manager (Mon - Sat)</h3>
-                <p style="font-size: 0.8rem; color:#64748b;">Set standard menu items and points for Monday to Saturday.</p>
+                <h3 style="font-size: 0.95rem; color:#1e3c72;">Weekly Menu & Points Manager (Sun - Sat)</h3>
+                <p style="font-size: 0.8rem; color:#64748b;">Set standard menu items and points for Sunday to Saturday.</p>
               </div>
             </div>
 
@@ -994,7 +994,7 @@
       const tbody = document.getElementById('weekly-menu-tbody');
       if (!tbody) return;
       tbody.innerHTML = '';
-      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
       days.forEach(day => {
         const dayData = weeklyMenuConfig[day] || {
@@ -1024,7 +1024,7 @@
     }
 
     async function saveWeeklyMenuConfig() {
-      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const newConfig = {};
 
       days.forEach(day => {
@@ -1231,14 +1231,15 @@
       const shortDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       
       const today = new Date();
-      const currentDay = today.getDay();
-      const distanceToMon = (currentDay === 0 ? -6 : 1) - currentDay;
-      const monday = new Date(today);
-      monday.setDate(today.getDate() + distanceToMon);
+      const currentDay = today.getDay(); // 0 is Sunday, 1 is Monday, etc.
+      
+      // Calculate start of the week (Sunday)
+      const sunday = new Date(today);
+      sunday.setDate(today.getDate() - currentDay);
 
       for (let i = 0; i < 7; i++) {
-        const dayDate = new Date(monday);
-        dayDate.setDate(monday.getDate() + i);
+        const dayDate = new Date(sunday);
+        dayDate.setDate(sunday.getDate() + i);
         const dateStr = dayDate.toISOString().split('T')[0];
         const dayIndex = dayDate.getDay();
         const dayName = daysOfWeek[dayIndex];
@@ -1250,7 +1251,7 @@
           dinner: { item: 'Standard Dinner', points: 2 }
         };
 
-        const isH = (dateCfg.isHoliday !== undefined) ? dateCfg.isHoliday : (dayName === 'Sunday');
+        const isH = (dateCfg.isHoliday !== undefined) ? dateCfg.isHoliday : false;
         const mealLeaves = dateCfg.mealLeaves || { breakfast: false, lunch: false, dinner: false };
 
         if (isH) {
