@@ -525,6 +525,9 @@
           <button class="admin-tab-btn" id="atab-btn-members" onclick="switchAdminSubTab('members')">
             <i class="fa-solid fa-users"></i> Members Register
           </button>
+          <button class="admin-tab-btn" id="atab-btn-points" onclick="switchAdminSubTab('points')">
+            <i class="fa-solid fa-file-invoice-dollar"></i> Points & Bookings Report
+          </button>
           <button class="admin-tab-btn" id="atab-btn-allbookings" onclick="switchAdminSubTab('allbookings')">
             <i class="fa-solid fa-list-check"></i> All Bookings
           </button>
@@ -729,7 +732,42 @@
           </div>
         </div>
 
-        <!-- 6. ALL BOOKINGS SECTION -->
+        <!-- 6. POINTS & BOOKINGS REPORT SECTION -->
+        <div id="admin-sec-points" class="admin-sub-sec" style="display:none;">
+          <div class="section-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+              <div>
+                <h3 style="font-size: 0.95rem; color:#1e3c72;">Members Points & Date Range Report</h3>
+                <p style="font-size: 0.8rem; color:#64748b;">Select date range to view and print detailed booking points chart for all members.</p>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <input type="date" id="rep-start-date" class="input-control" style="width:140px; padding:6px 10px;">
+                <span>to</span>
+                <input type="date" id="rep-end-date" class="input-control" style="width:140px; padding:6px 10px;">
+                <button class="btn-pill btn-primary" onclick="loadPointsAndBookingsReport()">Load Report</button>
+                <button class="btn-pill btn-light" onclick="printPointsReport()"><i class="fa-solid fa-print"></i> Print / PDF</button>
+              </div>
+            </div>
+
+            <div style="overflow-x: auto;" id="points-report-table-container">
+              <table>
+                <thead>
+                  <tr style="color: #64748b;" id="points-report-thead">
+                    <th>Token</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th style="text-align:right;">Total Points</th>
+                  </tr>
+                </thead>
+                <tbody id="points-report-tbody">
+                  <tr><td colspan="4" style="text-align:center; color:#64748b;">Select date range and click 'Load Report'.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. ALL BOOKINGS SECTION -->
         <div id="admin-sec-allbookings" class="admin-sub-sec" style="display:none;">
           <div class="section-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
@@ -778,6 +816,13 @@
       if (kp) kp.value = today;
       const hp = document.getElementById('holiday-date-picker');
       if (hp) hp.value = today;
+
+      // Set default date range for points report (Current Month)
+      const dateObj = new Date();
+      const firstDay = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1).toISOString().split('T')[0];
+      const lastDay = new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0).toISOString().split('T')[0];
+      if (document.getElementById('rep-start-date')) document.getElementById('rep-start-date').value = firstDay;
+      if (document.getElementById('rep-end-date')) document.getElementById('rep-end-date').value = lastDay;
 
       checkExistingSession();
     });
@@ -1203,7 +1248,155 @@
       if (sec === 'holiday') loadHolidayConfigForAdmin();
       if (sec === 'pending') loadAdminPendingUsers();
       if (sec === 'members') loadAdminMembersRegister();
+      if (sec === 'points') loadPointsAndBookingsReport();
       if (sec === 'allbookings') loadAdminAllBookings();
+    }
+
+    async function loadPointsAndBookingsReport() {
+      const startDate = document.getElementById('rep-start-date').value;
+      const endDate = document.getElementById('rep-end-date').value;
+      if (!startDate || !endDate) return showToast('Please select start and end date', 'error');
+
+      showToast('Generating report...', 'info');
+      const thead = document.getElementById('points-report-thead');
+      const tbody = document.getElementById('points-report-tbody');
+
+      // Generate date array between startDate and endDate
+      const dateList = [];
+      let curr = new Date(startDate);
+      const last = new Date(endDate);
+      while (curr <= last) {
+        dateList.push(new Date(curr).toISOString().split('T')[0]);
+        curr.setDate(curr.getDate() + 1);
+      }
+
+      thead.innerHTML = `
+        <th>Token</th>
+        <th>Name</th>
+        <th>Category</th>
+        ${dateList.map(d => `<th style="text-align:center; font-size:0.75rem;">${d.slice(5)}</th>`).join('')}
+        <th style="text-align:right;">Total Pts</th>
+      `;
+
+      try {
+        await loadWeeklyMenuConfig();
+        await loadAllDateConfigs();
+
+        // Fetch all active users
+        const usersSnap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
+        const usersMap = {};
+        usersSnap.forEach(docSnap => {
+          const u = docSnap.data();
+          if (u.status === 'active' && u.token && u.token !== 'N/A') {
+            usersMap[u.token] = { token: u.token, name: u.name, category: u.category || 'OTHER', points: 0, days: {} };
+          }
+        });
+
+        // Fetch bookings within range
+        const bookingsSnap = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
+        bookingsSnap.forEach(docSnap => {
+          const b = docSnap.data();
+          if (b.action === 'book' && b.token && usersMap[b.token] && dateList.includes(b.date)) {
+            if (!usersMap[b.token].days[b.date]) usersMap[b.token].days[b.date] = [];
+            usersMap[b.token].days[b.date].push(b.meal);
+          }
+        });
+
+        tbody.innerHTML = '';
+        const sortedTokens = Object.keys(usersMap).sort((a, b) => parseInt(a) - parseInt(b));
+
+        if (sortedTokens.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="${dateList.length + 4}" style="text-align:center; color:#64748b;">No active members found.</td></tr>`;
+          return;
+        }
+
+        sortedTokens.forEach(token => {
+          const user = usersMap[token];
+          let userTotalPts = 0;
+
+          let daysHtml = '';
+          dateList.forEach(date => {
+            const meals = user.days[date] || [];
+            const dateObj = new Date(date);
+            const daysNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const dayName = daysNames[dateObj.getDay()];
+
+            const dateCfg = dateConfigsCache[date] || {};
+            const weeklyData = weeklyMenuConfig[dayName] || {
+              breakfast: { points: 1 },
+              lunch: { points: 2 },
+              dinner: { points: 2 }
+            };
+
+            const bPts = dateCfg.breakfast?.points ?? weeklyData.breakfast.points;
+            const lPts = dateCfg.lunch?.points ?? weeklyData.lunch.points;
+            const dPts = dateCfg.dinner?.points ?? weeklyData.dinner.points;
+
+            let dayPts = 0;
+            let mealIcons = '';
+            if (meals.includes('breakfast')) { dayPts += bPts; mealIcons += 'B '; }
+            if (meals.includes('lunch')) { dayPts += lPts; mealIcons += 'L '; }
+            if (meals.includes('dinner')) { dayPts += dPts; mealIcons += 'D '; }
+
+            userTotalPts += dayPts;
+            daysHtml += `<td style="text-align:center; font-size:0.75rem;">${mealIcons ? mealIcons : '-'}</td>`;
+          });
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><b>#${user.token}</b></td>
+            <td>${user.name}</td>
+            <td>${user.category}</td>
+            ${daysHtml}
+            <td style="text-align:right; font-weight:600; color:#1e3c72;">${userTotalPts} Pts</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="${dateList.length + 4}" style="color:red; text-align:center;">${err.message}</td></tr>`;
+      }
+    }
+
+    function printPointsReport() {
+      const container = document.getElementById('points-report-table-container').innerHTML;
+      const startDate = document.getElementById('rep-start-date').value;
+      const endDate = document.getElementById('rep-end-date').value;
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+        <head>
+          <title>Members Points Report (${startDate} to ${endDate})</title>
+          <style>
+            @page { size: landscape; margin: 10mm; }
+            body { font-family: sans-serif; padding: 15px; color: #000; font-size: 12px; }
+            h2 { font-size: 18px; margin-bottom: 4px; }
+            h4 { font-size: 13px; margin-top: 0; margin-bottom: 15px; color: #333; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; font-size: 11px; }
+            th { background-color: #f2f2f2; }
+            .no-print { margin-top: 20px; text-align: center; }
+            @media print { .no-print { display: none; } }
+          </style>
+        </head>
+        <body>
+          <h2>Suprabhatham Mess - Members Points & Bookings Report</h2>
+          <h4>Period: ${startDate} to ${endDate}</h4>
+          <hr style="border: 1px solid #000; margin-bottom: 15px;"/>
+          ${container}
+          <div class="no-print">
+            <button onclick="window.print()" style="padding: 10px 20px; background: #1e3c72; color: #fff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Print / Save as PDF</button>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+            }
+          <\/script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
     }
 
     function isMealSlotLocked(dateStr, mealType) {
