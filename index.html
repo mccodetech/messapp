@@ -726,6 +726,13 @@
               </select>
             </div>
 
+            <div class="input-group" style="margin-bottom: 14px; background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0;">
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; color:#1e3c72;">
+                <input type="checkbox" id="subadmin-guest-perm" style="width:18px; height:18px; accent-color:#1e3c72;">
+                Allow this Sub-Admin to Manage Category Guests
+              </label>
+            </div>
+
             <div style="display:flex; gap:10px;">
               <button class="btn-pill btn-success" onclick="saveCategorySubAdmin()">
                 <i class="fa-solid fa-floppy-disk"></i> Save Sub-Admin
@@ -910,6 +917,7 @@
     let weeklyMenuConfig = {};
     let dateConfigsCache = {};
     let subAdminsConfig = {};
+    let subAdminPermissions = {};
     let subAdminCurrentMode = 'self'; // 'self' or 'guest'
     let currentConfirmAction = null;
 
@@ -1097,6 +1105,7 @@
       await loadSubAdminsConfig();
 
       const isSubAdmin = !isAdmin && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
+      const hasGuestPermission = isSubAdmin && subAdminPermissions[currentUser.token] === true;
       
       const proxyContainer = document.getElementById('admin-proxy-container');
       const subAdminContainer = document.getElementById('subadmin-mode-container');
@@ -1108,7 +1117,7 @@
         proxyContainer.style.display = 'none';
       }
 
-      if (isSubAdmin && subAdminContainer) {
+      if (hasGuestPermission && subAdminContainer) {
         let myCategory = '';
         Object.keys(subAdminsConfig).forEach(cat => {
           if (subAdminsConfig[cat] === currentUser.token) myCategory = cat;
@@ -1173,10 +1182,15 @@
 
     async function loadSubAdminsConfig() {
       subAdminsConfig = {};
+      subAdminPermissions = {};
       try {
         const docSnap = await window.fs.getDoc(window.fs.doc(window.db, 'settings', 'sub_admins'));
         if (docSnap.exists()) {
           subAdminsConfig = docSnap.data();
+        }
+        const permSnap = await window.fs.getDoc(window.fs.doc(window.db, 'settings', 'sub_admin_permissions'));
+        if (permSnap.exists()) {
+          subAdminPermissions = permSnap.data();
         }
       } catch (e) {
         console.error(e);
@@ -1388,23 +1402,33 @@
     async function loadCurrentSubAdminForCategory() {
       const catSelect = document.getElementById('subadmin-category-select');
       const memSelect = document.getElementById('subadmin-member-select');
-      if (!catSelect || !memSelect) return;
+      const permCb = document.getElementById('subadmin-guest-perm');
+      if (!catSelect || !memSelect || !permCb) return;
       const cat = catSelect.value;
       await loadSubAdminsConfig();
       memSelect.value = subAdminsConfig[cat] || '';
+      permCb.checked = subAdminPermissions[subAdminsConfig[cat]] || false;
     }
 
     async function saveCategorySubAdmin() {
       const catSelect = document.getElementById('subadmin-category-select');
       const memSelect = document.getElementById('subadmin-member-select');
-      if (!catSelect || !memSelect) return;
+      const permCb = document.getElementById('subadmin-guest-perm');
+      if (!catSelect || !memSelect || !permCb) return;
       const cat = catSelect.value;
       const token = memSelect.value;
+      const allowGuest = permCb.checked;
 
       try {
         subAdminsConfig[cat] = token;
         await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admins'), subAdminsConfig);
-        showModal('Success', `Sub-Admin for ${cat} assigned successfully!`, 'success');
+
+        if (token) {
+          subAdminPermissions[token] = allowGuest;
+        }
+        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admin_permissions'), subAdminPermissions);
+
+        showModal('Success', `Sub-Admin for ${cat} and guest permissions saved successfully!`, 'success');
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
@@ -1416,9 +1440,17 @@
       const cat = catSelect.value;
 
       try {
+        const oldToken = subAdminsConfig[cat];
         delete subAdminsConfig[cat];
         await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admins'), subAdminsConfig);
+
+        if (oldToken && subAdminPermissions[oldToken]) {
+          delete subAdminPermissions[oldToken];
+          await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admin_permissions'), subAdminPermissions);
+        }
+
         document.getElementById('subadmin-member-select').value = '';
+        document.getElementById('subadmin-guest-perm').checked = false;
         showModal('Success', `Sub-Admin for ${cat} removed successfully!`, 'success');
       } catch (err) {
         showModal('Error', err.message, 'error');
@@ -1857,6 +1889,7 @@
 
       const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
       const isSubAdmin = !isAdmin && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
+      const hasGuestPerm = isSubAdmin && subAdminPermissions[currentUser.token] === true;
 
       for (let i = 0; i < 7; i++) {
         const dayDate = new Date(sunday);
@@ -1901,7 +1934,7 @@
         const dLocked = isMealSlotLocked(dateStr, 'dinner');
 
         const showCheckbox = true; 
-        const showGuestInput = isAdmin || (isSubAdmin && subAdminCurrentMode === 'guest');
+        const showGuestInput = isAdmin || (hasGuestPerm && subAdminCurrentMode === 'guest');
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -1992,9 +2025,10 @@
 
       const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
       const isSubAdmin = !isAdmin && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
+      const hasGuestPerm = isSubAdmin && subAdminPermissions[currentUser.token] === true;
 
       try {
-        if (isSubAdmin && subAdminCurrentMode === 'guest') {
+        if (hasGuestPerm && subAdminCurrentMode === 'guest') {
           for (let inp of guestInputs) {
             const date = inp.dataset.date;
             const meal = inp.dataset.meal;
