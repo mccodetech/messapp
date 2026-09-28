@@ -1772,6 +1772,35 @@
       if (sec === 'points') loadPointsAndBookingsReport();
       if (sec === 'allbookings') loadAdminAllBookings();
     }
+      async function loadAdminAllBookings() {
+      const tbody = document.getElementById('admin-table-body');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading records...</td></tr>';
+      try {
+        const querySnapshot = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
+        tbody.innerHTML = '';
+        if (querySnapshot.empty) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">No booking records found.</td></tr>';
+          return;
+        }
+        querySnapshot.forEach(docSnap => {
+          const d = docSnap.data();
+          const guestsStr = (d.guests && parseInt(d.guests) > 0) ? ` (+${d.guests} Guest)` : '';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${d.date}</td>
+            <td>#${d.token}</td>
+            <td>${d.name || 'N/A'}${guestsStr}</td>
+            <td>${d.category || 'N/A'}</td>
+            <td>${d.meal}</td>
+            <td>${d.action === 'book' ? '<span style="color:#10b981; font-weight:600;">Booked</span>' : '<span style="color:#ef4444; font-weight:600;">Cancelled</span>'}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="color:red;">${err.message}</td></tr>`;
+      }
+    }
+    
 
     async function loadPointsAndBookingsReport() {
       const startDate = document.getElementById('rep-start-date').value;
@@ -1802,30 +1831,35 @@
         await loadWeeklyMenuConfig();
         await loadAllDateConfigs();
 
-        const usersSnap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
         const usersMap = {};
-        usersSnap.forEach(docSnap => {
-          const u = docSnap.data();
-          if (u.status === 'active' && u.token && u.token !== 'N/A') {
-            usersMap[u.token] = { token: u.token, name: u.name, category: u.category || 'OTHER', points: 0, days: {} };
+        const bookingsSnap = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
+        
+        // ഫയർബേസിലെ മുഴുവൻ ബുക്കിംഗ് റെക്കോർഡുകളിൽ നിന്നും യൂസർമാരെയും ഗസ്റ്റുകളെയും കണ്ടെത്തുക
+        bookingsSnap.forEach(docSnap => {
+          const b = docSnap.data();
+          if (b.token && dateList.includes(b.date)) {
+            if (!usersMap[b.token]) {
+              usersMap[b.token] = { token: b.token, name: b.name || 'Guest', category: b.category || 'OTHER', points: 0, days: {} };
+            }
           }
         });
 
-        const bookingsSnap = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
         bookingsSnap.forEach(docSnap => {
           const b = docSnap.data();
           if (b.action === 'book' && b.token && usersMap[b.token] && dateList.includes(b.date)) {
             if (!usersMap[b.token].days[b.date]) usersMap[b.token].days[b.date] = { meals: [], guests: 0 };
-            usersMap[b.token].days[b.date].meals.push(b.meal);
+            if (!usersMap[b.token].days[b.date].meals.includes(b.meal)) {
+              usersMap[b.token].days[b.date].meals.push(b.meal);
+            }
             usersMap[b.token].days[b.date].guests += (parseInt(b.guests) || 0);
           }
         });
 
         tbody.innerHTML = '';
-        const sortedTokens = Object.keys(usersMap).sort((a, b) => parseInt(a) - parseInt(b));
+        const sortedTokens = Object.keys(usersMap).sort();
 
         if (sortedTokens.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="${dateList.length + 4}" style="text-align:center; color:#64748b;">No active members found.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="${dateList.length + 4}" style="text-align:center; color:#64748b;">No booking records found for this period.</td></tr>`;
           return;
         }
 
