@@ -912,6 +912,19 @@
       }
 
       try {
+        // Check if phone or email already exists in users collection
+        const qPhone = window.fs.query(window.fs.collection(window.db, 'users'), window.fs.where('phone', '==', phone));
+        const qEmail = window.fs.query(window.fs.collection(window.db, 'users'), window.fs.where('email', '==', email));
+        
+        const [phoneSnap, emailSnap] = await Promise.all([
+          window.fs.getDocs(qPhone),
+          window.fs.getDocs(qEmail)
+        ]);
+
+        if (!phoneSnap.empty || !emailSnap.empty) {
+          return showModal('Already Registered', 'An account with this mobile number or email already exists. Please wait for Admin approval or contact Admin.', 'info');
+        }
+
         const tempId = 'temp_' + Date.now();
         const userRef = window.fs.doc(window.db, 'users', tempId);
         await window.fs.setDoc(userRef, {
@@ -927,7 +940,7 @@
           createdAt: new Date().toISOString()
         });
 
-        showModal('Submitted', 'Registration submitted! You can log in once an Admin approves your account.', 'success');
+        showModal('Submitted', 'Registration submitted successfully! You can log in once an Admin approves your account.', 'success');
         switchAuthTab('login');
       } catch (err) {
         showModal('Error', err.message, 'error');
