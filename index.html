@@ -1659,7 +1659,62 @@
       }
       loadExistingBookings();
     }
+    async function loadAdminMembersRegister() {
+      const tbody = document.getElementById('admin-users-list');
+      const countSpan = document.getElementById('total-members-count');
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Loading members...</td></tr>';
+      try {
+        const snap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
+        tbody.innerHTML = '';
+        let serialNo = 1;
+        let validMembersCount = 0;
 
+        snap.forEach(docSnap => {
+          const u = docSnap.data();
+          
+          // അഡ്മിൻമാരെയും പെൻഡിങ് അക്കൗണ്ടുകളെയും മാത്രം ഒഴിവാക്കുക, ബാക്കി എല്ലാ യൂസർമാരെയും കാണിക്കുക
+          if (u.role === 'admin' || u.role === 'superadmin' || u.status === 'pending') return;
+
+          validMembersCount++;
+          let formattedDate = 'N/A';
+          if (u.createdAt) {
+            const dateObj = new Date(u.createdAt);
+            if (!isNaN(dateObj.getTime())) {
+              formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
+          }
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${serialNo++}</td>
+            <td><b>#${u.token || docSnap.id}</b></td>
+            <td>${u.name || 'N/A'}</td>
+            <td>${u.phone || 'N/A'}</td>
+            <td>${u.category || 'N/A'}</td>
+            <td><small style="color:#64748b;">${formattedDate}</small></td>
+            <td><span style="color:${u.status === 'active' ? '#10b981':'#ef4444'}; font-weight:600;">${u.status || 'active'}</span></td>
+            <td>
+              <button class="btn-pill btn-light" style="padding:3px 8px; font-size:0.75rem;" onclick="toggleUserStatus('${u.token || docSnap.id}', '${u.status || 'active'}')">
+                ${(u.status || 'active') === 'active' ? 'Suspend' : 'Activate'}
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        if (countSpan) {
+          countSpan.textContent = validMembersCount;
+        }
+
+        if (validMembersCount === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#64748b;">No active members found.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="color:red;">${err.message}</td></tr>`;
+      }
+    }
+
+    
     function switchNav(name, saveState = true) {
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-view').forEach(el => el.style.display = 'none');
