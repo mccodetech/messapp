@@ -912,17 +912,19 @@
       }
 
       try {
-        // Check if phone or email already exists in users collection
-        const qPhone = window.fs.query(window.fs.collection(window.db, 'users'), window.fs.where('phone', '==', phone));
-        const qEmail = window.fs.query(window.fs.collection(window.db, 'users'), window.fs.where('email', '==', email));
-        
-        const [phoneSnap, emailSnap] = await Promise.all([
-          window.fs.getDocs(qPhone),
-          window.fs.getDocs(qEmail)
-        ]);
+        // Check if phone or email already exists in users collection (active or pending)
+        const usersSnapshot = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
+        let alreadyExists = false;
 
-        if (!phoneSnap.empty || !emailSnap.empty) {
-          return showModal('Already Registered', 'An account with this mobile number or email already exists. Please wait for Admin approval or contact Admin.', 'info');
+        usersSnapshot.forEach(docSnap => {
+          const u = docSnap.data();
+          if ((u.phone && u.phone === phone) || (u.email && u.email.toLowerCase() === email.toLowerCase())) {
+            alreadyExists = true;
+          }
+        });
+
+        if (alreadyExists) {
+          return showModal('Already Registered', 'An account with this mobile number or email already exists in the system. Please wait for Admin approval or use a different credential.', 'info');
         }
 
         const tempId = 'temp_' + Date.now();
