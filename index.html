@@ -533,6 +533,9 @@
           <button class="admin-tab-btn" id="atab-btn-subadmin" onclick="switchAdminSubTab('subadmin')">
             <i class="fa-solid fa-user-gear"></i> Category Sub-Admins
           </button>
+          <button class="admin-tab-btn" id="atab-btn-guestrep" onclick="switchAdminSubTab('guestrep')">
+            <i class="fa-solid fa-users-rectangle"></i> Category Guests Report
+          </button>
           <button class="admin-tab-btn" id="atab-btn-pending" onclick="switchAdminSubTab('pending')">
             <i class="fa-solid fa-user-clock"></i> Pending Approvals
           </button>
@@ -734,7 +737,51 @@
           </div>
         </div>
 
-        <!-- 5. PENDING APPROVALS SECTION -->
+        <!-- 5. CATEGORY GUESTS REPORT SECTION -->
+        <div id="admin-sec-guestrep" class="admin-sub-sec" style="display:none;">
+          <div class="section-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+              <div>
+                <h3 style="font-size: 0.95rem; color:#1e3c72;">Category Guests Summary Report</h3>
+                <p style="font-size: 0.8rem; color:#64748b;">View monthly guest counts and date-wise breakdown for each department.</p>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                <select id="guestrep-cat-select" class="input-control" style="width:160px; padding:6px 10px;" onchange="loadCategoryGuestsReport()">
+                  <option value="ALL">All Categories</option>
+                  <option value="SNEC">SNEC</option>
+                  <option value="E LEARNING">E LEARNING</option>
+                  <option value="SUPRABHATHAM">SUPRABHATHAM</option>
+                  <option value="MASJID">MASJID</option>
+                  <option value="BOOK DEPOT">BOOK DEPOT</option>
+                  <option value="GUEST">GUEST</option>
+                  <option value="OTHER">OTHER</option>
+                </select>
+                <button class="btn-pill btn-primary" onclick="loadCategoryGuestsReport()">Load Report</button>
+                <button class="btn-pill btn-light" onclick="window.print()"><i class="fa-solid fa-print"></i> Print / PDF</button>
+              </div>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table>
+                <thead>
+                  <tr style="color: #64748b;">
+                    <th>Category</th>
+                    <th>Sub-Admin / Manager</th>
+                    <th style="text-align:center;">Breakfast Guests</th>
+                    <th style="text-align:center;">Lunch Guests</th>
+                    <th style="text-align:center;">Dinner Guests</th>
+                    <th style="text-align:right;">Total Guests</th>
+                  </tr>
+                </thead>
+                <tbody id="guestrep-tbody">
+                  <tr><td colspan="6" style="text-align:center; color:#64748b;">Loading guest reports...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. PENDING APPROVALS SECTION -->
         <div id="admin-sec-pending" class="admin-sub-sec" style="display:none;">
           <div class="section-card">
             <h3 style="margin-bottom: 12px; font-size: 0.95rem; color:#1e3c72;">Pending User Approvals</h3>
@@ -755,7 +802,7 @@
           </div>
         </div>
 
-        <!-- 6. MEMBERS REGISTER SECTION -->
+        <!-- 7. MEMBERS REGISTER SECTION -->
         <div id="admin-sec-members" class="admin-sub-sec" style="display:none;">
           <div class="section-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
@@ -783,7 +830,7 @@
           </div>
         </div>
 
-        <!-- 7. POINTS & BOOKINGS REPORT SECTION -->
+        <!-- 8. POINTS & BOOKINGS REPORT SECTION -->
         <div id="admin-sec-points" class="admin-sub-sec" style="display:none;">
           <div class="section-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
@@ -818,7 +865,7 @@
           </div>
         </div>
 
-        <!-- 8. ALL BOOKINGS SECTION -->
+        <!-- 9. ALL BOOKINGS SECTION -->
         <div id="admin-sec-allbookings" class="admin-sub-sec" style="display:none;">
           <div class="section-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
@@ -1374,6 +1421,81 @@
       }
     }
 
+    async function loadCategoryGuestsReport() {
+      const selectedCat = document.getElementById('guestrep-cat-select').value;
+      const tbody = document.getElementById('guestrep-tbody');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading guest reports...</td></tr>';
+
+      try {
+        await loadSubAdminsConfig();
+        const usersSnap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
+        const usersMap = {};
+        usersSnap.forEach(docSnap => {
+          const u = docSnap.data();
+          usersMap[u.token] = u;
+        });
+
+        const bookingsSnap = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
+        const catStats = {};
+
+        // Initialize categories
+        const categories = ['SNEC', 'E LEARNING', 'SUPRABHATHAM', 'MASJID', 'BOOK DEPOT', 'GUEST', 'OTHER'];
+        categories.forEach(cat => {
+          const subAdminToken = subAdminsConfig[cat];
+          const subAdminUser = subAdminToken ? usersMap[subAdminToken] : null;
+          catStats[cat] = {
+            category: cat,
+            subAdminName: subAdminUser ? `#${subAdminUser.token} - ${subAdminUser.name}` : 'Not Assigned',
+            breakfastGuests: 0,
+            lunchGuests: 0,
+            dinnerGuests: 0,
+            totalGuests: 0
+          };
+        });
+
+        bookingsSnap.forEach(docSnap => {
+          const b = docSnap.data();
+          if (b.action === 'book' && b.guests && parseInt(b.guests) > 0) {
+            const cat = (b.category || 'OTHER').toUpperCase();
+            if (!catStats[cat]) {
+              catStats[cat] = { category: cat, subAdminName: 'Not Assigned', breakfastGuests: 0, lunchGuests: 0, dinnerGuests: 0, totalGuests: 0 };
+            }
+            const count = parseInt(b.guests) || 0;
+            if (b.meal === 'breakfast') catStats[cat].breakfastGuests += count;
+            if (b.meal === 'lunch') catStats[cat].lunchGuests += count;
+            if (b.meal === 'dinner') catStats[cat].dinnerGuests += count;
+            catStats[cat].totalGuests += count;
+          }
+        });
+
+        tbody.innerHTML = '';
+        let hasData = false;
+
+        Object.keys(catStats).forEach(cat => {
+          if (selectedCat !== 'ALL' && selectedCat !== cat) return;
+          const stat = catStats[cat];
+          hasData = true;
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><b>${stat.category}</b></td>
+            <td>${stat.subAdminName}</td>
+            <td style="text-align:center;">${stat.breakfastGuests}</td>
+            <td style="text-align:center;">${stat.lunchGuests}</td>
+            <td style="text-align:center;">${stat.dinnerGuests}</td>
+            <td style="text-align:right; font-weight:600; color:#1e3c72;">${stat.totalGuests}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        if (!hasData) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">No guest records found.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="color:red; text-align:center;">${err.message}</td></tr>`;
+      }
+    }
+
     function onAdminTargetUserChange() {
       const select = document.getElementById('admin-target-token');
       const val = select.value;
@@ -1426,6 +1548,7 @@
       if (sec === 'menu') renderWeeklyMenuManagerTable();
       if (sec === 'holiday') loadHolidayConfigForAdmin();
       if (sec === 'subadmin') loadSubAdminManagerDropdowns();
+      if (sec === 'guestrep') loadCategoryGuestsReport();
       if (sec === 'pending') loadAdminPendingUsers();
       if (sec === 'members') loadAdminMembersRegister();
       if (sec === 'points') loadPointsAndBookingsReport();
@@ -1658,7 +1781,7 @@
         const lLocked = isMealSlotLocked(dateStr, 'lunch');
         const dLocked = isMealSlotLocked(dateStr, 'dinner');
 
-        const showCheckbox = true; // All users and sub-admins in self mode need checkboxes
+        const showCheckbox = true; 
         const showGuestInput = isAdmin || (isSubAdmin && subAdminCurrentMode === 'guest');
 
         const tr = document.createElement('tr');
