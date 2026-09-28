@@ -912,7 +912,6 @@
       }
 
       try {
-        // Check if phone or email already exists in users collection (active or pending)
         const usersSnapshot = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
         let alreadyExists = false;
 
@@ -924,7 +923,7 @@
         });
 
         if (alreadyExists) {
-          return showModal('Already Registered', 'An account with this mobile number or email already exists in the system. Please wait for Admin approval or use a different credential.', 'info');
+          return showModal('Already Registered', 'An account with this mobile number or email already exists in the system. Please wait for Admin approval or contact Admin.', 'info');
         }
 
         const tempId = 'temp_' + Date.now();
@@ -1315,8 +1314,9 @@
         bookingsSnap.forEach(docSnap => {
           const b = docSnap.data();
           if (b.action === 'book' && b.token && usersMap[b.token] && dateList.includes(b.date)) {
-            if (!usersMap[b.token].days[b.date]) usersMap[b.token].days[b.date] = [];
-            usersMap[b.token].days[b.date].push(b.meal);
+            if (!usersMap[b.token].days[b.date]) usersMap[b.token].days[b.date] = { meals: [], guests: 0 };
+            usersMap[b.token].days[b.date].meals.push(b.meal);
+            usersMap[b.token].days[b.date].guests += (parseInt(b.guests) || 0);
           }
         });
 
@@ -1334,7 +1334,10 @@
 
           let daysHtml = '';
           dateList.forEach(date => {
-            const meals = user.days[date] || [];
+            const dayData = user.days[date] || { meals: [], guests: 0 };
+            const meals = dayData.meals;
+            const guests = dayData.guests;
+
             const dateObj = new Date(date);
             const daysNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             const dayName = daysNames[dateObj.getDay()];
@@ -1355,6 +1358,9 @@
             if (meals.includes('breakfast')) { dayPts += bPts; mealIcons += 'B '; }
             if (meals.includes('lunch')) { dayPts += lPts; mealIcons += 'L '; }
             if (meals.includes('dinner')) { dayPts += dPts; mealIcons += 'D '; }
+            if (guests > 0) {
+              mealIcons += `<small style="color:#ef4444; font-weight:bold;">(+${guests}G)</small>`;
+            }
 
             userTotalPts += dayPts;
             daysHtml += `<td style="text-align:center; font-size:0.75rem;">${mealIcons ? mealIcons : '-'}</td>`;
@@ -1497,19 +1503,28 @@
           <td>
             ${mealLeaves.breakfast ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
               <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${bItem} (${bPts}Pts)</div>
-              <input type="checkbox" class="bulk-cb meal-breakfast" data-date="${dateStr}" data-meal="breakfast" ${bLocked ? 'disabled title="Slot locked"' : ''}>
+              <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
+                <input type="checkbox" class="bulk-cb meal-breakfast" data-date="${dateStr}" data-meal="breakfast" ${bLocked ? 'disabled title="Slot locked"' : ''}>
+                <input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="breakfast" min="0" value="0" placeholder="Guest" style="width:55px; padding:2px 4px; font-size:0.72rem; border-radius:4px;" title="Guest count">
+              </div>
             `}
           </td>
           <td>
             ${mealLeaves.lunch ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
               <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${lItem} (${lPts}Pts)</div>
-              <input type="checkbox" class="bulk-cb meal-lunch" data-date="${dateStr}" data-meal="lunch" ${lLocked ? 'disabled title="Slot locked"' : ''}>
+              <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
+                <input type="checkbox" class="bulk-cb meal-lunch" data-date="${dateStr}" data-meal="lunch" ${lLocked ? 'disabled title="Slot locked"' : ''}>
+                <input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="lunch" min="0" value="0" placeholder="Guest" style="width:55px; padding:2px 4px; font-size:0.72rem; border-radius:4px;" title="Guest count">
+              </div>
             `}
           </td>
           <td>
             ${mealLeaves.dinner ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
               <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${dItem} (${dPts}Pts)</div>
-              <input type="checkbox" class="bulk-cb meal-dinner" data-date="${dateStr}" data-meal="dinner" ${dLocked ? 'disabled title="Slot locked"' : ''}>
+              <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
+                <input type="checkbox" class="bulk-cb meal-dinner" data-date="${dateStr}" data-meal="dinner" ${dLocked ? 'disabled title="Slot locked"' : ''}>
+                <input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="dinner" min="0" value="0" placeholder="Guest" style="width:55px; padding:2px 4px; font-size:0.72rem; border-radius:4px;" title="Guest count">
+              </div>
             `}
           </td>
         `;
@@ -1520,6 +1535,7 @@
     async function loadExistingBookings() {
       if (!currentUser) return;
       document.querySelectorAll('.bulk-cb').forEach(cb => cb.checked = false);
+      document.querySelectorAll('.guest-input').forEach(inp => inp.value = 0);
 
       const targetToken = adminSelectedTargetUser || currentUser.token;
       if (!targetToken) return;
@@ -1533,8 +1549,12 @@
         querySnapshot.forEach(docSnap => {
           const d = docSnap.data();
           const cb = document.querySelector(`.bulk-cb[data-date="${d.date}"][data-meal="${d.meal}"]`);
+          const guestInp = document.querySelector(`.guest-input[data-date="${d.date}"][data-meal="${d.meal}"]`);
           if (cb) {
             cb.checked = (d.action === 'book');
+          }
+          if (guestInp) {
+            guestInp.value = d.guests || 0;
           }
         });
       } catch (err) {
@@ -1563,19 +1583,26 @@
 
       try {
         for (let cb of cbs) {
-          const docId = `${activeUserToBook.token}_${cb.dataset.date}_${cb.dataset.meal}`;
+          const date = cb.dataset.date;
+          const meal = cb.dataset.meal;
+          const isBooked = cb.checked;
+          const guestInput = document.querySelector(`.guest-input[data-date="${date}"][data-meal="${meal}"]`);
+          const guestCount = guestInput ? parseInt(guestInput.value) || 0 : 0;
+
+          const docId = `${activeUserToBook.token}_${date}_${meal}`;
           const ref = window.fs.doc(window.db, 'bookings', docId);
           await window.fs.setDoc(ref, {
             token: activeUserToBook.token,
             name: activeUserToBook.name,
             category: activeUserToBook.category || 'OTHER',
-            date: cb.dataset.date,
-            meal: cb.dataset.meal,
-            action: cb.checked ? 'book' : 'cancel',
+            date: date,
+            meal: meal,
+            action: isBooked ? 'book' : 'cancel',
+            guests: isBooked ? guestCount : 0,
             timestamp
           });
         }
-        showModal('Success', 'Weekly bookings successfully updated/saved!', 'success');
+        showModal('Success', 'Weekly bookings and guest details successfully saved!', 'success');
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
@@ -1597,8 +1624,11 @@
 
         querySnapshot.forEach(docSnap => {
           const d = docSnap.data();
-          if (!dataMap[d.date]) dataMap[d.date] = { date: d.date, breakfast: '❌', lunch: '❌', dinner: '❌' };
+          if (!dataMap[d.date]) dataMap[d.date] = { date: d.date, breakfast: '❌', lunch: '❌', dinner: '❌', guests: 0 };
           dataMap[d.date][d.meal] = d.action === 'book' ? '✔️' : '❌';
+          if (d.action === 'book') {
+            dataMap[d.date].guests += (parseInt(d.guests) || 0);
+          }
         });
 
         tbody.innerHTML = '';
@@ -1634,7 +1664,7 @@
 
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td>${row.date}</td>
+            <td>${row.date} ${row.guests > 0 ? `<small style="color:#ef4444; font-weight:bold;">(+${row.guests} Guests)</small>` : ''}</td>
             <td style="text-align:center;">${row.breakfast}</td>
             <td style="text-align:center;">${row.lunch}</td>
             <td style="text-align:center;">${row.dinner}</td>
@@ -1666,7 +1696,8 @@
 
         snap.forEach(docSnap => {
           const d = docSnap.data();
-          const entry = `#${d.token} ${d.name}`;
+          const guestsStr = (d.guests && parseInt(d.guests) > 0) ? ` (+${d.guests} Guest)` : '';
+          const entry = `#${d.token} ${d.name}${guestsStr}`;
           if (d.meal === 'breakfast') currentKitchenData.breakfast.push(entry);
           if (d.meal === 'lunch') currentKitchenData.lunch.push(entry);
           if (d.meal === 'dinner') currentKitchenData.dinner.push(entry);
@@ -1957,11 +1988,12 @@
         }
         querySnapshot.forEach(docSnap => {
           const d = docSnap.data();
+          const guestsStr = (d.guests && parseInt(d.guests) > 0) ? ` (+${d.guests} Guest)` : '';
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${d.date}</td>
             <td>#${d.token}</td>
-            <td>${d.name}</td>
+            <td>${d.name}${guestsStr}</td>
             <td>${d.category}</td>
             <td>${d.meal}</td>
             <td>${d.action === 'book' ? '<span style="color:#10b981; font-weight:600;">Booked</span>' : '<span style="color:#ef4444; font-weight:600;">Cancelled</span>'}</td>
