@@ -1647,18 +1647,6 @@
       }
     }
 
-    function onAdminTargetUserChange() {
-      const select = document.getElementById('admin-target-token');
-      const val = select.value;
-      if (!val) {
-        adminSelectedTargetUser = null;
-        document.getElementById('booking-section-title').textContent = 'Weekly Booking Schedule & Menu';
-      } else {
-        adminSelectedTargetUser = val;
-        document.getElementById('booking-section-title').textContent = `Weekly Booking (For Token #${val})`;
-      }
-      loadExistingBookings();
-    }
     async function loadAdminMembersRegister() {
       const tbody = document.getElementById('admin-users-list');
       const countSpan = document.getElementById('total-members-count');
@@ -1671,8 +1659,6 @@
 
         snap.forEach(docSnap => {
           const u = docSnap.data();
-          
-          // അഡ്മിൻമാരെയും പെൻഡിങ് അക്കൗണ്ടുകളെയും മാത്രം ഒഴിവാക്കുക, ബാക്കി എല്ലാ യൂസർമാരെയും കാണിക്കുക
           if (u.role === 'admin' || u.role === 'superadmin' || u.status === 'pending') return;
 
           validMembersCount++;
@@ -1692,7 +1678,7 @@
             <td>${u.phone || 'N/A'}</td>
             <td>${u.category || 'N/A'}</td>
             <td><small style="color:#64748b;">${formattedDate}</small></td>
-            <td><span style="color:${u.status === 'active' ? '#10b981':'#ef4444'}; font-weight:600;">${u.status || 'active'}</span></td>
+            <td><span style="color:${(u.status || 'active') === 'active' ? '#10b981':'#ef4444'}; font-weight:600;">${u.status || 'active'}</span></td>
             <td>
               <button class="btn-pill btn-light" style="padding:3px 8px; font-size:0.75rem;" onclick="toggleUserStatus('${u.token || docSnap.id}', '${u.status || 'active'}')">
                 ${(u.status || 'active') === 'active' ? 'Suspend' : 'Activate'}
@@ -1714,7 +1700,33 @@
       }
     }
 
-    
+    async function toggleUserStatus(token, currentStatus) {
+      if (!token || token === 'undefined' || token === 'N/A') {
+        return showModal('Error', 'Invalid Token number. Cannot update status for this user.', 'error');
+      }
+      const nextStatus = currentStatus === 'active' ? 'inactive' : 'active';
+      try {
+        await window.fs.updateDoc(window.fs.doc(window.db, 'users', token), { status: nextStatus });
+        showToast(`User status updated to ${nextStatus}`, 'info');
+        loadAdminMembersRegister();
+      } catch (err) {
+        showModal('Error', err.message, 'error');
+      }
+    }
+
+    function onAdminTargetUserChange() {
+      const select = document.getElementById('admin-target-token');
+      const val = select.value;
+      if (!val) {
+        adminSelectedTargetUser = null;
+        document.getElementById('booking-section-title').textContent = 'Weekly Booking Schedule & Menu';
+      } else {
+        adminSelectedTargetUser = val;
+        document.getElementById('booking-section-title').textContent = `Weekly Booking (For Token #${val})`;
+      }
+      loadExistingBookings();
+    }
+
     function switchNav(name, saveState = true) {
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-view').forEach(el => el.style.display = 'none');
@@ -2089,12 +2101,26 @@
             const meal = inp.dataset.meal;
             const guestCount = parseInt(inp.value) || 0;
 
-            const docId = `${activeUserToBook.token}_${date}_${meal}`;
+            let guestTokenToSave = activeUserToBook.token;
+            let guestNameToSave = activeUserToBook.name;
+            let guestCategoryToSave = activeUserToBook.category || 'OTHER';
+
+            if (isSubAdmin) {
+              let myCat = '';
+              Object.keys(subAdminsConfig).forEach(c => {
+                if (subAdminsConfig[c] === currentUser.token) myCat = c;
+              });
+              guestTokenToSave = `${currentUser.token}_GUEST`;
+              guestNameToSave = `${myCat} GUEST`;
+              guestCategoryToSave = myCat;
+            }
+
+            const docId = `${guestTokenToSave}_${date}_${meal}`;
             const ref = window.fs.doc(window.db, 'bookings', docId);
             await window.fs.setDoc(ref, {
-              token: activeUserToBook.token,
-              name: activeUserToBook.name,
-              category: activeUserToBook.category || 'OTHER',
+              token: guestTokenToSave,
+              name: guestNameToSave,
+              category: guestCategoryToSave,
               date: date,
               meal: meal,
               action: 'book',
