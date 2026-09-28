@@ -1543,41 +1543,51 @@
 
         bookingsSnap.forEach(docSnap => {
           const b = docSnap.data();
-          const targetGToken = guestTokensConfig[b.category] || `${b.category}_GUEST`;
-          if (b.action === 'book' && (b.token === targetGToken || b.token.includes('_GUEST'))) {
+          if (b.action === 'book') {
             const cat = (b.category || 'OTHER').toUpperCase();
-            if (!catStats[cat]) {
-              catStats[cat] = { category: cat, subAdminName: 'Not Assigned', guestToken: `#${targetGToken}`, breakfastGuests: 0, lunchGuests: 0, dinnerGuests: 0, totalGuests: 0, totalGuestPts: 0 };
+            const targetGToken = guestTokensConfig[cat] || `${cat}_GUEST`;
+            const isGuestToken = b.token === targetGToken || String(b.token).includes('_GUEST') || Object.values(guestTokensConfig).map(String).includes(String(b.token));
+            
+            let guestCount = 0;
+            if (isGuestToken) {
+              guestCount = parseInt(b.guests) || 1;
+            } else {
+              guestCount = parseInt(b.guests) || 0;
             }
-            const count = parseInt(b.guests) || 1;
-            const dateObj = new Date(b.date);
-            const daysNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const dayName = daysNames[dateObj.getDay()];
 
-            const dateCfg = dateConfigsCache[b.date] || {};
-            const weeklyData = weeklyMenuConfig[dayName] || {
-              breakfast: { points: 1 },
-              lunch: { points: 2 },
-              dinner: { points: 2 }
-            };
+            if (guestCount > 0) {
+              if (!catStats[cat]) {
+                 catStats[cat] = { category: cat, subAdminName: 'Not Assigned', guestToken: `#${targetGToken}`, breakfastGuests: 0, lunchGuests: 0, dinnerGuests: 0, totalGuests: 0, totalGuestPts: 0 };
+              }
+              const dateObj = new Date(b.date);
+              const daysNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+              const dayName = daysNames[dateObj.getDay()];
 
-            const bPts = dateCfg.breakfast?.points ?? weeklyData.breakfast.points;
-            const lPts = dateCfg.lunch?.points ?? weeklyData.lunch.points;
-            const dPts = dateCfg.dinner?.points ?? weeklyData.dinner.points;
+              const dateCfg = dateConfigsCache[b.date] || {};
+              const weeklyData = weeklyMenuConfig[dayName] || {
+                breakfast: { points: 1 },
+                lunch: { points: 2 },
+                dinner: { points: 2 }
+              };
 
-            if (b.meal === 'breakfast') {
-              catStats[cat].breakfastGuests += count;
-              catStats[cat].totalGuestPts += (count * bPts);
+              const bPts = parseFloat(dateCfg.breakfast?.points ?? weeklyData.breakfast?.points ?? 1) || 0;
+              const lPts = parseFloat(dateCfg.lunch?.points ?? weeklyData.lunch?.points ?? 2) || 0;
+              const dPts = parseFloat(dateCfg.dinner?.points ?? weeklyData.dinner?.points ?? 2) || 0;
+
+              if (b.meal === 'breakfast') {
+                catStats[cat].breakfastGuests += guestCount;
+                catStats[cat].totalGuestPts += (guestCount * bPts);
+              }
+              if (b.meal === 'lunch') {
+                catStats[cat].lunchGuests += guestCount;
+                catStats[cat].totalGuestPts += (guestCount * lPts);
+              }
+              if (b.meal === 'dinner') {
+                catStats[cat].dinnerGuests += guestCount;
+                catStats[cat].totalGuestPts += (guestCount * dPts);
+              }
+              catStats[cat].totalGuests += guestCount;
             }
-            if (b.meal === 'lunch') {
-              catStats[cat].lunchGuests += count;
-              catStats[cat].totalGuestPts += (count * lPts);
-            }
-            if (b.meal === 'dinner') {
-              catStats[cat].dinnerGuests += count;
-              catStats[cat].totalGuestPts += (count * dPts);
-            }
-            catStats[cat].totalGuests += count;
           }
         });
 
@@ -1852,6 +1862,7 @@
       try {
         await loadWeeklyMenuConfig();
         await loadAllDateConfigs();
+        await loadSubAdminsConfig();
 
         const usersMap = {};
         const bookingsSnap = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
@@ -1868,16 +1879,24 @@
         bookingsSnap.forEach(docSnap => {
           const b = docSnap.data();
           if (b.action === 'book' && b.token && usersMap[b.token] && dateList.includes(b.date)) {
-            if (!usersMap[b.token].days[b.date]) usersMap[b.token].days[b.date] = { meals: [], guests: 0 };
-            if (!usersMap[b.token].days[b.date].meals.includes(b.meal)) {
-              usersMap[b.token].days[b.date].meals.push(b.meal);
+            if (!usersMap[b.token].days[b.date]) {
+              usersMap[b.token].days[b.date] = { 
+                breakfast: { booked: false, guests: 0 }, 
+                lunch: { booked: false, guests: 0 }, 
+                dinner: { booked: false, guests: 0 } 
+              };
             }
-            usersMap[b.token].days[b.date].guests = parseInt(b.guests) || usersMap[b.token].days[b.date].guests;
+            usersMap[b.token].days[b.date][b.meal].booked = true;
+            usersMap[b.token].days[b.date][b.meal].guests = parseInt(b.guests) || 0;
           }
         });
 
         tbody.innerHTML = '';
-        const sortedTokens = Object.keys(usersMap).sort();
+        const sortedTokens = Object.keys(usersMap).sort((a, b) => {
+          const numA = parseInt(a.replace(/\\D/g, '')) || 0;
+          const numB = parseInt(b.replace(/\\D/g, '')) || 0;
+          return numA - numB;
+        });
 
         if (sortedTokens.length === 0) {
           tbody.innerHTML = `<tr><td colspan="${dateList.length + 4}" style="text-align:center; color:#64748b;">No booking records found for this period.</td></tr>`;
@@ -1887,12 +1906,16 @@
         sortedTokens.forEach(token => {
           const user = usersMap[token];
           let userTotalPts = 0;
-
           let daysHtml = '';
+          
+          const isGuestToken = String(token).includes('_GUEST') || isNaN(token) || Object.values(guestTokensConfig).map(String).includes(String(token));
+
           dateList.forEach(date => {
-            const dayData = user.days[date] || { meals: [], guests: 0 };
-            const meals = dayData.meals;
-            const guests = dayData.guests;
+            const dayData = user.days[date] || { 
+              breakfast: { booked: false, guests: 0 },
+              lunch: { booked: false, guests: 0 },
+              dinner: { booked: false, guests: 0 }
+            };
 
             const dateObj = new Date(date);
             const daysNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -1905,32 +1928,42 @@
               dinner: { points: 2 }
             };
 
-            const bPts = dateCfg.breakfast?.points ?? weeklyData.breakfast.points;
-            const lPts = dateCfg.lunch?.points ?? weeklyData.lunch.points;
-            const dPts = dateCfg.dinner?.points ?? weeklyData.dinner.points;
+            const bPts = parseFloat(dateCfg.breakfast?.points ?? weeklyData.breakfast?.points ?? 1) || 0;
+            const lPts = parseFloat(dateCfg.lunch?.points ?? weeklyData.lunch?.points ?? 2) || 0;
+            const dPts = parseFloat(dateCfg.dinner?.points ?? weeklyData.dinner?.points ?? 2) || 0;
 
             let dayPts = 0;
             let mealIcons = '';
-            const multiplier = (token.includes('_GUEST') || isNaN(token)) ? (guests > 0 ? guests : 1) : 1;
+            
+            // Track maximum guests specifically entered to match exact UI representation
+            let maxGuestsEntered = 0;
 
-            if (meals.includes('breakfast')) { 
-              dayPts += (bPts * multiplier); 
-              mealIcons += 'B '; 
-            }
-            if (meals.includes('lunch')) { 
-              dayPts += (lPts * multiplier); 
-              mealIcons += 'L '; 
-            }
-            if (meals.includes('dinner')) { 
-              dayPts += (dPts * multiplier); 
-              mealIcons += 'D '; 
-            }
-            if (!token.includes('_GUEST') && !isNaN(token) && guests > 0) {
-              mealIcons += `<small style="color:#ef4444; font-weight:bold;">(+${guests}G)</small>`;
+            const processMeal = (mealType, letter, pts) => {
+              if (dayData[mealType].booked) {
+                let gCount = dayData[mealType].guests;
+                if (gCount > maxGuestsEntered) maxGuestsEntered = gCount;
+
+                let portions = 0;
+                if (isGuestToken) {
+                  portions = gCount > 0 ? gCount : 1; 
+                } else {
+                  portions = 1 + gCount; 
+                }
+                dayPts += (pts * portions);
+                mealIcons += letter + ' ';
+              }
+            };
+
+            processMeal('breakfast', 'B', bPts);
+            processMeal('lunch', 'L', lPts);
+            processMeal('dinner', 'D', dPts);
+
+            if (maxGuestsEntered > 0 && mealIcons) {
+              mealIcons += `<small style="color:#ef4444; font-weight:bold;">(+${maxGuestsEntered}G)</small>`;
             }
 
             userTotalPts += dayPts;
-            daysHtml += `<td style="text-align:center; font-size:0.75rem;">${mealIcons ? mealIcons : '-'}</td>`;
+            daysHtml += `<td style="text-align:center; font-size:0.75rem;">${mealIcons ? mealIcons.trim() : '-'}</td>`;
           });
 
           const tr = document.createElement('tr');
@@ -2248,6 +2281,8 @@
       try {
         await loadWeeklyMenuConfig();
         await loadAllDateConfigs();
+        await loadSubAdminsConfig();
+
         const q = window.fs.query(
           window.fs.collection(window.db, 'bookings'),
           window.fs.where('token', '==', currentUser.token)
@@ -2256,12 +2291,21 @@
         const dataMap = {};
         let totalUserPoints = 0;
 
+        const isGuestToken = String(currentUser.token).includes('_GUEST') || isNaN(currentUser.token) || Object.values(guestTokensConfig).map(String).includes(String(currentUser.token));
+
         querySnapshot.forEach(docSnap => {
           const d = docSnap.data();
-          if (!dataMap[d.date]) dataMap[d.date] = { date: d.date, breakfast: '❌', lunch: '❌', dinner: '❌', guests: 0 };
-          dataMap[d.date][d.meal] = d.action === 'book' ? '✔️' : '❌';
+          if (!dataMap[d.date]) {
+            dataMap[d.date] = { 
+              date: d.date, 
+              breakfast: { booked: false, guests: 0 }, 
+              lunch: { booked: false, guests: 0 }, 
+              dinner: { booked: false, guests: 0 }
+            };
+          }
           if (d.action === 'book') {
-            dataMap[d.date].guests += (parseInt(d.guests) || 0);
+             dataMap[d.date][d.meal].booked = true;
+             dataMap[d.date][d.meal].guests = parseInt(d.guests) || 0;
           }
         });
 
@@ -2286,22 +2330,47 @@
             dinner: { points: 2 }
           };
 
-          const bPts = dateCfg.breakfast?.points ?? weeklyData.breakfast.points;
-          const lPts = dateCfg.lunch?.points ?? weeklyData.lunch.points;
-          const dPts = dateCfg.dinner?.points ?? weeklyData.dinner.points;
+          const bPts = parseFloat(dateCfg.breakfast?.points ?? weeklyData.breakfast?.points ?? 1) || 0;
+          const lPts = parseFloat(dateCfg.lunch?.points ?? weeklyData.lunch?.points ?? 2) || 0;
+          const dPts = parseFloat(dateCfg.dinner?.points ?? weeklyData.dinner?.points ?? 2) || 0;
 
           let dayPts = 0;
-          if (row.breakfast === '✔️') dayPts += bPts;
-          if (row.lunch === '✔️') dayPts += lPts;
-          if (row.dinner === '✔️') dayPts += dPts;
+          let maxGuestsEntered = 0;
+
+          const processMeal = (mealType, pts) => {
+             if (row[mealType].booked) {
+                let gCount = row[mealType].guests;
+                if (gCount > maxGuestsEntered) maxGuestsEntered = gCount;
+
+                let portions = 0;
+                if (isGuestToken) {
+                   portions = gCount > 0 ? gCount : 1;
+                } else {
+                   portions = 1 + gCount;
+                }
+                dayPts += (pts * portions);
+                return '✔️';
+             }
+             return '❌';
+          };
+
+          const bIcon = processMeal('breakfast', bPts);
+          const lIcon = processMeal('lunch', lPts);
+          const dIcon = processMeal('dinner', dPts);
+
           totalUserPoints += dayPts;
+
+          let guestsStr = '';
+          if (maxGuestsEntered > 0) {
+             guestsStr = `<small style="color:#ef4444; font-weight:bold;">(+${maxGuestsEntered} Guests)</small>`;
+          }
 
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td>${row.date} ${row.guests > 0 ? `<small style="color:#ef4444; font-weight:bold;">(+${row.guests} Guests)</small>` : ''}</td>
-            <td style="text-align:center;">${row.breakfast}</td>
-            <td style="text-align:center;">${row.lunch}</td>
-            <td style="text-align:center;">${row.dinner}</td>
+            <td>${row.date} ${guestsStr}</td>
+            <td style="text-align:center;">${bIcon}</td>
+            <td style="text-align:center;">${lIcon}</td>
+            <td style="text-align:center;">${dIcon}</td>
             <td style="text-align:right; font-weight:600; color:#1e3c72;">${dayPts} Pts</td>
           `;
           tbody.appendChild(tr);
@@ -2331,7 +2400,7 @@
         snap.forEach(docSnap => {
           const d = docSnap.data();
           let entry = '';
-          if (d.token && (d.token.includes('_GUEST') || Object.values(guestTokensConfig).includes(d.token))) {
+          if (d.token && (String(d.token).includes('_GUEST') || Object.values(guestTokensConfig).map(String).includes(String(d.token)))) {
             const guestCount = parseInt(d.guests) || 1;
             entry = `#${d.token} ${d.name} (${guestCount} Nos)`;
           } else {
@@ -2495,7 +2564,7 @@
         querySnapshot.forEach(docSnap => {
           const d = docSnap.data();
           let guestsStr = '';
-          if (d.token && (d.token.includes('_GUEST') || Object.values(guestTokensConfig).includes(d.token))) {
+          if (d.token && (String(d.token).includes('_GUEST') || Object.values(guestTokensConfig).map(String).includes(String(d.token)))) {
             guestsStr = ` (${d.guests || 1} Nos)`;
           } else if (d.guests && parseInt(d.guests) > 0) {
             guestsStr = ` (+${d.guests} Guest)`;
