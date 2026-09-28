@@ -2019,7 +2019,7 @@
       sunday.setDate(today.getDate() - currentDay);
 
       const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
-      const isSubAdmin = !isAdmin && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
+      const isSubAdmin = currentUser.role === 'user' && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
       const hasGuestPerm = isSubAdmin && subAdminPermissions[currentUser.token] === true;
 
       for (let i = 0; i < 7; i++) {
@@ -2166,7 +2166,7 @@
       }
 
       const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
-      const isSubAdmin = !isAdmin && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
+      const isSubAdmin = currentUser.role === 'user' && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
       const hasGuestPerm = isSubAdmin && subAdminPermissions[currentUser.token] === true;
 
       try {
@@ -2574,7 +2574,7 @@
       }
     }
 
-    function closeModal() { document.getElementById('app-modal'].classList.remove('active'); }
+    function closeModal() { document.getElementById('app-modal').classList.remove('active'); }
     function showToast(msg, type = 'info') {
       const c = document.getElementById('toast-container');
       const t = document.createElement('div');
