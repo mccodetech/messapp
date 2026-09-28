@@ -817,7 +817,6 @@
       const hp = document.getElementById('holiday-date-picker');
       if (hp) hp.value = today;
 
-      // Set default date range for points report (Current Month)
       const dateObj = new Date();
       const firstDay = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1).toISOString().split('T')[0];
       const lastDay = new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0).toISOString().split('T')[0];
@@ -830,13 +829,19 @@
     function checkExistingSession() {
       const saved = localStorage.getItem('snec_mess_session');
       const savedNav = localStorage.getItem('snec_mess_active_nav') || 'booking';
-      if (saved) {
-        currentUser = JSON.parse(saved);
-        renderAuthenticatedUI(savedNav);
-      } else {
-        document.getElementById('auth-overlay').style.display = 'flex';
-        document.getElementById('app-container').style.display = 'none';
+      if (saved && saved !== "undefined" && saved !== "null") {
+        try {
+          currentUser = JSON.parse(saved);
+          if (currentUser && currentUser.token) {
+            renderAuthenticatedUI(savedNav);
+            return;
+          }
+        } catch (e) {
+          console.error("Session parse error", e);
+        }
       }
+      document.getElementById('auth-overlay').style.display = 'flex';
+      document.getElementById('app-container').style.display = 'none';
     }
 
     function switchAuthTab(type) {
@@ -886,6 +891,7 @@
     function setSessionAndEnter(user) {
       localStorage.setItem('snec_mess_session', JSON.stringify(user));
       localStorage.setItem('snec_mess_active_nav', 'booking');
+      currentUser = user;
       document.getElementById('auth-overlay').style.display = 'none';
       renderAuthenticatedUI('booking');
     }
@@ -1261,7 +1267,6 @@
       const thead = document.getElementById('points-report-thead');
       const tbody = document.getElementById('points-report-tbody');
 
-      // Generate date array between startDate and endDate
       const dateList = [];
       let curr = new Date(startDate);
       const last = new Date(endDate);
@@ -1282,7 +1287,6 @@
         await loadWeeklyMenuConfig();
         await loadAllDateConfigs();
 
-        // Fetch all active users
         const usersSnap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
         const usersMap = {};
         usersSnap.forEach(docSnap => {
@@ -1292,7 +1296,6 @@
           }
         });
 
-        // Fetch bookings within range
         const bookingsSnap = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
         bookingsSnap.forEach(docSnap => {
           const b = docSnap.data();
@@ -1424,9 +1427,8 @@
       const shortDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       
       const today = new Date();
-      const currentDay = today.getDay(); // 0 is Sunday, 1 is Monday, etc.
+      const currentDay = today.getDay();
       
-      // Calculate start of the week (Sunday)
       const sunday = new Date(today);
       sunday.setDate(today.getDate() - currentDay);
 
