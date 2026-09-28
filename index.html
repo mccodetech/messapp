@@ -1494,12 +1494,12 @@
 
         bookingsSnap.forEach(docSnap => {
           const b = docSnap.data();
-          if (b.action === 'book' && b.guests && parseInt(b.guests) > 0) {
+          if (b.action === 'book' && (b.token.includes('_GUEST') || (b.guests && parseInt(b.guests) > 0))) {
             const cat = (b.category || 'OTHER').toUpperCase();
             if (!catStats[cat]) {
               catStats[cat] = { category: cat, subAdminName: 'Not Assigned', breakfastGuests: 0, lunchGuests: 0, dinnerGuests: 0, totalGuests: 0, totalGuestPts: 0 };
             }
-            const count = parseInt(b.guests) || 0;
+            const count = b.token.includes('_GUEST') ? 1 : (parseInt(b.guests) || 0);
             const dateObj = new Date(b.date);
             const daysNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             const dayName = daysNames[dateObj.getDay()];
@@ -1772,35 +1772,6 @@
       if (sec === 'points') loadPointsAndBookingsReport();
       if (sec === 'allbookings') loadAdminAllBookings();
     }
-      async function loadAdminAllBookings() {
-      const tbody = document.getElementById('admin-table-body');
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading records...</td></tr>';
-      try {
-        const querySnapshot = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
-        tbody.innerHTML = '';
-        if (querySnapshot.empty) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">No booking records found.</td></tr>';
-          return;
-        }
-        querySnapshot.forEach(docSnap => {
-          const d = docSnap.data();
-          const guestsStr = (d.guests && parseInt(d.guests) > 0) ? ` (+${d.guests} Guest)` : '';
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${d.date}</td>
-            <td>#${d.token}</td>
-            <td>${d.name || 'N/A'}${guestsStr}</td>
-            <td>${d.category || 'N/A'}</td>
-            <td>${d.meal}</td>
-            <td>${d.action === 'book' ? '<span style="color:#10b981; font-weight:600;">Booked</span>' : '<span style="color:#ef4444; font-weight:600;">Cancelled</span>'}</td>
-          `;
-          tbody.appendChild(tr);
-        });
-      } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" style="color:red;">${err.message}</td></tr>`;
-      }
-    }
-    
 
     async function loadPointsAndBookingsReport() {
       const startDate = document.getElementById('rep-start-date').value;
@@ -1834,7 +1805,6 @@
         const usersMap = {};
         const bookingsSnap = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
         
-        // ഫയർബേസിലെ മുഴുവൻ ബുക്കിംഗ് റെക്കോർഡുകളിൽ നിന്നും യൂസർമാരെയും ഗസ്റ്റുകളെയും കണ്ടെത്തുക
         bookingsSnap.forEach(docSnap => {
           const b = docSnap.data();
           if (b.token && dateList.includes(b.date)) {
@@ -1851,7 +1821,11 @@
             if (!usersMap[b.token].days[b.date].meals.includes(b.meal)) {
               usersMap[b.token].days[b.date].meals.push(b.meal);
             }
-            usersMap[b.token].days[b.date].guests += (parseInt(b.guests) || 0);
+            if (b.token.includes('_GUEST')) {
+              usersMap[b.token].days[b.date].guests += (parseInt(b.guests) || 1);
+            } else {
+              usersMap[b.token].days[b.date].guests += (parseInt(b.guests) || 0);
+            }
           }
         });
 
@@ -1890,10 +1864,10 @@
 
             let dayPts = 0;
             let mealIcons = '';
-            if (meals.includes('breakfast')) { dayPts += bPts; mealIcons += 'B '; }
-            if (meals.includes('lunch')) { dayPts += lPts; mealIcons += 'L '; }
-            if (meals.includes('dinner')) { dayPts += dPts; mealIcons += 'D '; }
-            if (guests > 0) {
+            if (meals.includes('breakfast')) { dayPts += (token.includes('_GUEST') ? (bPts * guests) : bPts); mealIcons += 'B '; }
+            if (meals.includes('lunch')) { dayPts += (token.includes('_GUEST') ? (lPts * guests) : lPts); mealIcons += 'L '; }
+            if (meals.includes('dinner')) { dayPts += (token.includes('_GUEST') ? (dPts * guests) : dPts); mealIcons += 'D '; }
+            if (!token.includes('_GUEST') && guests > 0) {
               mealIcons += `<small style="color:#ef4444; font-weight:bold;">(+${guests}G)</small>`;
             }
 
@@ -2079,7 +2053,14 @@
       document.querySelectorAll('.bulk-cb').forEach(cb => cb.checked = false);
       document.querySelectorAll('.guest-input').forEach(inp => inp.value = 0);
 
-      const targetToken = adminSelectedTargetUser || currentUser.token;
+      const isSubAdmin = currentUser.role === 'user' && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
+      const hasGuestPerm = isSubAdmin && subAdminPermissions[currentUser.token] === true;
+
+      let targetToken = adminSelectedTargetUser || currentUser.token;
+      if (hasGuestPerm && subAdminCurrentMode === 'guest') {
+        targetToken = `${currentUser.token}_GUEST`;
+      }
+
       if (!targetToken) return;
 
       try {
@@ -2135,32 +2116,40 @@
             const meal = inp.dataset.meal;
             const guestCount = parseInt(inp.value) || 0;
 
-            let guestTokenToSave = activeUserToBook.token;
-            let guestNameToSave = activeUserToBook.name;
-            let guestCategoryToSave = activeUserToBook.category || 'OTHER';
-
-            if (isSubAdmin) {
-              let myCat = '';
-              Object.keys(subAdminsConfig).forEach(c => {
-                if (subAdminsConfig[c] === currentUser.token) myCat = c;
-              });
-              guestTokenToSave = `${currentUser.token}_GUEST`;
-              guestNameToSave = `${myCat} GUEST`;
-              guestCategoryToSave = myCat;
-            }
+            let myCat = '';
+            Object.keys(subAdminsConfig).forEach(c => {
+              if (subAdminsConfig[c] === currentUser.token) myCat = c;
+            });
+            const guestTokenToSave = `${currentUser.token}_GUEST`;
+            const guestNameToSave = `${myCat} GUEST`;
+            const guestCategoryToSave = myCat;
 
             const docId = `${guestTokenToSave}_${date}_${meal}`;
             const ref = window.fs.doc(window.db, 'bookings', docId);
-            await window.fs.setDoc(ref, {
-              token: guestTokenToSave,
-              name: guestNameToSave,
-              category: guestCategoryToSave,
-              date: date,
-              meal: meal,
-              action: 'book',
-              guests: guestCount,
-              timestamp
-            }, { merge: true });
+            
+            if (guestCount > 0) {
+              await window.fs.setDoc(ref, {
+                token: guestTokenToSave,
+                name: guestNameToSave,
+                category: guestCategoryToSave,
+                date: date,
+                meal: meal,
+                action: 'book',
+                guests: guestCount,
+                timestamp
+              });
+            } else {
+              await window.fs.setDoc(ref, {
+                token: guestTokenToSave,
+                name: guestNameToSave,
+                category: guestCategoryToSave,
+                date: date,
+                meal: meal,
+                action: 'cancel',
+                guests: 0,
+                timestamp
+              });
+            }
           }
         } else {
           for (let cb of cbs) {
@@ -2279,8 +2268,15 @@
 
         snap.forEach(docSnap => {
           const d = docSnap.data();
-          const guestsStr = (d.guests && parseInt(d.guests) > 0) ? ` (+${d.guests} Guest)` : '';
-          const entry = `#${d.token} ${d.name}${guestsStr}`;
+          let entry = '';
+          if (d.token && d.token.includes('_GUEST')) {
+            const guestCount = parseInt(d.guests) || 1;
+            entry = `#${d.token} ${d.name} (${guestCount} Nos)`;
+          } else {
+            const guestsStr = (d.guests && parseInt(d.guests) > 0) ? ` (+${d.guests} Guest)` : '';
+            entry = `#${d.token} ${d.name}${guestsStr}`;
+          }
+
           if (d.meal === 'breakfast') currentKitchenData.breakfast.push(entry);
           if (d.meal === 'lunch') currentKitchenData.lunch.push(entry);
           if (d.meal === 'dinner') currentKitchenData.dinner.push(entry);
@@ -2321,21 +2317,21 @@
       let text = `🍽️ *SUPRABHATHAM MESS REPORT*\n📅 *Date:* ${date}\n----------------------------\n`;
 
       if (type === 'breakfast' || type === 'all') {
-        text += `🌅 *Breakfast:* ${breakfast.length} Nos\n`;
+        text += `🌅 *Breakfast:* ${breakfast.length} Entries\n`;
         if (breakfast.length > 0) text += breakfast.map(b => ` • ${b}`).join('\n') + '\n';
         if (type !== 'all') text += `----------------------------\n`;
       }
 
       if (type === 'lunch' || type === 'all') {
         if (type === 'all') text += `\n`;
-        text += `☀️ *Lunch:* ${lunch.length} Nos\n`;
+        text += `☀️ *Lunch:* ${lunch.length} Entries\n`;
         if (lunch.length > 0) text += lunch.map(l => ` • ${l}`).join('\n') + '\n';
         if (type !== 'all') text += `----------------------------\n`;
       }
 
       if (type === 'dinner' || type === 'all') {
         if (type === 'all') text += `\n`;
-        text += `🌙 *Dinner:* ${dinner.length} Nos\n`;
+        text += `🌙 *Dinner:* ${dinner.length} Entries\n`;
         if (dinner.length > 0) text += dinner.map(d => ` • ${d}`).join('\n') + '\n';
         if (type !== 'all') text += `----------------------------\n`;
       }
@@ -2400,7 +2396,7 @@
         </head>
         <body>
           <h2>Suprabhatham Mess - ${title}</h2>
-          <h4>Date: ${date} | Total Bookings: ${list.length} Nos</h4>
+          <h4>Date: ${date} | Total Entries: ${list.length} Nos</h4>
           <hr style="border: 1px solid #000; margin-bottom: 12px;"/>
           <div class="container">
             ${list.length > 0 ? list.map((i) => {
@@ -2422,6 +2418,66 @@
         </html>
       `);
       printWindow.document.close();
+    }
+
+    async function loadAdminAllBookings() {
+      const tbody = document.getElementById('admin-table-body');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading records...</td></tr>';
+      try {
+        const querySnapshot = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
+        tbody.innerHTML = '';
+        if (querySnapshot.empty) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">No booking records found.</td></tr>';
+          return;
+        }
+        querySnapshot.forEach(docSnap => {
+          const d = docSnap.data();
+          const guestsStr = (d.guests && parseInt(d.guests) > 0) ? ` (+${d.guests} Guest)` : '';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${d.date}</td>
+            <td>#${d.token}</td>
+            <td>${d.name || 'N/A'}${guestsStr}</td>
+            <td>${d.category || 'N/A'}</td>
+            <td>${d.meal}</td>
+            <td>${d.action === 'book' ? '<span style="color:#10b981; font-weight:600;">Booked</span>' : '<span style="color:#ef4444; font-weight:600;">Cancelled</span>'}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="color:red;">${err.message}</td></tr>`;
+      }
+    }
+
+    async function clearAllBookingsHistory() {
+      if (!confirm('Are you sure you want to clear/delete all booking history records?')) return;
+      showToast('Clearing history records...', 'info');
+      try {
+        const querySnapshot = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
+        const deletePromises = [];
+        querySnapshot.forEach(docSnap => {
+          deletePromises.push(window.fs.deleteDoc(docSnap.ref));
+        });
+        await Promise.all(deletePromises);
+        
+        showModal('Cleared', 'All booking history records have been successfully cleared.', 'success');
+        loadAdminAllBookings();
+      } catch (err) {
+        showModal('Error', err.message, 'error');
+      }
+    }
+
+    function exportAdminTableToCSV() {
+      let csv = 'Date,Token,Name,Category,Meal,Status\n';
+      document.querySelectorAll('#admin-table-body tr').forEach(row => {
+        const cols = Array.from(row.querySelectorAll('td')).map(td => `"${td.innerText}"`);
+        csv += cols.join(',') + '\n';
+      });
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `mess_bookings_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
     }
 
     function showModal(title, msg, type = 'info') {
