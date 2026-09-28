@@ -703,8 +703,8 @@
         <!-- 4. SUB-ADMIN ASSIGNMENT SECTION -->
         <div id="admin-sec-subadmin" class="admin-sub-sec" style="display:none;">
           <div class="section-card" style="max-width: 650px;">
-            <h3 style="margin-bottom: 12px; font-size: 0.95rem; color:#1e3c72;">Assign Category Sub-Admins (Guest Managers)</h3>
-            <p style="font-size: 0.8rem; color:#64748b; margin-bottom: 14px;">Select a department/category and assign a member as its Guest Manager (Sub-Admin).</p>
+            <h3 style="margin-bottom: 12px; font-size: 0.95rem; color:#1e3c72;">Assign Category Sub-Admins & Guest Tokens</h3>
+            <p style="font-size: 0.8rem; color:#64748b; margin-bottom: 14px;">Select a department/category, assign a member, guest token number, and permissions.</p>
             
             <div class="input-group">
               <label>Select Category / Department</label>
@@ -719,11 +719,16 @@
               </select>
             </div>
 
-            <div class="input-group" style="margin-bottom: 14px;">
+            <div class="input-group" style="margin-bottom: 10px;">
               <label>Select Member (Sub-Admin)</label>
               <select id="subadmin-member-select" class="input-control">
                 <option value="">-- Select Member --</option>
               </select>
+            </div>
+
+            <div class="input-group" style="margin-bottom: 14px;">
+              <label>Guest Token Number (e.g. #SNEC_GUEST or #999)</label>
+              <input type="text" id="subadmin-guest-token" class="input-control" placeholder="e.g., SNEC_GUEST">
             </div>
 
             <div class="input-group" style="margin-bottom: 14px; background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0;">
@@ -735,7 +740,7 @@
 
             <div style="display:flex; gap:10px;">
               <button class="btn-pill btn-success" onclick="saveCategorySubAdmin()">
-                <i class="fa-solid fa-floppy-disk"></i> Save Sub-Admin
+                <i class="fa-solid fa-floppy-disk"></i> Save Sub-Admin Settings
               </button>
               <button class="btn-pill btn-danger" onclick="removeCategorySubAdmin()">
                 <i class="fa-solid fa-trash"></i> Remove Sub-Admin
@@ -774,6 +779,7 @@
                   <tr style="color: #64748b;">
                     <th>Category</th>
                     <th>Sub-Admin / Manager</th>
+                    <th>Guest Token</th>
                     <th style="text-align:center;">Breakfast Guests</th>
                     <th style="text-align:center;">Lunch Guests</th>
                     <th style="text-align:center;">Dinner Guests</th>
@@ -782,7 +788,7 @@
                   </tr>
                 </thead>
                 <tbody id="guestrep-tbody">
-                  <tr><td colspan="7" style="text-align:center; color:#64748b;">Loading guest reports...</td></tr>
+                  <tr><td colspan="8" style="text-align:center; color:#64748b;">Loading guest reports...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -918,6 +924,7 @@
     let dateConfigsCache = {};
     let subAdminsConfig = {};
     let subAdminPermissions = {};
+    let guestTokensConfig = {};
     let subAdminCurrentMode = 'self'; // 'self' or 'guest'
     let currentConfirmAction = null;
 
@@ -1183,6 +1190,7 @@
     async function loadSubAdminsConfig() {
       subAdminsConfig = {};
       subAdminPermissions = {};
+      guestTokensConfig = {};
       try {
         const docSnap = await window.fs.getDoc(window.fs.doc(window.db, 'settings', 'sub_admins'));
         if (docSnap.exists()) {
@@ -1191,6 +1199,10 @@
         const permSnap = await window.fs.getDoc(window.fs.doc(window.db, 'settings', 'sub_admin_permissions'));
         if (permSnap.exists()) {
           subAdminPermissions = permSnap.data();
+        }
+        const tokenSnap = await window.fs.getDoc(window.fs.doc(window.db, 'settings', 'guest_tokens'));
+        if (tokenSnap.exists()) {
+          guestTokensConfig = tokenSnap.data();
         }
       } catch (e) {
         console.error(e);
@@ -1402,33 +1414,40 @@
     async function loadCurrentSubAdminForCategory() {
       const catSelect = document.getElementById('subadmin-category-select');
       const memSelect = document.getElementById('subadmin-member-select');
+      const tokenInput = document.getElementById('subadmin-guest-token');
       const permCb = document.getElementById('subadmin-guest-perm');
-      if (!catSelect || !memSelect || !permCb) return;
+      if (!catSelect || !memSelect || !tokenInput || !permCb) return;
       const cat = catSelect.value;
       await loadSubAdminsConfig();
       memSelect.value = subAdminsConfig[cat] || '';
+      tokenInput.value = guestTokensConfig[cat] || '';
       permCb.checked = subAdminPermissions[subAdminsConfig[cat]] || false;
     }
 
     async function saveCategorySubAdmin() {
       const catSelect = document.getElementById('subadmin-category-select');
       const memSelect = document.getElementById('subadmin-member-select');
+      const tokenInput = document.getElementById('subadmin-guest-token');
       const permCb = document.getElementById('subadmin-guest-perm');
-      if (!catSelect || !memSelect || !permCb) return;
+      if (!catSelect || !memSelect || !tokenInput || !permCb) return;
       const cat = catSelect.value;
       const token = memSelect.value;
+      const guestTokenVal = tokenInput.value.trim();
       const allowGuest = permCb.checked;
 
       try {
         subAdminsConfig[cat] = token;
         await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admins'), subAdminsConfig);
 
+        guestTokensConfig[cat] = guestTokenVal || `${cat}_GUEST`;
+        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'guest_tokens'), guestTokensConfig);
+
         if (token) {
           subAdminPermissions[token] = allowGuest;
         }
         await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admin_permissions'), subAdminPermissions);
 
-        showModal('Success', `Sub-Admin for ${cat} and guest permissions saved successfully!`, 'success');
+        showModal('Success', `Sub-Admin and Guest Token for ${cat} saved successfully!`, 'success');
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
@@ -1444,12 +1463,16 @@
         delete subAdminsConfig[cat];
         await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admins'), subAdminsConfig);
 
+        delete guestTokensConfig[cat];
+        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'guest_tokens'), guestTokensConfig);
+
         if (oldToken && subAdminPermissions[oldToken]) {
           delete subAdminPermissions[oldToken];
           await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admin_permissions'), subAdminPermissions);
         }
 
         document.getElementById('subadmin-member-select').value = '';
+        document.getElementById('subadmin-guest-token').value = '';
         document.getElementById('subadmin-guest-perm').checked = false;
         showModal('Success', `Sub-Admin for ${cat} removed successfully!`, 'success');
       } catch (err) {
@@ -1460,7 +1483,7 @@
     async function loadCategoryGuestsReport() {
       const selectedCat = document.getElementById('guestrep-cat-select').value;
       const tbody = document.getElementById('guestrep-tbody');
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading guest reports...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Loading guest reports...</td></tr>';
 
       try {
         await loadWeeklyMenuConfig();
@@ -1481,9 +1504,11 @@
         categories.forEach(cat => {
           const subAdminToken = subAdminsConfig[cat];
           const subAdminUser = subAdminToken ? usersMap[subAdminToken] : null;
+          const gToken = guestTokensConfig[cat] || `${cat}_GUEST`;
           catStats[cat] = {
             category: cat,
             subAdminName: subAdminUser ? `#${subAdminUser.token} - ${subAdminUser.name}` : 'Not Assigned',
+            guestToken: `#${gToken}`,
             breakfastGuests: 0,
             lunchGuests: 0,
             dinnerGuests: 0,
@@ -1494,12 +1519,13 @@
 
         bookingsSnap.forEach(docSnap => {
           const b = docSnap.data();
-          if (b.action === 'book' && (b.token.includes('_GUEST') || (b.guests && parseInt(b.guests) > 0))) {
+          const targetGToken = guestTokensConfig[b.category] || `${b.category}_GUEST`;
+          if (b.action === 'book' && (b.token === targetGToken || b.token.includes('_GUEST'))) {
             const cat = (b.category || 'OTHER').toUpperCase();
             if (!catStats[cat]) {
-              catStats[cat] = { category: cat, subAdminName: 'Not Assigned', breakfastGuests: 0, lunchGuests: 0, dinnerGuests: 0, totalGuests: 0, totalGuestPts: 0 };
+              catStats[cat] = { category: cat, subAdminName: 'Not Assigned', guestToken: `#${targetGToken}`, breakfastGuests: 0, lunchGuests: 0, dinnerGuests: 0, totalGuests: 0, totalGuestPts: 0 };
             }
-            const count = b.token.includes('_GUEST') ? 1 : (parseInt(b.guests) || 0);
+            const count = parseInt(b.guests) || 1;
             const dateObj = new Date(b.date);
             const daysNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
             const dayName = daysNames[dateObj.getDay()];
@@ -1543,6 +1569,7 @@
           tr.innerHTML = `
             <td><b>${stat.category}</b></td>
             <td>${stat.subAdminName}</td>
+            <td><b>${stat.guestToken}</b></td>
             <td style="text-align:center;">${stat.breakfastGuests}</td>
             <td style="text-align:center;">${stat.lunchGuests}</td>
             <td style="text-align:center;">${stat.dinnerGuests}</td>
@@ -1553,10 +1580,10 @@
         });
 
         if (!hasData) {
-          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:#64748b;">No guest records found.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:#64748b;">No guest records found.</td></tr>';
         }
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="7" style="color:red; text-align:center;">${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="color:red; text-align:center;">${err.message}</td></tr>`;
       }
     }
 
@@ -1821,11 +1848,7 @@
             if (!usersMap[b.token].days[b.date].meals.includes(b.meal)) {
               usersMap[b.token].days[b.date].meals.push(b.meal);
             }
-            if (b.token.includes('_GUEST')) {
-              usersMap[b.token].days[b.date].guests += (parseInt(b.guests) || 1);
-            } else {
-              usersMap[b.token].days[b.date].guests += (parseInt(b.guests) || 0);
-            }
+            usersMap[b.token].days[b.date].guests += (parseInt(b.guests) || 0);
           }
         });
 
@@ -2058,7 +2081,11 @@
 
       let targetToken = adminSelectedTargetUser || currentUser.token;
       if (hasGuestPerm && subAdminCurrentMode === 'guest') {
-        targetToken = `${currentUser.token}_GUEST`;
+        let myCat = '';
+        Object.keys(subAdminsConfig).forEach(c => {
+          if (subAdminsConfig[c] === currentUser.token) myCat = c;
+        });
+        targetToken = guestTokensConfig[myCat] || `${currentUser.token}_GUEST`;
       }
 
       if (!targetToken) return;
@@ -2111,18 +2138,18 @@
 
       try {
         if (hasGuestPerm && subAdminCurrentMode === 'guest') {
+          let myCat = '';
+          Object.keys(subAdminsConfig).forEach(c => {
+            if (subAdminsConfig[c] === currentUser.token) myCat = c;
+          });
+          const guestTokenToSave = guestTokensConfig[myCat] || `${currentUser.token}_GUEST`;
+          const guestNameToSave = `${myCat} GUEST`;
+          const guestCategoryToSave = myCat;
+
           for (let inp of guestInputs) {
             const date = inp.dataset.date;
             const meal = inp.dataset.meal;
             const guestCount = parseInt(inp.value) || 0;
-
-            let myCat = '';
-            Object.keys(subAdminsConfig).forEach(c => {
-              if (subAdminsConfig[c] === currentUser.token) myCat = c;
-            });
-            const guestTokenToSave = `${currentUser.token}_GUEST`;
-            const guestNameToSave = `${myCat} GUEST`;
-            const guestCategoryToSave = myCat;
 
             const docId = `${guestTokenToSave}_${date}_${meal}`;
             const ref = window.fs.doc(window.db, 'bookings', docId);
@@ -2432,7 +2459,13 @@
         }
         querySnapshot.forEach(docSnap => {
           const d = docSnap.data();
-          const guestsStr = (d.guests && parseInt(d.guests) > 0) ? ` (+${d.guests} Guest)` : '';
+          let guestsStr = '';
+          if (d.token && d.token.includes('_GUEST')) {
+            guestsStr = ` (${d.guests || 1} Nos)`;
+          } else if (d.guests && parseInt(d.guests) > 0) {
+            guestsStr = ` (+${d.guests} Guest)`;
+          }
+
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${d.date}</td>
