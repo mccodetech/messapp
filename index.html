@@ -910,6 +910,7 @@
     let dateConfigsCache = {};
     let subAdminsConfig = {};
     let subAdminCurrentMode = 'self'; // 'self' or 'guest'
+    let currentConfirmAction = null; // Fix for confirmation modal issue
 
     document.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
@@ -934,6 +935,8 @@
         try {
           currentUser = JSON.parse(saved);
           if (currentUser && currentUser.token) {
+            // FIX: Hide the auth overlay if user is already logged in
+            document.getElementById('auth-overlay').style.display = 'none';
             renderAuthenticatedUI(savedNav);
             return;
           }
@@ -2273,52 +2276,6 @@
       printWindow.document.close();
     }
 
-    async function loadAdminPendingUsers() {
-      const tbody = document.getElementById('admin-pending-users');
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading requests...</td></tr>';
-      try {
-        const q = window.fs.query(window.fs.collection(window.db, 'users'), window.fs.where('status', '==', 'pending'));
-        const snap = await window.fs.getDocs(q);
-        tbody.innerHTML = '';
-
-        if (snap.empty) {
-          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">No pending user requests.</td></tr>';
-          return;
-        }
-
-        snap.forEach(docSnap => {
-          const u = docSnap.data();
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td><b>${u.name}</b><br><small style="color:#64748b;">${u.email}</small></td>
-            <td>${u.phone}</td>
-            <td>${u.category}</td>
-            <td><input type="number" id="assign_token_${docSnap.id}" placeholder="Token #" style="width:75px; padding:4px 6px; border:1px solid #cbd5e1; border-radius:6px;"></td>
-            <td>
-              <div style="display: flex; gap: 6px;">
-                <button class="btn-pill btn-success" style="padding:4px 10px; font-size:0.75rem;" onclick="approveUser('${docSnap.id}', '${u.phone}', '${u.name}')">Approve & Send WA</button>
-                <button class="btn-pill btn-danger" style="padding:4px 10px; font-size:0.75rem; background-color: #ef4444; color: white;" onclick="deletePendingUser('${docSnap.id}')">Delete</button>
-              </div>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-      } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="5" style="color:red;">${err.message}</td></tr>`;
-      }
-    }
-
-    async function deletePendingUser(tempDocId) {
-      if (!confirm('Are you sure you want to delete this pending registration?')) return;
-      try {
-        await window.fs.deleteDoc(window.fs.doc(window.db, 'users', tempDocId));
-        showToast('Pending registration deleted successfully', 'info');
-        loadAdminPendingUsers();
-      } catch (err) {
-        showModal('Error', err.message, 'error');
-      }
-    }
-
     async function loadAdminMembersRegister() {
       const tbody = document.getElementById('admin-users-list');
       tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading members...</td></tr>';
@@ -2440,15 +2397,26 @@
       modal.classList.add('active');
     }
 
+    // FIX: Updated confirmation modal handler logic
     function showConfirmModal(title, msg, onConfirm) {
       const modal = document.getElementById('app-modal');
       document.getElementById('modal-title').textContent = title;
       document.getElementById('modal-message').textContent = msg;
+      currentConfirmAction = onConfirm; // Store the function globally instead of using toString()
       document.getElementById('modal-actions').innerHTML = `
         <button class="btn-pill btn-light" onclick="closeModal()" style="flex:1;">Cancel</button>
-        <button class="btn-pill btn-danger" onclick="closeModal(); (${onConfirm.toString()})();" style="flex:1; background-color:#ef4444; color:#fff;">Confirm</button>
+        <button class="btn-pill btn-danger" onclick="executeConfirmAction()" style="flex:1; background-color:#ef4444; color:#fff;">Confirm</button>
       `;
       modal.classList.add('active');
+    }
+
+    // New helper function to execute confirmation safely
+    function executeConfirmAction() {
+      closeModal();
+      if (typeof currentConfirmAction === 'function') {
+        currentConfirmAction();
+        currentConfirmAction = null;
+      }
     }
 
     function closeModal() { document.getElementById('app-modal').classList.remove('active'); }
