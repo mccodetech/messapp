@@ -1451,7 +1451,6 @@
         }
         await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admin_permissions'), subAdminPermissions);
 
-        // Automatically create or update the Guest user account in 'users' collection so it appears in Members Register
         const guestUserRef = window.fs.doc(window.db, 'users', guestTokenVal);
         await window.fs.setDoc(guestUserRef, {
           token: guestTokenVal,
@@ -1912,10 +1911,19 @@
 
             let dayPts = 0;
             let mealIcons = '';
-            if (meals.includes('breakfast')) { dayPts += (token.includes('_GUEST') ? (bPts * guests) : bPts); mealIcons += 'B '; }
-            if (meals.includes('lunch')) { dayPts += (token.includes('_GUEST') ? (lPts * guests) : lPts); mealIcons += 'L '; }
-            if (meals.includes('dinner')) { dayPts += (token.includes('_GUEST') ? (dPts * guests) : dPts); mealIcons += 'D '; }
-            if (!token.includes('_GUEST') && guests > 0) {
+            if (meals.includes('breakfast')) { 
+              dayPts += (token.includes('_GUEST') || isNaN(token) ? (bPts * guests) : bPts); 
+              mealIcons += 'B '; 
+            }
+            if (meals.includes('lunch')) { 
+              dayPts += (token.includes('_GUEST') || isNaN(token) ? (lPts * guests) : lPts); 
+              mealIcons += 'L '; 
+            }
+            if (meals.includes('dinner')) { 
+              dayPts += (token.includes('_GUEST') || isNaN(token) ? (dPts * guests) : dPts); 
+              mealIcons += 'D '; 
+            }
+            if (!token.includes('_GUEST') && !isNaN(token) && guests > 0) {
               mealIcons += `<small style="color:#ef4444; font-weight:bold;">(+${guests}G)</small>`;
             }
 
@@ -2566,7 +2574,7 @@
       }
     }
 
-    function closeModal() { document.getElementById('app-modal').classList.remove('active'); }
+    function closeModal() { document.getElementById('app-modal'].classList.remove('active'); }
     function showToast(msg, type = 'info') {
       const c = document.getElementById('toast-container');
       const t = document.createElement('div');
