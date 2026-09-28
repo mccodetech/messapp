@@ -1872,7 +1872,7 @@
             if (!usersMap[b.token].days[b.date].meals.includes(b.meal)) {
               usersMap[b.token].days[b.date].meals.push(b.meal);
             }
-            usersMap[b.token].days[b.date].guests += (parseInt(b.guests) || 0);
+            usersMap[b.token].days[b.date].guests = parseInt(b.guests) || usersMap[b.token].days[b.date].guests;
           }
         });
 
@@ -1911,16 +1911,18 @@
 
             let dayPts = 0;
             let mealIcons = '';
+            const multiplier = (token.includes('_GUEST') || isNaN(token)) ? (guests > 0 ? guests : 1) : 1;
+
             if (meals.includes('breakfast')) { 
-              dayPts += (token.includes('_GUEST') || isNaN(token) ? (bPts * guests) : bPts); 
+              dayPts += (bPts * multiplier); 
               mealIcons += 'B '; 
             }
             if (meals.includes('lunch')) { 
-              dayPts += (token.includes('_GUEST') || isNaN(token) ? (lPts * guests) : lPts); 
+              dayPts += (lPts * multiplier); 
               mealIcons += 'L '; 
             }
             if (meals.includes('dinner')) { 
-              dayPts += (token.includes('_GUEST') || isNaN(token) ? (dPts * guests) : dPts); 
+              dayPts += (dPts * multiplier); 
               mealIcons += 'D '; 
             }
             if (!token.includes('_GUEST') && !isNaN(token) && guests > 0) {
