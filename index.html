@@ -1435,11 +1435,15 @@
       const guestTokenVal = tokenInput.value.trim();
       const allowGuest = permCb.checked;
 
+      if (!guestTokenVal) {
+        return showToast('Please enter a Guest Token Number', 'error');
+      }
+
       try {
         subAdminsConfig[cat] = token;
         await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admins'), subAdminsConfig);
 
-        guestTokensConfig[cat] = guestTokenVal || `${cat}_GUEST`;
+        guestTokensConfig[cat] = guestTokenVal;
         await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'guest_tokens'), guestTokensConfig);
 
         if (token) {
@@ -1447,7 +1451,21 @@
         }
         await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admin_permissions'), subAdminPermissions);
 
-        showModal('Success', `Sub-Admin and Guest Token for ${cat} saved successfully!`, 'success');
+        // Automatically create or update the Guest user account in 'users' collection so it appears in Members Register
+        const guestUserRef = window.fs.doc(window.db, 'users', guestTokenVal);
+        await window.fs.setDoc(guestUserRef, {
+          token: guestTokenVal,
+          name: `${cat} GUEST`,
+          category: cat,
+          phone: 'N/A',
+          email: `${guestTokenVal.toLowerCase()}@mess.com`,
+          password: 'guest_secure_pass',
+          role: 'user',
+          status: 'active',
+          createdAt: new Date().toISOString()
+        }, { merge: true });
+
+        showModal('Success', `Sub-Admin and Guest Token #${guestTokenVal} for ${cat} saved successfully!`, 'success');
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
@@ -1463,8 +1481,15 @@
         delete subAdminsConfig[cat];
         await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admins'), subAdminsConfig);
 
+        const oldGuestToken = guestTokensConfig[cat];
         delete guestTokensConfig[cat];
         await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'guest_tokens'), guestTokensConfig);
+
+        if (oldGuestToken) {
+          try {
+            await window.fs.deleteDoc(window.fs.doc(window.db, 'users', oldGuestToken));
+          } catch(e) { console.error(e); }
+        }
 
         if (oldToken && subAdminPermissions[oldToken]) {
           delete subAdminPermissions[oldToken];
@@ -2296,7 +2321,7 @@
         snap.forEach(docSnap => {
           const d = docSnap.data();
           let entry = '';
-          if (d.token && d.token.includes('_GUEST')) {
+          if (d.token && (d.token.includes('_GUEST') || Object.values(guestTokensConfig).includes(d.token))) {
             const guestCount = parseInt(d.guests) || 1;
             entry = `#${d.token} ${d.name} (${guestCount} Nos)`;
           } else {
@@ -2460,7 +2485,7 @@
         querySnapshot.forEach(docSnap => {
           const d = docSnap.data();
           let guestsStr = '';
-          if (d.token && d.token.includes('_GUEST')) {
+          if (d.token && (d.token.includes('_GUEST') || Object.values(guestTokensConfig).includes(d.token))) {
             guestsStr = ` (${d.guests || 1} Nos)`;
           } else if (d.guests && parseInt(d.guests) > 0) {
             guestsStr = ` (+${d.guests} Guest)`;
