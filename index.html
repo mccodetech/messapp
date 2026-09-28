@@ -463,11 +463,6 @@
             </select>
           </div>
 
-          <!-- Sub-Admin Guest Manager Notice Box -->
-          <div id="subadmin-guest-notice" style="display:none; margin-bottom: 12px; padding: 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; color: #1e40af; font-size: 0.85rem;">
-            <i class="fa-solid fa-user-shield"></i> <b>Sub-Admin Mode:</b> You are managing guests for category: <span id="subadmin-cat-name" style="font-weight:bold;"></span>
-          </div>
-
           <div class="bulk-table-container">
             <table class="bulk-table">
               <thead>
@@ -523,9 +518,6 @@
           </button>
           <button class="admin-tab-btn" id="atab-btn-holiday" onclick="switchAdminSubTab('holiday')">
             <i class="fa-solid fa-calendar-xmark"></i> Holiday & Leave Manager
-          </button>
-          <button class="admin-tab-btn" id="atab-btn-subadmin" onclick="switchAdminSubTab('subadmin')">
-            <i class="fa-solid fa-user-gear"></i> Category Sub-Admins
           </button>
           <button class="admin-tab-btn" id="atab-btn-pending" onclick="switchAdminSubTab('pending')">
             <i class="fa-solid fa-user-clock"></i> Pending Approvals
@@ -691,44 +683,7 @@
           </div>
         </div>
 
-        <!-- 4. SUB-ADMIN ASSIGNMENT SECTION -->
-        <div id="admin-sec-subadmin" class="admin-sub-sec" style="display:none;">
-          <div class="section-card" style="max-width: 650px;">
-            <h3 style="margin-bottom: 12px; font-size: 0.95rem; color:#1e3c72;">Assign Category Sub-Admins (Guest Managers)</h3>
-            <p style="font-size: 0.8rem; color:#64748b; margin-bottom: 14px;">Select a department/category and assign a member as its Guest Manager (Sub-Admin).</p>
-            
-            <div class="input-group">
-              <label>Select Category / Department</label>
-              <select id="subadmin-category-select" class="input-control" onchange="loadCurrentSubAdminForCategory()">
-                <option value="SNEC">SNEC</option>
-                <option value="E LEARNING">E LEARNING</option>
-                <option value="SUPRABHATHAM">SUPRABHATHAM</option>
-                <option value="MASJID">MASJID</option>
-                <option value="BOOK DEPOT">BOOK DEPOT</option>
-                <option value="GUEST">GUEST</option>
-                <option value="OTHER">OTHER</option>
-              </select>
-            </div>
-
-            <div class="input-group" style="margin-bottom: 14px;">
-              <label>Select Member (Sub-Admin)</label>
-              <select id="subadmin-member-select" class="input-control">
-                <option value="">-- Select Member --</option>
-              </select>
-            </div>
-
-            <div style="display:flex; gap:10px;">
-              <button class="btn-pill btn-success" onclick="saveCategorySubAdmin()">
-                <i class="fa-solid fa-floppy-disk"></i> Save Sub-Admin
-              </button>
-              <button class="btn-pill btn-danger" onclick="removeCategorySubAdmin()">
-                <i class="fa-solid fa-trash"></i> Remove Sub-Admin
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 5. PENDING APPROVALS SECTION -->
+        <!-- 4. PENDING APPROVALS SECTION -->
         <div id="admin-sec-pending" class="admin-sub-sec" style="display:none;">
           <div class="section-card">
             <h3 style="margin-bottom: 12px; font-size: 0.95rem; color:#1e3c72;">Pending User Approvals</h3>
@@ -749,7 +704,7 @@
           </div>
         </div>
 
-        <!-- 6. MEMBERS REGISTER SECTION -->
+        <!-- 5. MEMBERS REGISTER SECTION -->
         <div id="admin-sec-members" class="admin-sub-sec" style="display:none;">
           <div class="section-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
@@ -777,7 +732,7 @@
           </div>
         </div>
 
-        <!-- 7. POINTS & BOOKINGS REPORT SECTION -->
+        <!-- 6. POINTS & BOOKINGS REPORT SECTION -->
         <div id="admin-sec-points" class="admin-sub-sec" style="display:none;">
           <div class="section-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
@@ -812,7 +767,7 @@
           </div>
         </div>
 
-        <!-- 8. ALL BOOKINGS SECTION -->
+        <!-- 7. ALL BOOKINGS SECTION -->
         <div id="admin-sec-allbookings" class="admin-sub-sec" style="display:none;">
           <div class="section-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
@@ -854,7 +809,6 @@
     let adminSelectedTargetUser = null;
     let weeklyMenuConfig = {};
     let dateConfigsCache = {};
-    let subAdminsConfig = {};
 
     document.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
@@ -1036,29 +990,12 @@
       const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
       document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? 'flex' : 'none');
       
-      await loadSubAdminsConfig();
-
-      const isSubAdmin = !isAdmin && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
-      
       const proxyContainer = document.getElementById('admin-proxy-container');
-      const subAdminNotice = document.getElementById('subadmin-guest-notice');
-      
       if (isAdmin && proxyContainer) {
         proxyContainer.style.display = 'flex';
         loadAdminTargetMembersDropdown();
       } else if (proxyContainer) {
         proxyContainer.style.display = 'none';
-      }
-
-      if (isSubAdmin && subAdminNotice) {
-        let myCategory = '';
-        Object.keys(subAdminsConfig).forEach(cat => {
-          if (subAdminsConfig[cat] === currentUser.token) myCategory = cat;
-        });
-        document.getElementById('subadmin-cat-name').textContent = myCategory;
-        subAdminNotice.style.display = 'block';
-      } else if (subAdminNotice) {
-        subAdminNotice.style.display = 'none';
       }
       
       if (window.innerWidth <= 768) {
@@ -1092,18 +1029,6 @@
         snap.forEach(docSnap => {
           dateConfigsCache[docSnap.id] = docSnap.data();
         });
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    async function loadSubAdminsConfig() {
-      subAdminsConfig = {};
-      try {
-        const docSnap = await window.fs.getDoc(window.fs.doc(window.db, 'settings', 'sub_admins'));
-        if (docSnap.exists()) {
-          subAdminsConfig = docSnap.data();
-        }
       } catch (e) {
         console.error(e);
       }
@@ -1290,67 +1215,6 @@
       }
     }
 
-    async function loadSubAdminManagerDropdowns() {
-      const memSelect = document.getElementById('subadmin-member-select');
-      if (!memSelect) return;
-      memSelect.innerHTML = `<option value="">-- Select Member --</option>`;
-      try {
-        const snap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
-        snap.forEach(docSnap => {
-          const u = docSnap.data();
-          if (u.status === 'active' && u.token && u.role === 'user') {
-            const opt = document.createElement('option');
-            opt.value = u.token;
-            opt.textContent = `#${u.token} - ${u.name} (${u.category})`;
-            memSelect.appendChild(opt);
-          }
-        });
-        loadCurrentSubAdminForCategory();
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    async function loadCurrentSubAdminForCategory() {
-      const catSelect = document.getElementById('subadmin-category-select');
-      const memSelect = document.getElementById('subadmin-member-select');
-      if (!catSelect || !memSelect) return;
-      const cat = catSelect.value;
-      await loadSubAdminsConfig();
-      memSelect.value = subAdminsConfig[cat] || '';
-    }
-
-    async function saveCategorySubAdmin() {
-      const catSelect = document.getElementById('subadmin-category-select');
-      const memSelect = document.getElementById('subadmin-member-select');
-      if (!catSelect || !memSelect) return;
-      const cat = catSelect.value;
-      const token = memSelect.value;
-
-      try {
-        subAdminsConfig[cat] = token;
-        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admins'), subAdminsConfig);
-        showModal('Success', `Sub-Admin for ${cat} assigned successfully!`, 'success');
-      } catch (err) {
-        showModal('Error', err.message, 'error');
-      }
-    }
-
-    async function removeCategorySubAdmin() {
-      const catSelect = document.getElementById('subadmin-category-select');
-      if (!catSelect) return;
-      const cat = catSelect.value;
-
-      try {
-        delete subAdminsConfig[cat];
-        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admins'), subAdminsConfig);
-        document.getElementById('subadmin-member-select').value = '';
-        showModal('Success', `Sub-Admin for ${cat} removed successfully!`, 'success');
-      } catch (err) {
-        showModal('Error', err.message, 'error');
-      }
-    }
-
     function onAdminTargetUserChange() {
       const select = document.getElementById('admin-target-token');
       const val = select.value;
@@ -1402,7 +1266,6 @@
       if (sec === 'kitchen') loadKitchenReport();
       if (sec === 'menu') renderWeeklyMenuManagerTable();
       if (sec === 'holiday') loadHolidayConfigForAdmin();
-      if (sec === 'subadmin') loadSubAdminManagerDropdowns();
       if (sec === 'pending') loadAdminPendingUsers();
       if (sec === 'members') loadAdminMembersRegister();
       if (sec === 'points') loadPointsAndBookingsReport();
@@ -1590,9 +1453,6 @@
       const sunday = new Date(today);
       sunday.setDate(today.getDate() - currentDay);
 
-      const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
-      const isSubAdmin = !isAdmin && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
-
       for (let i = 0; i < 7; i++) {
         const dayDate = new Date(sunday);
         dayDate.setDate(sunday.getDate() + i);
@@ -1644,7 +1504,7 @@
             ${mealLeaves.breakfast ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
               <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${bItem} (${bPts}Pts)</div>
               <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
-                ${isAdmin ? `<input type="checkbox" class="bulk-cb meal-breakfast" data-date="${dateStr}" data-meal="breakfast" ${bLocked ? 'disabled title="Slot locked"' : ''}>` : ''}
+                <input type="checkbox" class="bulk-cb meal-breakfast" data-date="${dateStr}" data-meal="breakfast" ${bLocked ? 'disabled title="Slot locked"' : ''}>
                 <input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="breakfast" min="0" value="0" placeholder="Guest" style="width:65px; padding:2px 4px; font-size:0.75rem; border-radius:4px;" title="Guest count">
               </div>
             `}
@@ -1653,7 +1513,7 @@
             ${mealLeaves.lunch ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
               <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${lItem} (${lPts}Pts)</div>
               <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
-                ${isAdmin ? `<input type="checkbox" class="bulk-cb meal-lunch" data-date="${dateStr}" data-meal="lunch" ${lLocked ? 'disabled title="Slot locked"' : ''}>` : ''}
+                <input type="checkbox" class="bulk-cb meal-lunch" data-date="${dateStr}" data-meal="lunch" ${lLocked ? 'disabled title="Slot locked"' : ''}>
                 <input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="lunch" min="0" value="0" placeholder="Guest" style="width:65px; padding:2px 4px; font-size:0.75rem; border-radius:4px;" title="Guest count">
               </div>
             `}
@@ -1662,7 +1522,7 @@
             ${mealLeaves.dinner ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
               <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${dItem} (${dPts}Pts)</div>
               <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
-                ${isAdmin ? `<input type="checkbox" class="bulk-cb meal-dinner" data-date="${dateStr}" data-meal="dinner" ${dLocked ? 'disabled title="Slot locked"' : ''}>` : ''}
+                <input type="checkbox" class="bulk-cb meal-dinner" data-date="${dateStr}" data-meal="dinner" ${dLocked ? 'disabled title="Slot locked"' : ''}>
                 <input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="dinner" min="0" value="0" placeholder="Guest" style="width:65px; padding:2px 4px; font-size:0.75rem; border-radius:4px;" title="Guest count">
               </div>
             `}
@@ -1707,8 +1567,7 @@
     }
 
     async function saveBulkBookings() {
-      const cbs = document.querySelectorAll('.bulk-cb');
-      const guestInputs = document.querySelectorAll('.guest-input');
+      const cbs = document.querySelectorAll('.bulk-cb:not(:disabled)');
       showToast('Saving bookings...', 'info');
       const timestamp = new Date().toISOString();
 
@@ -1722,53 +1581,27 @@
         } catch(e) { console.error(e); }
       }
 
-      const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
-
       try {
-        // Handle normal bookings if checkbox exists
-        if (cbs.length > 0) {
-          for (let cb of cbs) {
-            const date = cb.dataset.date;
-            const meal = cb.dataset.meal;
-            const isBooked = cb.checked;
-            const guestInput = document.querySelector(`.guest-input[data-date="${date}"][data-meal="${meal}"]`);
-            const guestCount = guestInput ? parseInt(guestInput.value) || 0 : 0;
+        for (let cb of cbs) {
+          const date = cb.dataset.date;
+          const meal = cb.dataset.meal;
+          const isBooked = cb.checked;
+          const guestInput = document.querySelector(`.guest-input[data-date="${date}"][data-meal="${meal}"]`);
+          const guestCount = guestInput ? parseInt(guestInput.value) || 0 : 0;
 
-            const docId = `${activeUserToBook.token}_${date}_${meal}`;
-            const ref = window.fs.doc(window.db, 'bookings', docId);
-            await window.fs.setDoc(ref, {
-              token: activeUserToBook.token,
-              name: activeUserToBook.name,
-              category: activeUserToBook.category || 'OTHER',
-              date: date,
-              meal: meal,
-              action: isBooked ? 'book' : 'cancel',
-              guests: guestCount,
-              timestamp
-            });
-          }
-        } else {
-          // Sub-admin mode (only guest updates)
-          for (let inp of guestInputs) {
-            const date = inp.dataset.date;
-            const meal = inp.dataset.meal;
-            const guestCount = parseInt(inp.value) || 0;
-
-            const docId = `${activeUserToBook.token}_${date}_${meal}`;
-            const ref = window.fs.doc(window.db, 'bookings', docId);
-            await window.fs.setDoc(ref, {
-              token: activeUserToBook.token,
-              name: activeUserToBook.name,
-              category: activeUserToBook.category || 'OTHER',
-              date: date,
-              meal: meal,
-              action: 'book',
-              guests: guestCount,
-              timestamp
-            }, { merge: true });
-          }
+          const docId = `${activeUserToBook.token}_${date}_${meal}`;
+          const ref = window.fs.doc(window.db, 'bookings', docId);
+          await window.fs.setDoc(ref, {
+            token: activeUserToBook.token,
+            name: activeUserToBook.name,
+            category: activeUserToBook.category || 'OTHER',
+            date: date,
+            meal: meal,
+            action: isBooked ? 'book' : 'cancel',
+            guests: guestCount,
+            timestamp
+          });
         }
-
         showModal('Success', 'Weekly bookings and guest details successfully saved!', 'success');
       } catch (err) {
         showModal('Error', err.message, 'error');
