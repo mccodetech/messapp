@@ -160,7 +160,7 @@
     .bulk-table td.day-cell { text-align: left; padding-left: 10px; font-weight: 600; color: #1e293b; line-height: 1.3; }
     .bulk-table td.day-cell span { display: block; font-size: 0.72rem; font-weight: normal; color: #64748b; }
     .bulk-table input[type="checkbox"] { width: 20px; height: 20px; accent-color: #1e3c72; cursor: pointer; }
-    .bulk-table input[type="checkbox"]:disabled { cursor: not-allowed; opacity: 0.4; }
+    .bulk-table input[type="checkbox"]:disabled, .bulk-table input[type="number"]:disabled { cursor: not-allowed; opacity: 0.4; }
 
     .timing-notice {
       background: #f0fdf4;
@@ -1658,8 +1658,8 @@
         const lLocked = isMealSlotLocked(dateStr, 'lunch');
         const dLocked = isMealSlotLocked(dateStr, 'dinner');
 
-        const showCheckbox = isAdmin || (isSubAdmin && subAdminCurrentMode === 'self') || !isSubAdmin;
-        const showGuestInput = isAdmin || (isSubAdmin && subAdminCurrentMode === 'guest') || !isSubAdmin;
+        const showCheckbox = !isSubAdmin || (isSubAdmin && subAdminCurrentMode === 'self');
+        const showGuestInput = isAdmin || (isSubAdmin && subAdminCurrentMode === 'guest');
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -1671,7 +1671,7 @@
               <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${bItem} (${bPts}Pts)</div>
               <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
                 ${showCheckbox ? `<input type="checkbox" class="bulk-cb meal-breakfast" data-date="${dateStr}" data-meal="breakfast" ${bLocked ? 'disabled title="Slot locked"' : ''}>` : ''}
-                ${showGuestInput ? `<input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="breakfast" min="0" value="0" placeholder="Guest" style="width:65px; padding:2px 4px; font-size:0.75rem; border-radius:4px;" title="Guest count">` : ''}
+                ${showGuestInput ? `<input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="breakfast" min="0" value="0" placeholder="Guest" style="width:65px; padding:2px 4px; font-size:0.75rem; border-radius:4px;" ${bLocked ? 'disabled title="Slot locked"' : ''} title="Guest count">` : ''}
               </div>
             `}
           </td>
@@ -1680,7 +1680,7 @@
               <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${lItem} (${lPts}Pts)</div>
               <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
                 ${showCheckbox ? `<input type="checkbox" class="bulk-cb meal-lunch" data-date="${dateStr}" data-meal="lunch" ${lLocked ? 'disabled title="Slot locked"' : ''}>` : ''}
-                ${showGuestInput ? `<input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="lunch" min="0" value="0" placeholder="Guest" style="width:65px; padding:2px 4px; font-size:0.75rem; border-radius:4px;" title="Guest count">` : ''}
+                ${showGuestInput ? `<input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="lunch" min="0" value="0" placeholder="Guest" style="width:65px; padding:2px 4px; font-size:0.75rem; border-radius:4px;" ${lLocked ? 'disabled title="Slot locked"' : ''} title="Guest count">` : ''}
               </div>
             `}
           </td>
@@ -1689,7 +1689,7 @@
               <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${dItem} (${dPts}Pts)</div>
               <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
                 ${showCheckbox ? `<input type="checkbox" class="bulk-cb meal-dinner" data-date="${dateStr}" data-meal="dinner" ${dLocked ? 'disabled title="Slot locked"' : ''}>` : ''}
-                ${showGuestInput ? `<input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="dinner" min="0" value="0" placeholder="Guest" style="width:65px; padding:2px 4px; font-size:0.75rem; border-radius:4px;" title="Guest count">` : ''}
+                ${showGuestInput ? `<input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="dinner" min="0" value="0" placeholder="Guest" style="width:65px; padding:2px 4px; font-size:0.75rem; border-radius:4px;" ${dLocked ? 'disabled title="Slot locked"' : ''} title="Guest count">` : ''}
               </div>
             `}
           </td>
@@ -1734,7 +1734,7 @@
 
     async function saveBulkBookings() {
       const cbs = document.querySelectorAll('.bulk-cb:not(:disabled)');
-      const guestInputs = document.querySelectorAll('.guest-input');
+      const guestInputs = document.querySelectorAll('.guest-input:not(:disabled)');
       showToast('Saving bookings...', 'info');
       const timestamp = new Date().toISOString();
 
@@ -1748,11 +1748,11 @@
         } catch(e) { console.error(e); }
       }
 
-      const isSubAdmin = subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
+      const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+      const isSubAdmin = !isAdmin && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
 
       try {
         if (isSubAdmin && subAdminCurrentMode === 'guest') {
-          // Save only guest counts
           for (let inp of guestInputs) {
             const date = inp.dataset.date;
             const meal = inp.dataset.meal;
@@ -1772,7 +1772,6 @@
             }, { merge: true });
           }
         } else {
-          // Save normal bookings and guests
           for (let cb of cbs) {
             const date = cb.dataset.date;
             const meal = cb.dataset.meal;
@@ -2252,7 +2251,7 @@
     function showToast(msg, type = 'info') {
       const c = document.getElementById('toast-container');
       const t = document.createElement('div');
-      t.className = 'toast';
+      t.className, 'toast';
       t.innerHTML = `<i class="fa-solid fa-bell" style="color:#3b82f6;"></i> <span>${msg}</span>`;
       c.appendChild(t);
       setTimeout(() => t.remove(), 2500);
