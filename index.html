@@ -8,9 +8,10 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <!-- Firebase SDK -->
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, sendPasswordResetEmail, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import {  
       getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs  
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -29,6 +30,8 @@
     window.auth = getAuth(app);
     window.db = getFirestore(app);
     window.sendPasswordResetEmail = sendPasswordResetEmail;
+    window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+    window.signInWithEmailAndPassword = signInWithEmailAndPassword;
     window.fs = { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs };
   </script>
 
@@ -975,41 +978,53 @@
     }
 
     async function handleLogin() {
-      const id = document.getElementById('login-identifier').value.trim();
-      const pass = document.getElementById('login-pass').value.trim();
-      if (!id || !pass) return showToast('Enter token/username and password', 'error');
+  const id = document.getElementById('login-identifier').value.trim();
+  const pass = document.getElementById('login-pass').value.trim();
+  if (!id || !pass) return showToast('Enter token/username and password', 'error');
 
-      if (id === 'sadmin' && pass === 'sadmin_4321') {
-        currentUser = { token: '0', name: 'Super Admin', role: 'superadmin', status: 'active', category: 'ADMIN' };
-        return setSessionAndEnter(currentUser);
-      }
-      if (id === 'admin' && pass === 'admin123') {
-        currentUser = { token: '1', name: 'Admin', role: 'admin', status: 'active', category: 'ADMIN' };
-        return setSessionAndEnter(currentUser);
-      }
+  if (id === 'sadmin' && pass === 'sadmin_4321') {
+    currentUser = { token: '0', name: 'Super Admin', role: 'superadmin', status: 'active', category: 'ADMIN' };
+    return setSessionAndEnter(currentUser);
+  }
+  if (id === 'admin' && pass === 'admin123') {
+    currentUser = { token: '1', name: 'Admin', role: 'admin', status: 'active', category: 'ADMIN' };
+    return setSessionAndEnter(currentUser);
+  }
 
-      try {
-        const userRef = window.fs.doc(window.db, 'users', id);
-        const docSnap = await window.fs.getDoc(userRef);
+  try {
+    const userRef = window.fs.doc(window.db, 'users', id);
+    const docSnap = await window.fs.getDoc(userRef);
 
-        if (!docSnap.exists() || docSnap.data().password !== pass) {
-          return showModal('Login Failed', 'Invalid Token or Password', 'error');
-        }
+    if (!docSnap.exists()) {
+      return showModal('Login Failed', 'Invalid Token or Username', 'error');
+    }
 
-        const data = docSnap.data();
-        if (data.status === 'pending') {
-          return showModal('Pending Approval', 'Your account is waiting for Admin approval.', 'info');
-        }
-        if (data.status === 'inactive') {
-          return showModal('Account Suspended', 'Your account is currently suspended. Contact Admin.', 'error');
-        }
+    const data = docSnap.data();
+    if (data.status === 'pending') {
+      return showModal('Pending Approval', 'Your account is waiting for Admin approval.', 'info');
+    }
+    if (data.status === 'inactive') {
+      return showModal('Account Suspended', 'Your account is currently suspended. Contact Admin.', 'error');
+    }
 
-        currentUser = data;
-        setSessionAndEnter(currentUser);
-      } catch (err) {
-        showModal('Error', err.message, 'error');
+    try {
+      // Firebase Authentication വഴി ലോഗിൻ പരിശോധിക്കുന്നു (Reset ചെയ്ത പാസ്‌വേഡ് വർക്ക് ചെയ്യാൻ)
+      await window.signInWithEmailAndPassword(window.auth, data.email, pass);
+    } catch (authError) {
+      // ഫയർബേസ് ഓതന്റിക്കേഷൻ ഇല്ലാതെ നേരത്തെ രജിസ്റ്റർ ചെയ്ത പഴയ യൂസർമാർക്ക് ലോഗിൻ ചെയ്യാനുള്ള സൗകര്യം
+      if (data.password === pass) {
+        console.log("Legacy login successful");
+      } else {
+        return showModal('Login Failed', 'Invalid Token or Password', 'error');
       }
     }
+
+    currentUser = data;
+    setSessionAndEnter(currentUser);
+  } catch (err) {
+    showModal('Error', err.message, 'error');
+  }
+}
 
     function setSessionAndEnter(user) {
       localStorage.setItem('snec_mess_session', JSON.stringify(user));
@@ -1020,56 +1035,66 @@
     }
 
     async function handleRegister() {
-      const name = document.getElementById('reg-name').value.trim().toUpperCase();
-      const phone = document.getElementById('reg-phone').value.trim();
-      const email = document.getElementById('reg-email').value.trim();
-      const category = document.getElementById('reg-category').value;
-      const pass = document.getElementById('reg-pass').value.trim();
-      const passConfirm = document.getElementById('reg-pass-confirm').value.trim();
+  const name = document.getElementById('reg-name').value.trim().toUpperCase();
+  const phone = document.getElementById('reg-phone').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const category = document.getElementById('reg-category').value;
+  const pass = document.getElementById('reg-pass').value.trim();
+  const passConfirm = document.getElementById('reg-pass-confirm').value.trim();
 
-      if (!name || !phone || !email || !pass || !passConfirm) {
-        return showToast('Please fill all fields', 'error');
+  if (!name || !phone || !email || !pass || !passConfirm) {
+    return showToast('Please fill all fields', 'error');
+  }
+  if (pass !== passConfirm) {
+    return showModal('Password Mismatch', 'Password and Confirm Password do not match!', 'error');
+  }
+
+  try {
+    const usersSnapshot = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
+    let alreadyExists = false;
+
+    usersSnapshot.forEach(docSnap => {
+      const u = docSnap.data();
+      if ((u.phone && u.phone === phone) || (u.email && u.email.toLowerCase() === email.toLowerCase())) {
+        alreadyExists = true;
       }
-      if (pass !== passConfirm) {
-        return showModal('Password Mismatch', 'Password and Confirm Password do not match!', 'error');
-      }
+    });
 
-      try {
-        const usersSnapshot = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
-        let alreadyExists = false;
-
-        usersSnapshot.forEach(docSnap => {
-          const u = docSnap.data();
-          if ((u.phone && u.phone === phone) || (u.email && u.email.toLowerCase() === email.toLowerCase())) {
-            alreadyExists = true;
-          }
-        });
-
-        if (alreadyExists) {
-          return showModal('Already Registered', 'An account with this mobile number or email already exists in the system. Please wait for Admin approval or contact Admin.', 'info');
-        }
-
-        const tempId = 'temp_' + Date.now();
-        const userRef = window.fs.doc(window.db, 'users', tempId);
-        await window.fs.setDoc(userRef, {
-          tempId,
-          token: '',
-          name,
-          phone,
-          email,
-          category,
-          password: pass,
-          role: 'user',
-          status: 'pending',
-          createdAt: new Date().toISOString()
-        });
-
-        showModal('Submitted', 'Registration submitted successfully! You can log in once an Admin approves your account.', 'success');
-        switchAuthTab('login');
-      } catch (err) {
-        showModal('Error', err.message, 'error');
-      }
+    if (alreadyExists) {
+      return showModal('Already Registered', 'An account with this mobile number or email already exists. Please wait for Admin approval or contact Admin.', 'info');
     }
+
+    // Firebase Auth-ൽ പുതിയ അക്കൗണ്ട് ഉണ്ടാക്കുന്നു
+    try {
+      await window.createUserWithEmailAndPassword(window.auth, email, pass);
+    } catch (authErr) {
+      if (authErr.code === 'auth/email-already-in-use') {
+         return showModal('Email in Use', 'This email is already registered. Please use another email.', 'error');
+      }
+      return showModal('Auth Error', authErr.message, 'error');
+    }
+
+    const tempId = 'temp_' + Date.now();
+    const userRef = window.fs.doc(window.db, 'users', tempId);
+    await window.fs.setDoc(userRef, {
+      tempId,
+      token: '',
+      name,
+      phone,
+      email,
+      category,
+      password: pass, 
+      role: 'user',
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    });
+
+    showModal('Submitted', 'Registration submitted successfully! You can log in once an Admin approves your account.', 'success');
+    switchAuthTab('login');
+  } catch (err) {
+    showModal('Error', err.message, 'error');
+  }
+}
 
     async function openResetModal() {
       const email = prompt('Enter your registered Email address:');
