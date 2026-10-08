@@ -1681,8 +1681,9 @@
           updatedAt: new Date().toISOString()
         });
 
+        // മാറ്റം വരുത്തിയ ഭാഗം: പഴയ temp റെക്കോർഡ് ഡിലീറ്റ് ചെയ്യുന്നു
         if (tempDocId !== token) {
-          await window.fs.updateDoc(tempRef, { status: 'approved' });
+          await window.fs.deleteDoc(tempRef);
         }
 
         const cleanPhone = phone.replace(/\D/g, '');
@@ -1720,7 +1721,9 @@
 
         snap.forEach(docSnap => {
           const u = docSnap.data();
-          if (u.role === 'admin' || u.role === 'superadmin' || u.status === 'pending') return;
+          
+          // മാറ്റം വരുത്തിയ ഭാഗം: പഴയ temp, approved അക്കൗണ്ടുകൾ ലിസ്റ്റിൽ നിന്നും ഒഴിവാക്കുന്നു
+          if (u.role === 'admin' || u.role === 'superadmin' || u.status === 'pending' || u.status === 'approved' || String(docSnap.id).startsWith('temp_')) return;
 
           validMembersCount++;
           let formattedDate = 'N/A';
