@@ -676,19 +676,20 @@
           </div>
         </div>
 
-        <!-- 3. HOLIDAY & LEAVE MANAGER SECTION -->
+        <!-- 3. DATE SPECIFIC HOLIDAY, LEAVE & POINT MANAGER SECTION -->
         <div id="admin-sec-holiday" class="admin-sub-sec" style="display:none;">
           <div class="section-card" style="max-width: 650px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
               <div>
-                <h3 style="font-size: 0.95rem; color:#1e3c72;">Date Specific Holiday & Meal Leave Manager</h3>
-                <p style="font-size: 0.8rem; color:#64748b;">Select any specific date to declare full day or specific meal leave.</p>
+                <h3 style="font-size: 0.95rem; color:#1e3c72;">Date Specific Holiday, Leave & Point Manager</h3>
+                <p style="font-size: 0.8rem; color:#64748b;">Select any specific date to declare holiday, meal leave or modify points for that day.</p>
               </div>
               <div>
                 <input type="date" id="holiday-date-picker" class="input-control" style="padding:6px 12px; width: 160px;" onchange="loadHolidayConfigForAdmin()">
               </div>
             </div>
 
+            <!-- Holiday / Leave Section -->
             <div style="background:#fef2f2; border:1px solid #fecaca; padding:12px; border-radius:12px; margin-bottom:14px;">
               <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-bottom: 8px;">
                 <input type="checkbox" id="admin-holiday-cb" style="width:18px; height:18px; accent-color:#ef4444;" onchange="toggleFullDayLeave(this)">
@@ -700,6 +701,29 @@
                 <label style="font-size:0.82rem; cursor:pointer;"><input type="checkbox" id="leave-dinner" style="accent-color:#ef4444;"> Dinner Leave</label>
               </div>
             </div>
+            
+            <!-- Date Specific Menu & Point Section -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:12px; margin-bottom:14px;">
+               <strong style="color:#1e3c72; font-size:0.9rem; display:block; margin-bottom:10px;">Special Menu & Points for this Date (Overrides Weekly Menu)</strong>
+               <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+                  <div>
+                    <label style="font-size:0.75rem; font-weight:600; color:#64748b;">Breakfast (Item / Pts)</label>
+                    <input type="text" id="date-spec-b-item" class="input-control" placeholder="Item name" style="margin-bottom:4px; padding:6px 12px; font-size:0.8rem;">
+                    <input type="number" id="date-spec-b-pts" class="input-control" placeholder="Points" step="0.5" style="padding:6px 12px; font-size:0.8rem;">
+                  </div>
+                  <div>
+                    <label style="font-size:0.75rem; font-weight:600; color:#64748b;">Lunch (Item / Pts)</label>
+                    <input type="text" id="date-spec-l-item" class="input-control" placeholder="Item name" style="margin-bottom:4px; padding:6px 12px; font-size:0.8rem;">
+                    <input type="number" id="date-spec-l-pts" class="input-control" placeholder="Points" step="0.5" style="padding:6px 12px; font-size:0.8rem;">
+                  </div>
+                  <div>
+                    <label style="font-size:0.75rem; font-weight:600; color:#64748b;">Dinner (Item / Pts)</label>
+                    <input type="text" id="date-spec-d-item" class="input-control" placeholder="Item name" style="margin-bottom:4px; padding:6px 12px; font-size:0.8rem;">
+                    <input type="number" id="date-spec-d-pts" class="input-control" placeholder="Points" step="0.5" style="padding:6px 12px; font-size:0.8rem;">
+                  </div>
+               </div>
+               <div style="font-size:0.75rem; color:#64748b; margin-top:8px;">* Leave blank to use the standard weekly menu and points.</div>
+            </div>
 
             <div class="input-group" style="margin-bottom: 14px;">
               <label>Special Announcement / Notice for this Date</label>
@@ -707,7 +731,7 @@
             </div>
 
             <button class="btn-pill btn-success" onclick="saveHolidayConfig()">
-              <i class="fa-solid fa-floppy-disk"></i> Save Holiday Settings & Update Bookings
+              <i class="fa-solid fa-floppy-disk"></i> Save Date Specific Settings & Update Bookings
             </button>
           </div>
         </div>
