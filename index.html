@@ -2692,5 +2692,29 @@
       setTimeout(() => t.remove(), 2500);
     }
   </script>
+  <script>
+  let deferredPrompt;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // തനിയെ കാണിക്കുന്ന പ്രോംപ്റ്റ് തടയുന്നു
+    e.preventDefault();
+    deferredPrompt = e;
+
+    // മൊബൈൽ ആണെങ്കിൽ ഇൻസ്റ്റാൾ മെസ്സേജ് കാണിക്കുന്നു
+    if (window.innerWidth <= 768) {
+      showConfirmModal('Install App', 'ആപ്പ് ഹോം സ്ക്രീനിൽ ഇൻസ്റ്റാൾ ചെയ്യുകയാണോ?', () => {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+          }
+          deferredPrompt = null;
+        });
+      });
+    }
+  });
+
+  // കമ്പ്യൂട്ടറിൽ ഈ മെസ്സേജ് കാണിക്കില്ല. സാധാരണപോലെ തന്നെ ലോഗിൻ പേജ് വരും
+</script>
 </body>
 </html>
