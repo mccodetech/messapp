@@ -1374,6 +1374,14 @@
           document.getElementById('leave-lunch').checked = d.mealLeaves?.lunch || false;
           document.getElementById('leave-dinner').checked = d.mealLeaves?.dinner || false;
           document.getElementById('admin-holiday-notice').value = d.notice || '';
+          
+          document.getElementById('date-spec-b-item').value = d.breakfast?.item || '';
+          document.getElementById('date-spec-b-pts').value = d.breakfast?.points ?? '';
+          document.getElementById('date-spec-l-item').value = d.lunch?.item || '';
+          document.getElementById('date-spec-l-pts').value = d.lunch?.points ?? '';
+          document.getElementById('date-spec-d-item').value = d.dinner?.item || '';
+          document.getElementById('date-spec-d-pts').value = d.dinner?.points ?? '';
+          
           toggleFullDayLeave(document.getElementById('admin-holiday-cb'));
         } else {
           document.getElementById('admin-holiday-cb').checked = false;
@@ -1381,6 +1389,14 @@
           document.getElementById('leave-lunch').checked = false;
           document.getElementById('leave-dinner').checked = false;
           document.getElementById('admin-holiday-notice').value = '';
+          
+          document.getElementById('date-spec-b-item').value = '';
+          document.getElementById('date-spec-b-pts').value = '';
+          document.getElementById('date-spec-l-item').value = '';
+          document.getElementById('date-spec-l-pts').value = '';
+          document.getElementById('date-spec-d-item').value = '';
+          document.getElementById('date-spec-d-pts').value = '';
+          
           toggleFullDayLeave(document.getElementById('admin-holiday-cb'));
         }
       } catch (e) {
@@ -1397,13 +1413,23 @@
       const lLeave = document.getElementById('leave-lunch').checked;
       const dLeave = document.getElementById('leave-dinner').checked;
       const notice = document.getElementById('admin-holiday-notice').value.trim();
+      
+      const bItem = document.getElementById('date-spec-b-item').value.trim();
+      const bPts = document.getElementById('date-spec-b-pts').value;
+      const lItem = document.getElementById('date-spec-l-item').value.trim();
+      const lPts = document.getElementById('date-spec-l-pts').value;
+      const dItem = document.getElementById('date-spec-d-item').value.trim();
+      const dPts = document.getElementById('date-spec-d-pts').value;
 
       try {
         const docRef = window.fs.doc(window.db, 'date_configs', date);
         const configData = {
           isHoliday: isH,
           mealLeaves: { breakfast: bLeave, lunch: lLeave, dinner: dLeave },
-          notice: notice
+          notice: notice,
+          breakfast: bPts !== '' ? { item: bItem, points: parseFloat(bPts) } : null,
+          lunch: lPts !== '' ? { item: lItem, points: parseFloat(lPts) } : null,
+          dinner: dPts !== '' ? { item: dItem, points: parseFloat(dPts) } : null
         };
 
         await window.fs.setDoc(docRef, configData, { merge: true });
@@ -1420,14 +1446,13 @@
         });
         await Promise.all(updatePromises);
 
-        showModal('Success', 'Holiday and meal leave settings saved successfully!', 'success');
+        showModal('Success', 'Date specific settings saved successfully!', 'success');
         await loadAllDateConfigs();
         renderBulkTable();
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
     }
-
     async function loadAdminTargetMembersDropdown() {
       const select = document.getElementById('admin-target-token');
       if (!select) return;
