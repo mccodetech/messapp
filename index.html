@@ -928,6 +928,15 @@
     let subAdminCurrentMode = 'self'; // 'self' or 'guest'
     let currentConfirmAction = null;
 
+    function formatDateToDMY(dateStr) {
+      if (!dateStr || dateStr === 'N/A') return 'N/A';
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      return dateStr;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
       const kp = document.getElementById('kitchen-date-picker');
@@ -2595,7 +2604,7 @@
         querySnapshot.forEach(docSnap => {
           const d = docSnap.data();
           let guestsStr = '';
-          if (d.token && (String(d.token).includes('_GUEST') || Object.values(guestTokensConfig).map(String).includes(String(d.token)))) {
+          if (d.token && (String(d.token).includes('_GUEST') || Object.values(guestTokensConfig).includes(d.token))) {
             guestsStr = ` (${d.guests || 1} Nos)`;
           } else if (d.guests && parseInt(d.guests) > 0) {
             guestsStr = ` (+${d.guests} Guest)`;
