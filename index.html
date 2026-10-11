@@ -928,6 +928,17 @@
     let subAdminCurrentMode = 'self'; // 'self' or 'guest'
     let currentConfirmAction = null;
 
+    // തീയതി DD-MM-YYYY ഫോർമാറ്റിലേക്ക് മാറ്റുന്നതിനുള്ള ഫങ്ഷൻ
+    function formatDateToDMY(dateStr) {
+      if (!dateStr || dateStr === 'N/A') return 'N/A';
+      // dateStr YYYY-MM-DD രൂപത്തിലാണെങ്കിൽ
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+      }
+      return dateStr;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const today = new Date().toISOString().split('T')[0];
       const kp = document.getElementById('kitchen-date-picker');
@@ -1734,9 +1745,13 @@
         usersArray.forEach(u => {
           let formattedDate = 'N/A';
           if (u.createdAt) {
-            const dateObj = new Date(u.createdAt);
-            if (!isNaN(dateObj.getTime())) {
-              formattedDate = dateObj.toLocaleDateString() + ' ' + dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            // YYYY-MM-DD അല്ലെങ്കിൽ ISO തീയതിയെ DD-MM-YYYY HH:MM ഫോർമാറ്റിലേക്ക് മാറ്റുന്നു
+            let rawDate = u.createdAt;
+            if (rawDate.includes('T')) {
+              const parts = rawDate.split('T');
+              formattedDate = `${formatDateToDMY(parts[0])} ${parts[1].slice(0, 5)}`;
+            } else {
+              formattedDate = formatDateToDMY(rawDate);
             }
           }
 
@@ -1864,7 +1879,7 @@
         <th>Token</th>
         <th>Name</th>
         <th>Category</th>
-        ${dateList.map(d => `<th style="text-align:center; font-size:0.75rem;">${d.slice(5)}</th>`).join('')}
+        ${dateList.map(d => `<th style="text-align:center; font-size:0.75rem;">${formatDateToDMY(d).slice(0, 5)}</th>`).join('')}
         <th style="text-align:right;">Total Pts</th>
       `;
 
@@ -1991,8 +2006,8 @@
 
     function printPointsReport() {
       const container = document.getElementById('points-report-table-container').innerHTML;
-      const startDate = document.getElementById('rep-start-date').value;
-      const endDate = document.getElementById('rep-end-date').value;
+      const startDate = formatDateToDMY(document.getElementById('rep-start-date').value);
+      const endDate = formatDateToDMY(document.getElementById('rep-end-date').value);
 
       const printWindow = window.open('', '_blank');
       printWindow.document.write(`
@@ -2085,7 +2100,7 @@
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td class="day-cell">
-              <b>${shortDays[dayIndex]}</b> <span>${dateStr.slice(5)}</span>
+              <b>${shortDays[dayIndex]}</b> <span>${formatDateToDMY(dateStr)}</span>
             </td>
             <td colspan="3" style="text-align: center; color: #ef4444; font-weight: 600; background: #fef2f2;">
               Mess Holiday / Leave
@@ -2111,12 +2126,12 @@
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td class="day-cell">
-            <b>${shortDays[dayIndex]}</b> <span>${dateStr.slice(5)}</span>
+            <b>${shortDays[dayIndex]}</b> <span>${formatDateToDMY(dateStr)}</span>
           </td>
           <td>
             ${mealLeaves.breakfast ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
               <div style="margin-bottom:4px;">
-                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${bItem.replace(/'/g, "\\'")}', '${bPts} Pts', 'Breakfast (${shortDays[dayIndex]})')">
+                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${bItem.replace(/'/g, "\\'")}', '${bPts} Pts', 'Breakfast (${shortDays[dayIndex]} -${formatDateToDMY(dateStr)})')">
                   <i class="fa-solid fa-utensils"></i> Menu (${bPts}Pts)
                 </button>
               </div>
@@ -2129,7 +2144,7 @@
           <td>
             ${mealLeaves.lunch ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
               <div style="margin-bottom:4px;">
-                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${lItem.replace(/'/g, "\\'")}', '${lPts} Pts', 'Lunch (${shortDays[dayIndex]})')">
+                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${lItem.replace(/'/g, "\\'")}', '${lPts} Pts', 'Lunch (${shortDays[dayIndex]} -${formatDateToDMY(dateStr)})')">
                   <i class="fa-solid fa-utensils"></i> Menu (${lPts}Pts)
                 </button>
               </div>
@@ -2142,7 +2157,7 @@
           <td>
             ${mealLeaves.dinner ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
               <div style="margin-bottom:4px;">
-                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${dItem.replace(/'/g, "\\'")}', '${dPts} Pts', 'Dinner (${shortDays[dayIndex]})')">
+                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${dItem.replace(/'/g, "\\'")}', '${dPts} Pts', 'Dinner (${shortDays[dayIndex]} -${formatDateToDMY(dateStr)})')">
                   <i class="fa-solid fa-utensils"></i> Menu (${dPts}Pts)
                 </button>
               </div>
@@ -2393,7 +2408,7 @@
 
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td>${row.date} ${guestsStr}</td>
+            <td>${formatDateToDMY(row.date)} ${guestsStr}</td>
             <td style="text-align:center;">${bIcon}</td>
             <td style="text-align:center;">${lIcon}</td>
             <td style="text-align:center;">${dIcon}</td>
@@ -2471,7 +2486,8 @@
       const { date, breakfast, lunch, dinner } = currentKitchenData;
       if (!date) return showToast('Please select a date', 'error');
 
-      let text = `🍽️ *SUPRABHATHAM MESS REPORT*\n📅 *Date:* ${date}\n----------------------------\n`;
+      const formattedDate = formatDateToDMY(date);
+      let text = `🍽️ *SUPRABHATHAM MESS REPORT*\n📅 *Date:* ${formattedDate}\n----------------------------\n`;
 
       if (type === 'breakfast' || type === 'all') {
         text += `🌅 *Breakfast:* ${breakfast.length} Entries\n`;
@@ -2504,6 +2520,7 @@
       const { date, breakfast, lunch, dinner } = currentKitchenData;
       if (!date) return showToast('Please select a date', 'error');
 
+      const formattedDate = formatDateToDMY(date);
       let title = '';
       let list = [];
       if (mealType === 'breakfast') { title = '🌅 Breakfast List'; list = breakfast; }
@@ -2520,7 +2537,7 @@
       printWindow.document.write(`
         <html>
         <head>
-          <title>${title} - ${date}</title>
+          <title>${title} - ${formattedDate}</title>
           <style>
             @page { size: portrait; margin: 15mm; }
             body { font-family: sans-serif; padding: 10px; color: #000; font-size: 14px; }
@@ -2553,7 +2570,7 @@
         </head>
         <body>
           <h2>Suprabhatham Mess - ${title}</h2>
-          <h4>Date: ${date} | Total Entries: ${list.length} Nos</h4>
+          <h4>Date: ${formattedDate} | Total Entries: ${list.length} Nos</h4>
           <hr style="border: 1px solid #000; margin-bottom: 12px;"/>
           <div class="container">
             ${list.length > 0 ? list.map((i) => {
@@ -2598,7 +2615,7 @@
 
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td>${d.date}</td>
+            <td>${formatDateToDMY(d.date)}</td>
             <td>#${d.token}</td>
             <td>${d.name || 'N/A'}${guestsStr}</td>
             <td>${d.category || 'N/A'}</td>
@@ -2616,70 +2633,3 @@
       if (!confirm('Are you sure you want to clear/delete all booking history records?')) return;
       showToast('Clearing history records...', 'info');
       try {
-        const querySnapshot = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
-        const deletePromises = [];
-        querySnapshot.forEach(docSnap => {
-          deletePromises.push(window.fs.deleteDoc(docSnap.ref));
-        });
-        await Promise.all(deletePromises);
-        
-        showModal('Cleared', 'All booking history records have been successfully cleared.', 'success');
-        loadAdminAllBookings();
-      } catch (err) {
-        showModal('Error', err.message, 'error');
-      }
-    }
-
-    function exportAdminTableToCSV() {
-      let csv = 'Date,Token,Name,Category,Meal,Status\n';
-      document.querySelectorAll('#admin-table-body tr').forEach(row => {
-        const cols = Array.from(row.querySelectorAll('td')).map(td => `"${td.innerText}"`);
-        csv += cols.join(',') + '\n';
-      });
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `mess_bookings_${new Date().toISOString().split('T')[0]}.csv`;
-      link.click();
-    }
-
-    function showModal(title, msg, type = 'info') {
-      const modal = document.getElementById('app-modal');
-      document.getElementById('modal-title').textContent = title;
-      document.getElementById('modal-message').textContent = msg;
-      document.getElementById('modal-actions').innerHTML = `<button class="btn-pill btn-primary" onclick="closeModal()" style="width: 100%;">OK</button>`;
-      modal.classList.add('active');
-    }
-
-    function showConfirmModal(title, msg, onConfirm) {
-      const modal = document.getElementById('app-modal');
-      document.getElementById('modal-title').textContent = title;
-      document.getElementById('modal-message').textContent = msg;
-      currentConfirmAction = onConfirm;
-      document.getElementById('modal-actions').innerHTML = `
-        <button class="btn-pill btn-light" onclick="closeModal()" style="flex:1;">Cancel</button>
-        <button class="btn-pill btn-danger" onclick="executeConfirmAction()" style="flex:1; background-color:#ef4444; color:#fff;">Confirm</button>
-      `;
-      modal.classList.add('active');
-    }
-
-    function executeConfirmAction() {
-      closeModal();
-      if (typeof currentConfirmAction === 'function') {
-        currentConfirmAction();
-        currentConfirmAction = null;
-      }
-    }
-
-    function closeModal() { document.getElementById('app-modal').classList.remove('active'); }
-    function showToast(msg, type = 'info') {
-      const c = document.getElementById('toast-container');
-      const t = document.createElement('div');
-      t.className = 'toast';
-      t.innerHTML = `<i class="fa-solid fa-bell" style="color:#3b82f6;"></i> <span>${msg}</span>`;
-      c.appendChild(t);
-      setTimeout(() => t.remove(), 2500);
-    }
-  </script>
-</body>
-</html>
