@@ -4,20 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Suprabhatham Mess Booking - SNEC</title>
-<link rel="manifest" href="manifest.json">
-<!-- Apple device support -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Mess App">
-  <link rel="apple-touch-icon" href="icon.png">
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
   <!-- Firebase SDK -->
-  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, sendPasswordResetEmail, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import {  
       getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs  
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -36,8 +29,6 @@
     window.auth = getAuth(app);
     window.db = getFirestore(app);
     window.sendPasswordResetEmail = sendPasswordResetEmail;
-    window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
-    window.signInWithEmailAndPassword = signInWithEmailAndPassword;
     window.fs = { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs };
   </script>
 
@@ -344,7 +335,6 @@
       </div>
 
       <!-- Register Form -->
-      <!-- Register Form -->
       <div id="form-register" style="display: none;">
         <div class="input-group">
           <label><i class="fa-solid fa-user"></i> Full Name</label>
@@ -370,8 +360,6 @@
             <option value="OTHER">OTHER</option>
           </select>
         </div>
-        
-        <!-- Password Fields -->
         <div class="input-group">
           <label><i class="fa-solid fa-key"></i> Password</label>
           <div class="password-wrapper">
@@ -379,14 +367,13 @@
             <i class="fa-solid fa-eye toggle-password" onclick="togglePasswordVisibility('reg-pass', this)"></i>
           </div>
         </div>
-        
         <div class="input-group">
           <label><i class="fa-solid fa-key"></i> Confirm Password</label>
           <div class="password-wrapper">
-            <input type="text" id="reg-pass-confirm" class="input-control" placeholder="Confirm Password">
+            <input type="password" id="reg-pass-confirm" class="input-control" placeholder="Confirm Password">
+            <i class="fa-solid fa-eye toggle-password" onclick="togglePasswordVisibility('reg-pass-confirm', this)"></i>
           </div>
         </div>
-        
         <button class="btn-pill btn-success" style="width: 100%; margin-top: 4px;" onclick="handleRegister()">
           <i class="fa-solid fa-user-plus"></i> Submit Registration
         </button>
@@ -677,20 +664,19 @@
           </div>
         </div>
 
-        <!-- 3. DATE SPECIFIC HOLIDAY, LEAVE & POINT MANAGER SECTION -->
+        <!-- 3. HOLIDAY & LEAVE MANAGER SECTION -->
         <div id="admin-sec-holiday" class="admin-sub-sec" style="display:none;">
           <div class="section-card" style="max-width: 650px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
               <div>
-                <h3 style="font-size: 0.95rem; color:#1e3c72;">Date Specific Holiday, Leave & Point Manager</h3>
-                <p style="font-size: 0.8rem; color:#64748b;">Select any specific date to declare holiday, meal leave or modify points for that day.</p>
+                <h3 style="font-size: 0.95rem; color:#1e3c72;">Date Specific Holiday & Meal Leave Manager</h3>
+                <p style="font-size: 0.8rem; color:#64748b;">Select any specific date to declare full day or specific meal leave.</p>
               </div>
               <div>
                 <input type="date" id="holiday-date-picker" class="input-control" style="padding:6px 12px; width: 160px;" onchange="loadHolidayConfigForAdmin()">
               </div>
             </div>
 
-            <!-- Holiday / Leave Section -->
             <div style="background:#fef2f2; border:1px solid #fecaca; padding:12px; border-radius:12px; margin-bottom:14px;">
               <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-bottom: 8px;">
                 <input type="checkbox" id="admin-holiday-cb" style="width:18px; height:18px; accent-color:#ef4444;" onchange="toggleFullDayLeave(this)">
@@ -702,29 +688,6 @@
                 <label style="font-size:0.82rem; cursor:pointer;"><input type="checkbox" id="leave-dinner" style="accent-color:#ef4444;"> Dinner Leave</label>
               </div>
             </div>
-            
-            <!-- Date Specific Menu & Point Section -->
-            <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:12px; margin-bottom:14px;">
-               <strong style="color:#1e3c72; font-size:0.9rem; display:block; margin-bottom:10px;">Special Menu & Points for this Date (Overrides Weekly Menu)</strong>
-               <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
-                  <div>
-                    <label style="font-size:0.75rem; font-weight:600; color:#64748b;">Breakfast (Item / Pts)</label>
-                    <input type="text" id="date-spec-b-item" class="input-control" placeholder="Item name" style="margin-bottom:4px; padding:6px 12px; font-size:0.8rem;">
-                    <input type="number" id="date-spec-b-pts" class="input-control" placeholder="Points" step="0.5" style="padding:6px 12px; font-size:0.8rem;">
-                  </div>
-                  <div>
-                    <label style="font-size:0.75rem; font-weight:600; color:#64748b;">Lunch (Item / Pts)</label>
-                    <input type="text" id="date-spec-l-item" class="input-control" placeholder="Item name" style="margin-bottom:4px; padding:6px 12px; font-size:0.8rem;">
-                    <input type="number" id="date-spec-l-pts" class="input-control" placeholder="Points" step="0.5" style="padding:6px 12px; font-size:0.8rem;">
-                  </div>
-                  <div>
-                    <label style="font-size:0.75rem; font-weight:600; color:#64748b;">Dinner (Item / Pts)</label>
-                    <input type="text" id="date-spec-d-item" class="input-control" placeholder="Item name" style="margin-bottom:4px; padding:6px 12px; font-size:0.8rem;">
-                    <input type="number" id="date-spec-d-pts" class="input-control" placeholder="Points" step="0.5" style="padding:6px 12px; font-size:0.8rem;">
-                  </div>
-               </div>
-               <div style="font-size:0.75rem; color:#64748b; margin-top:8px;">* Leave blank to use the standard weekly menu and points.</div>
-            </div>
 
             <div class="input-group" style="margin-bottom: 14px;">
               <label>Special Announcement / Notice for this Date</label>
@@ -732,7 +695,7 @@
             </div>
 
             <button class="btn-pill btn-success" onclick="saveHolidayConfig()">
-              <i class="fa-solid fa-floppy-disk"></i> Save Date Specific Settings & Update Bookings
+              <i class="fa-solid fa-floppy-disk"></i> Save Holiday Settings & Update Bookings
             </button>
           </div>
         </div>
@@ -1008,53 +971,41 @@
     }
 
     async function handleLogin() {
-  const id = document.getElementById('login-identifier').value.trim();
-  const pass = document.getElementById('login-pass').value.trim();
-  if (!id || !pass) return showToast('Enter token/username and password', 'error');
+      const id = document.getElementById('login-identifier').value.trim();
+      const pass = document.getElementById('login-pass').value.trim();
+      if (!id || !pass) return showToast('Enter token/username and password', 'error');
 
-  if (id === 'sadmin' && pass === 'sadmin_4321') {
-    currentUser = { token: '0', name: 'Super Admin', role: 'superadmin', status: 'active', category: 'ADMIN' };
-    return setSessionAndEnter(currentUser);
-  }
-  if (id === 'admin' && pass === 'admin123') {
-    currentUser = { token: '1', name: 'Admin', role: 'admin', status: 'active', category: 'ADMIN' };
-    return setSessionAndEnter(currentUser);
-  }
+      if (id === 'sadmin' && pass === 'sadmin_4321') {
+        currentUser = { token: '0', name: 'Super Admin', role: 'superadmin', status: 'active', category: 'ADMIN' };
+        return setSessionAndEnter(currentUser);
+      }
+      if (id === 'admin' && pass === 'admin123') {
+        currentUser = { token: '1', name: 'Admin', role: 'admin', status: 'active', category: 'ADMIN' };
+        return setSessionAndEnter(currentUser);
+      }
 
-  try {
-    const userRef = window.fs.doc(window.db, 'users', id);
-    const docSnap = await window.fs.getDoc(userRef);
+      try {
+        const userRef = window.fs.doc(window.db, 'users', id);
+        const docSnap = await window.fs.getDoc(userRef);
 
-    if (!docSnap.exists()) {
-      return showModal('Login Failed', 'Invalid Token or Username', 'error');
-    }
+        if (!docSnap.exists() || docSnap.data().password !== pass) {
+          return showModal('Login Failed', 'Invalid Token or Password', 'error');
+        }
 
-    const data = docSnap.data();
-    if (data.status === 'pending') {
-      return showModal('Pending Approval', 'Your account is waiting for Admin approval.', 'info');
-    }
-    if (data.status === 'inactive') {
-      return showModal('Account Suspended', 'Your account is currently suspended. Contact Admin.', 'error');
-    }
+        const data = docSnap.data();
+        if (data.status === 'pending') {
+          return showModal('Pending Approval', 'Your account is waiting for Admin approval.', 'info');
+        }
+        if (data.status === 'inactive') {
+          return showModal('Account Suspended', 'Your account is currently suspended. Contact Admin.', 'error');
+        }
 
-    try {
-      // Firebase Authentication വഴി ലോഗിൻ പരിശോധിക്കുന്നു (Reset ചെയ്ത പാസ്‌വേഡ് വർക്ക് ചെയ്യാൻ)
-      await window.signInWithEmailAndPassword(window.auth, data.email, pass);
-    } catch (authError) {
-      // ഫയർബേസ് ഓതന്റിക്കേഷൻ ഇല്ലാതെ നേരത്തെ രജിസ്റ്റർ ചെയ്ത പഴയ യൂസർമാർക്ക് ലോഗിൻ ചെയ്യാനുള്ള സൗകര്യം
-      if (data.password === pass) {
-        console.log("Legacy login successful");
-      } else {
-        return showModal('Login Failed', 'Invalid Token or Password', 'error');
+        currentUser = data;
+        setSessionAndEnter(currentUser);
+      } catch (err) {
+        showModal('Error', err.message, 'error');
       }
     }
-
-    currentUser = data;
-    setSessionAndEnter(currentUser);
-  } catch (err) {
-    showModal('Error', err.message, 'error');
-  }
-}
 
     function setSessionAndEnter(user) {
       localStorage.setItem('snec_mess_session', JSON.stringify(user));
@@ -1065,66 +1016,56 @@
     }
 
     async function handleRegister() {
-  const name = document.getElementById('reg-name').value.trim().toUpperCase();
-  const phone = document.getElementById('reg-phone').value.trim();
-  const email = document.getElementById('reg-email').value.trim();
-  const category = document.getElementById('reg-category').value;
-  const pass = document.getElementById('reg-pass').value.trim();
-  const passConfirm = document.getElementById('reg-pass-confirm').value.trim();
+      const name = document.getElementById('reg-name').value.trim().toUpperCase();
+      const phone = document.getElementById('reg-phone').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const category = document.getElementById('reg-category').value;
+      const pass = document.getElementById('reg-pass').value.trim();
+      const passConfirm = document.getElementById('reg-pass-confirm').value.trim();
 
-  if (!name || !phone || !email || !pass || !passConfirm) {
-    return showToast('Please fill all fields', 'error');
-  }
-  if (pass !== passConfirm) {
-    return showModal('Password Mismatch', 'Password and Confirm Password do not match!', 'error');
-  }
-
-  try {
-    const usersSnapshot = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
-    let alreadyExists = false;
-
-    usersSnapshot.forEach(docSnap => {
-      const u = docSnap.data();
-      if ((u.phone && u.phone === phone) || (u.email && u.email.toLowerCase() === email.toLowerCase())) {
-        alreadyExists = true;
+      if (!name || !phone || !email || !pass || !passConfirm) {
+        return showToast('Please fill all fields', 'error');
       }
-    });
-
-    if (alreadyExists) {
-      return showModal('Already Registered', 'An account with this mobile number or email already exists. Please wait for Admin approval or contact Admin.', 'info');
-    }
-
-    // Firebase Auth-ൽ പുതിയ അക്കൗണ്ട് ഉണ്ടാക്കുന്നു
-    try {
-      await window.createUserWithEmailAndPassword(window.auth, email, pass);
-    } catch (authErr) {
-      if (authErr.code === 'auth/email-already-in-use') {
-         return showModal('Email in Use', 'This email is already registered. Please use another email.', 'error');
+      if (pass !== passConfirm) {
+        return showModal('Password Mismatch', 'Password and Confirm Password do not match!', 'error');
       }
-      return showModal('Auth Error', authErr.message, 'error');
+
+      try {
+        const usersSnapshot = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
+        let alreadyExists = false;
+
+        usersSnapshot.forEach(docSnap => {
+          const u = docSnap.data();
+          if ((u.phone && u.phone === phone) || (u.email && u.email.toLowerCase() === email.toLowerCase())) {
+            alreadyExists = true;
+          }
+        });
+
+        if (alreadyExists) {
+          return showModal('Already Registered', 'An account with this mobile number or email already exists in the system. Please wait for Admin approval or contact Admin.', 'info');
+        }
+
+        const tempId = 'temp_' + Date.now();
+        const userRef = window.fs.doc(window.db, 'users', tempId);
+        await window.fs.setDoc(userRef, {
+          tempId,
+          token: '',
+          name,
+          phone,
+          email,
+          category,
+          password: pass,
+          role: 'user',
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        });
+
+        showModal('Submitted', 'Registration submitted successfully! You can log in once an Admin approves your account.', 'success');
+        switchAuthTab('login');
+      } catch (err) {
+        showModal('Error', err.message, 'error');
+      }
     }
-
-    const tempId = 'temp_' + Date.now();
-    const userRef = window.fs.doc(window.db, 'users', tempId);
-    await window.fs.setDoc(userRef, {
-      tempId,
-      token: '',
-      name,
-      phone,
-      email,
-      category,
-      password: pass, 
-      role: 'user',
-      status: 'pending',
-      createdAt: new Date().toISOString()
-    });
-
-    showModal('Submitted', 'Registration submitted successfully! You can log in once an Admin approves your account.', 'success');
-    switchAuthTab('login');
-  } catch (err) {
-    showModal('Error', err.message, 'error');
-  }
-}
 
     async function openResetModal() {
       const email = prompt('Enter your registered Email address:');
@@ -1375,14 +1316,6 @@
           document.getElementById('leave-lunch').checked = d.mealLeaves?.lunch || false;
           document.getElementById('leave-dinner').checked = d.mealLeaves?.dinner || false;
           document.getElementById('admin-holiday-notice').value = d.notice || '';
-          
-          document.getElementById('date-spec-b-item').value = d.breakfast?.item || '';
-          document.getElementById('date-spec-b-pts').value = d.breakfast?.points ?? '';
-          document.getElementById('date-spec-l-item').value = d.lunch?.item || '';
-          document.getElementById('date-spec-l-pts').value = d.lunch?.points ?? '';
-          document.getElementById('date-spec-d-item').value = d.dinner?.item || '';
-          document.getElementById('date-spec-d-pts').value = d.dinner?.points ?? '';
-          
           toggleFullDayLeave(document.getElementById('admin-holiday-cb'));
         } else {
           document.getElementById('admin-holiday-cb').checked = false;
@@ -1390,14 +1323,6 @@
           document.getElementById('leave-lunch').checked = false;
           document.getElementById('leave-dinner').checked = false;
           document.getElementById('admin-holiday-notice').value = '';
-          
-          document.getElementById('date-spec-b-item').value = '';
-          document.getElementById('date-spec-b-pts').value = '';
-          document.getElementById('date-spec-l-item').value = '';
-          document.getElementById('date-spec-l-pts').value = '';
-          document.getElementById('date-spec-d-item').value = '';
-          document.getElementById('date-spec-d-pts').value = '';
-          
           toggleFullDayLeave(document.getElementById('admin-holiday-cb'));
         }
       } catch (e) {
@@ -1414,23 +1339,13 @@
       const lLeave = document.getElementById('leave-lunch').checked;
       const dLeave = document.getElementById('leave-dinner').checked;
       const notice = document.getElementById('admin-holiday-notice').value.trim();
-      
-      const bItem = document.getElementById('date-spec-b-item').value.trim();
-      const bPts = document.getElementById('date-spec-b-pts').value;
-      const lItem = document.getElementById('date-spec-l-item').value.trim();
-      const lPts = document.getElementById('date-spec-l-pts').value;
-      const dItem = document.getElementById('date-spec-d-item').value.trim();
-      const dPts = document.getElementById('date-spec-d-pts').value;
 
       try {
         const docRef = window.fs.doc(window.db, 'date_configs', date);
         const configData = {
           isHoliday: isH,
           mealLeaves: { breakfast: bLeave, lunch: lLeave, dinner: dLeave },
-          notice: notice,
-          breakfast: bPts !== '' ? { item: bItem, points: parseFloat(bPts) } : null,
-          lunch: lPts !== '' ? { item: lItem, points: parseFloat(lPts) } : null,
-          dinner: dPts !== '' ? { item: dItem, points: parseFloat(dPts) } : null
+          notice: notice
         };
 
         await window.fs.setDoc(docRef, configData, { merge: true });
@@ -1447,13 +1362,14 @@
         });
         await Promise.all(updatePromises);
 
-        showModal('Success', 'Date specific settings saved successfully!', 'success');
+        showModal('Success', 'Holiday and meal leave settings saved successfully!', 'success');
         await loadAllDateConfigs();
         renderBulkTable();
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
     }
+
     async function loadAdminTargetMembersDropdown() {
       const select = document.getElementById('admin-target-token');
       if (!select) return;
@@ -1765,9 +1681,8 @@
           updatedAt: new Date().toISOString()
         });
 
-        // മാറ്റം വരുത്തിയ ഭാഗം: പഴയ temp റെക്കോർഡ് ഡിലീറ്റ് ചെയ്യുന്നു
         if (tempDocId !== token) {
-          await window.fs.deleteDoc(tempRef);
+          await window.fs.updateDoc(tempRef, { status: 'approved' });
         }
 
         const cleanPhone = phone.replace(/\D/g, '');
@@ -1800,7 +1715,6 @@
       try {
         const snap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
         tbody.innerHTML = '';
-        
         let usersArray = [];
         snap.forEach(docSnap => {
           const u = docSnap.data();
@@ -1808,7 +1722,6 @@
           usersArray.push({ id: docSnap.id, ...u });
         });
 
-        // ടോക്കൺ നമ്പർ അനുസരിച്ച് കൃത്യമായ ക്രമത്തിൽ (1, 2, 3...) സോർട്ട് ചെയ്യുക
         usersArray.sort((a, b) => {
           const tokenA = parseInt(String(a.token || a.id).replace(/\D/g, '')) || 0;
           const tokenB = parseInt(String(b.token || b.id).replace(/\D/g, '')) || 0;
@@ -1989,8 +1902,8 @@
 
         tbody.innerHTML = '';
         const sortedTokens = Object.keys(usersMap).sort((a, b) => {
-          const numA = parseInt(a.replace(/\\D/g, '')) || 0;
-          const numB = parseInt(b.replace(/\\D/g, '')) || 0;
+          const numA = parseInt(a.replace(/\D/g, '')) || 0;
+          const numB = parseInt(b.replace(/\D/g, '')) || 0;
           return numA - numB;
         });
 
@@ -2030,8 +1943,6 @@
 
             let dayPts = 0;
             let mealIcons = '';
-            
-            // Track maximum guests specifically entered to match exact UI representation
             let maxGuestsEntered = 0;
 
             const processMeal = (mealType, letter, pts) => {
@@ -2041,9 +1952,9 @@
 
                 let portions = 0;
                 if (isGuestToken) {
-                  portions = gCount > 0 ? gCount : 1; 
+                  portions = gCount > 0 ? gCount : 1;
                 } else {
-                  portions = 1 + gCount; 
+                  portions = 1 + gCount;
                 }
                 dayPts += (pts * portions);
                 mealIcons += letter + ' ';
@@ -2054,7 +1965,7 @@
             processMeal('lunch', 'L', lPts);
             processMeal('dinner', 'D', dPts);
 
-            if (maxGuestsEntered > 0 && mealIcons) {
+            if (!isGuestToken && maxGuestsEntered > 0 && mealIcons) {
               mealIcons += `<small style="color:#ef4444; font-weight:bold;">(+${maxGuestsEntered}G)</small>`;
             }
 
@@ -2195,7 +2106,6 @@
         const lLocked = isMealSlotLocked(dateStr, 'lunch');
         const dLocked = isMealSlotLocked(dateStr, 'dinner');
 
-        const showCheckbox = true; 
         const showGuestInput = isAdmin || (hasGuestPerm && subAdminCurrentMode === 'guest');
 
         const tr = document.createElement('tr');
@@ -2205,7 +2115,11 @@
           </td>
           <td>
             ${mealLeaves.breakfast ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
-              <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${bItem} (${bPts}Pts)</div>
+              <div style="margin-bottom:4px;">
+                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${bItem.replace(/'/g, "\\'")}', '${bPts} Pts', 'Breakfast (${shortDays[dayIndex]})')">
+                  <i class="fa-solid fa-utensils"></i> Menu (${bPts}Pts)
+                </button>
+              </div>
               <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
                 <input type="checkbox" class="bulk-cb meal-breakfast" data-date="${dateStr}" data-meal="breakfast" ${bLocked ? 'disabled title="Slot locked"' : ''}>
                 ${showGuestInput ? `<input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="breakfast" min="0" value="0" placeholder="Guest" style="width:65px; padding:2px 4px; font-size:0.75rem; border-radius:4px;" ${bLocked ? 'disabled title="Slot locked"' : ''} title="Guest count">` : ''}
@@ -2214,7 +2128,11 @@
           </td>
           <td>
             ${mealLeaves.lunch ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
-              <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${lItem} (${lPts}Pts)</div>
+              <div style="margin-bottom:4px;">
+                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${lItem.replace(/'/g, "\\'")}', '${lPts} Pts', 'Lunch (${shortDays[dayIndex]})')">
+                  <i class="fa-solid fa-utensils"></i> Menu (${lPts}Pts)
+                </button>
+              </div>
               <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
                 <input type="checkbox" class="bulk-cb meal-lunch" data-date="${dateStr}" data-meal="lunch" ${lLocked ? 'disabled title="Slot locked"' : ''}>
                 ${showGuestInput ? `<input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="lunch" min="0" value="0" placeholder="Guest" style="width:65px; padding:2px 4px; font-size:0.75rem; border-radius:4px;" ${lLocked ? 'disabled title="Slot locked"' : ''} title="Guest count">` : ''}
@@ -2223,7 +2141,11 @@
           </td>
           <td>
             ${mealLeaves.dinner ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
-              <div style="font-size:0.75rem; color:#475569; margin-bottom:4px;">${dItem} (${dPts}Pts)</div>
+              <div style="margin-bottom:4px;">
+                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${dItem.replace(/'/g, "\\'")}', '${dPts} Pts', 'Dinner (${shortDays[dayIndex]})')">
+                  <i class="fa-solid fa-utensils"></i> Menu (${dPts}Pts)
+                </button>
+              </div>
               <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
                 <input type="checkbox" class="bulk-cb meal-dinner" data-date="${dateStr}" data-meal="dinner" ${dLocked ? 'disabled title="Slot locked"' : ''}>
                 ${showGuestInput ? `<input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="dinner" min="0" value="0" placeholder="Guest" style="width:65px; padding:2px 4px; font-size:0.75rem; border-radius:4px;" ${dLocked ? 'disabled title="Slot locked"' : ''} title="Guest count">` : ''}
@@ -2233,6 +2155,14 @@
         `;
         tbody.appendChild(tr);
       }
+    }
+
+    function showMenuPopup(itemDesc, ptsDesc, titleHeader) {
+      const modal = document.getElementById('app-modal');
+      document.getElementById('modal-title').textContent = titleHeader;
+      document.getElementById('modal-message').innerHTML = `<b style="color:#1e3c72; font-size:1.05rem;">${itemDesc}</b><br><br><span style="background:#f1f5f9; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:600; color:#166534;">Points: ${ptsDesc}</span>`;
+      document.getElementById('modal-actions').innerHTML = `<button class="btn-pill btn-primary" onclick="closeModal()" style="width: 100%;">OK</button>`;
+      modal.classList.add('active');
     }
 
     async function loadExistingBookings() {
@@ -2440,9 +2370,9 @@
 
                 let portions = 0;
                 if (isGuestToken) {
-                   portions = gCount > 0 ? gCount : 1;
+                    portions = gCount > 0 ? gCount : 1;
                 } else {
-                   portions = 1 + gCount;
+                    portions = 1 + gCount;
                 }
                 dayPts += (pts * portions);
                 return '✔️';
@@ -2660,7 +2590,7 @@
         querySnapshot.forEach(docSnap => {
           const d = docSnap.data();
           let guestsStr = '';
-          if (d.token && (String(d.token).includes('_GUEST') || Object.values(guestTokensConfig).map(String).includes(String(d.token)))) {
+          if (d.token && (String(d.token).includes('_GUEST') || Object.values(guestTokensConfig).includes(d.token))) {
             guestsStr = ` (${d.guests || 1} Nos)`;
           } else if (d.guests && parseInt(d.guests) > 0) {
             guestsStr = ` (+${d.guests} Guest)`;
@@ -2751,29 +2681,5 @@
       setTimeout(() => t.remove(), 2500);
     }
   </script>
-  <script>
-  let deferredPrompt;
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    // തനിയെ കാണിക്കുന്ന പ്രോംപ്റ്റ് തടയുന്നു
-    e.preventDefault();
-    deferredPrompt = e;
-
-    // മൊബൈൽ ആണെങ്കിൽ ഇൻസ്റ്റാൾ മെസ്സേജ് കാണിക്കുന്നു
-    if (window.innerWidth <= 768) {
-      showConfirmModal('Install App', 'ആപ്പ് ഹോം സ്ക്രീനിൽ ഇൻസ്റ്റാൾ ചെയ്യുകയാണോ?', () => {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-          if (choiceResult.outcome === 'accepted') {
-            console.log('User accepted the install prompt');
-          }
-          deferredPrompt = null;
-        });
-      });
-    }
-  });
-
-  // കമ്പ്യൂട്ടറിൽ ഈ മെസ്സേജ് കാണിക്കില്ല. സാധാരണപോലെ തന്നെ ലോഗിൻ പേജ് വരും
-</script>
 </body>
 </html>
