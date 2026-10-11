@@ -1800,16 +1800,25 @@
       try {
         const snap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
         tbody.innerHTML = '';
-        let serialNo = 1;
-        let validMembersCount = 0;
-
+        
+        let usersArray = [];
         snap.forEach(docSnap => {
           const u = docSnap.data();
-          
-          // മാറ്റം വരുത്തിയ ഭാഗം: പഴയ temp, approved അക്കൗണ്ടുകൾ ലിസ്റ്റിൽ നിന്നും ഒഴിവാക്കുന്നു
-          if (u.role === 'admin' || u.role === 'superadmin' || u.status === 'pending' || u.status === 'approved' || String(docSnap.id).startsWith('temp_')) return;
+          if (u.role === 'admin' || u.role === 'superadmin' || u.status === 'pending') return;
+          usersArray.push({ id: docSnap.id, ...u });
+        });
 
-          validMembersCount++;
+        // ടോക്കൺ നമ്പർ അനുസരിച്ച് കൃത്യമായ ക്രമത്തിൽ (1, 2, 3...) സോർട്ട് ചെയ്യുക
+        usersArray.sort((a, b) => {
+          const tokenA = parseInt(String(a.token || a.id).replace(/\D/g, '')) || 0;
+          const tokenB = parseInt(String(b.token || b.id).replace(/\D/g, '')) || 0;
+          return tokenA - tokenB;
+        });
+
+        let serialNo = 1;
+        let validMembersCount = usersArray.length;
+
+        usersArray.forEach(u => {
           let formattedDate = 'N/A';
           if (u.createdAt) {
             const dateObj = new Date(u.createdAt);
@@ -1821,14 +1830,14 @@
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${serialNo++}</td>
-            <td><b>#${u.token || docSnap.id}</b></td>
+            <td><b>#${u.token || u.id}</b></td>
             <td>${u.name || 'N/A'}</td>
             <td>${u.phone || 'N/A'}</td>
             <td>${u.category || 'N/A'}</td>
             <td><small style="color:#64748b;">${formattedDate}</small></td>
             <td><span style="color:${(u.status || 'active') === 'active' ? '#10b981':'#ef4444'}; font-weight:600;">${u.status || 'active'}</span></td>
             <td>
-              <button class="btn-pill btn-light" style="padding:3px 8px; font-size:0.75rem;" onclick="toggleUserStatus('${u.token || docSnap.id}', '${u.status || 'active'}')">
+              <button class="btn-pill btn-light" style="padding:3px 8px; font-size:0.75rem;" onclick="toggleUserStatus('${u.token || u.id}', '${u.status || 'active'}')">
                 ${(u.status || 'active') === 'active' ? 'Suspend' : 'Activate'}
               </button>
             </td>
