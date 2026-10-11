@@ -689,6 +689,28 @@
               </div>
             </div>
 
+            <!-- Date Specific Menu & Points Override Section -->
+            <div style="background:#f8fafc; border:1px solid #cbd5e1; padding:14px; border-radius:12px; margin-bottom:14px;">
+              <h4 style="font-size:0.9rem; color:#1e3c72; margin-bottom:10px;"><i class="fa-solid fa-utensils"></i> Override Menu & Points for This Date</h4>
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
+                <div>
+                  <label style="font-size:0.75rem; font-weight:600;">Breakfast Item / Pts</label>
+                  <input type="text" id="override-b-item" class="input-control" placeholder="Item" style="padding:6px 10px; font-size:0.8rem; margin-bottom:4px;">
+                  <input type="number" id="override-b-pts" class="input-control" placeholder="Pts" step="0.5" style="padding:6px 10px; font-size:0.8rem; width:80px;">
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; font-weight:600;">Lunch Item / Pts</label>
+                  <input type="text" id="override-l-item" class="input-control" placeholder="Item" style="padding:6px 10px; font-size:0.8rem; margin-bottom:4px;">
+                  <input type="number" id="override-l-pts" class="input-control" placeholder="Pts" step="0.5" style="padding:6px 10px; font-size:0.8rem; width:80px;">
+                </div>
+                <div>
+                  <label style="font-size:0.75rem; font-weight:600;">Dinner Item / Pts</label>
+                  <input type="text" id="override-d-item" class="input-control" placeholder="Item" style="padding:6px 10px; font-size:0.8rem; margin-bottom:4px;">
+                  <input type="number" id="override-d-pts" class="input-control" placeholder="Pts" step="0.5" style="padding:6px 10px; font-size:0.8rem; width:80px;">
+                </div>
+              </div>
+            </div>
+
             <div class="input-group" style="margin-bottom: 14px;">
               <label>Special Announcement / Notice for this Date</label>
               <input type="text" id="admin-holiday-notice" class="input-control" placeholder="e.g., Only lunch available today or Special Biryani">
@@ -699,7 +721,6 @@
             </button>
           </div>
         </div>
-
         <!-- 4. SUB-ADMIN ASSIGNMENT SECTION -->
         <div id="admin-sec-subadmin" class="admin-sub-sec" style="display:none;">
           <div class="section-card" style="max-width: 650px;">
@@ -1324,6 +1345,14 @@
           document.getElementById('leave-breakfast').checked = d.mealLeaves?.breakfast || false;
           document.getElementById('leave-lunch').checked = d.mealLeaves?.lunch || false;
           document.getElementById('leave-dinner').checked = d.mealLeaves?.dinner || false;
+          
+          document.getElementById('override-b-item').value = d.breakfast?.item || '';
+          document.getElementById('override-b-pts').value = d.breakfast?.points ?? '';
+          document.getElementById('override-l-item').value = d.lunch?.item || '';
+          document.getElementById('override-l-pts').value = d.lunch?.points ?? '';
+          document.getElementById('override-d-item').value = d.dinner?.item || '';
+          document.getElementById('override-d-pts').value = d.dinner?.points ?? '';
+
           document.getElementById('admin-holiday-notice').value = d.notice || '';
           toggleFullDayLeave(document.getElementById('admin-holiday-cb'));
         } else {
@@ -1331,6 +1360,14 @@
           document.getElementById('leave-breakfast').checked = false;
           document.getElementById('leave-lunch').checked = false;
           document.getElementById('leave-dinner').checked = false;
+
+          document.getElementById('override-b-item').value = '';
+          document.getElementById('override-b-pts').value = '';
+          document.getElementById('override-l-item').value = '';
+          document.getElementById('override-l-pts').value = '';
+          document.getElementById('override-d-item').value = '';
+          document.getElementById('override-d-pts').value = '';
+
           document.getElementById('admin-holiday-notice').value = '';
           toggleFullDayLeave(document.getElementById('admin-holiday-cb'));
         }
@@ -1338,7 +1375,6 @@
         console.error(e);
       }
     }
-
     async function saveHolidayConfig() {
       const date = document.getElementById('holiday-date-picker').value;
       if (!date) return showToast('Please select a date', 'error');
@@ -1349,12 +1385,22 @@
       const dLeave = document.getElementById('leave-dinner').checked;
       const notice = document.getElementById('admin-holiday-notice').value.trim();
 
+      const bItem = document.getElementById('override-b-item').value.trim();
+      const bPts = document.getElementById('override-b-pts').value;
+      const lItem = document.getElementById('override-l-item').value.trim();
+      const lPts = document.getElementById('override-l-pts').value;
+      const dItem = document.getElementById('override-d-item').value.trim();
+      const dPts = document.getElementById('override-d-pts').value;
+
       try {
         const docRef = window.fs.doc(window.db, 'date_configs', date);
         const configData = {
           isHoliday: isH,
           mealLeaves: { breakfast: bLeave, lunch: lLeave, dinner: dLeave },
-          notice: notice
+          notice: notice,
+          breakfast: bItem || bPts !== '' ? { item: bItem, points: bPts !== '' ? parseFloat(bPts) : null } : null,
+          lunch: lItem || lPts !== '' ? { item: lItem, points: lPts !== '' ? parseFloat(lPts) : null } : null,
+          dinner: dItem || dPts !== '' ? { item: dItem, points: dPts !== '' ? parseFloat(dPts) : null } : null
         };
 
         await window.fs.setDoc(docRef, configData, { merge: true });
@@ -1371,7 +1417,7 @@
         });
         await Promise.all(updatePromises);
 
-        showModal('Success', 'Holiday and meal leave settings saved successfully!', 'success');
+        showModal('Success', 'Holiday and menu override settings saved successfully!', 'success');
         await loadAllDateConfigs();
         renderBulkTable();
       } catch (err) {
