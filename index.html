@@ -30,6 +30,7 @@
     window.db = getFirestore(app);
     window.sendPasswordResetEmail = sendPasswordResetEmail;
     window.fs = { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs };
+    
   </script>
 
   <style>
@@ -498,6 +499,9 @@
             <div id="user-total-points-pill" style="background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:600;">
               Total Points: 0
             </div>
+            <div id="user-total-amount-pill" style="background:#eff6ff; border:1px solid #bfdbfe; color:#1e3c72; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:600;">
+              Total Amount: ₹0
+            </div>
           </div>
           <div style="overflow-x: auto;">
             <table>
@@ -639,6 +643,17 @@
               <div>
                 <h3 style="font-size: 0.95rem; color:#1e3c72;">Weekly Menu & Points Manager (Sun - Sat)</h3>
                 <p style="font-size: 0.8rem; color:#64748b;">Set standard menu items and points for Sunday to Saturday.</p>
+              </div>
+            </div>
+            <!-- Point Rate Config Box -->
+            <div style="background:#f0fdf4; border:1px solid #bbf7d0; padding:14px; border-radius:12px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+              <div>
+                <h4 style="font-size:0.9rem; color:#166534;"><i class="fa-solid fa-indian-rupee-sign"></i> Mess Bill Rate per Point</h4>
+                <p style="font-size:0.78rem; color:#166534;">Set price for 1 point (e.g. ₹41) to calculate member bills automatically.</p>
+              </div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <input type="number" id="point-rate-input" class="input-control" placeholder="Rate (₹)" step="0.5" style="width:120px; padding:6px 12px; font-size:0.85rem;" value="41">
+                <button class="btn-pill btn-success" onclick="savePointRateConfig()">Save Rate</button>
               </div>
             </div>
 
@@ -1140,6 +1155,7 @@
       document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? 'flex' : 'none');
       
       await loadSubAdminsConfig();
+      await loadPointRateConfig();
 
       const isSubAdmin = !isAdmin && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
       const hasGuestPermission = isSubAdmin && subAdminPermissions[currentUser.token] === true;
@@ -1422,6 +1438,147 @@
         renderBulkTable();
       } catch (err) {
         showModal('Error', err.message, 'error');
+      }
+    }
+    let globalPointRate = 41; // ഡിഫോൾട്ട് റേറ്റ്
+
+    async function loadPointRateConfig() {
+      try {
+        const docSnap = await window.fs.getDoc(window.fs.doc(window.db, 'settings', 'point_rate'));
+        if (docSnap.exists() && docSnap.data().rate) {
+          globalPointRate = parseFloat(docSnap.data().rate) || 41;
+        } else {
+          globalPointRate = 41;
+        }
+        const rateInput = document.getElementById('point-rate-input');
+        if (rateInput) rateInput.value = globalPointRate;
+      } catch (e) {
+        console.error(e);
+        globalPointRate = 41;
+      }
+    }
+
+    async function savePointRateConfig() {
+      const rateInput = document.getElementById('point-rate-input');
+      const val = parseFloat(rateInput.value);
+      if (isNaN(val) || val <= 0) return showToast('Please enter a valid rate', 'error');
+
+      try {
+        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'point_rate'), { rate: val });
+        globalPointRate = val;
+        showModal('Success', `Point rate updated to ₹${val} successfully!`, 'success');
+      } catch (err) {
+        showModal('Error', err.message, 'error');
+      }
+    }
+    async function loadMonthlyReport() {
+      const tbody = document.getElementById('report-table-body');
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+      try {
+        await loadWeeklyMenuConfig();
+        await loadAllDateConfigs();
+        await loadSubAdminsConfig();
+        await loadPointRateConfig();
+
+        const q = window.fs.query(
+          window.fs.collection(window.db, 'bookings'),
+          window.fs.where('token', '==', currentUser.token)
+        );
+        const querySnapshot = await window.fs.getDocs(q);
+        const dataMap = {};
+        let totalUserPoints = 0;
+
+        const isGuestToken = String(currentUser.token).includes('_GUEST') || isNaN(currentUser.token) || Object.values(guestTokensConfig).map(String).includes(String(currentUser.token));
+
+        querySnapshot.forEach(docSnap => {
+          const d = docSnap.data();
+          if (!dataMap[d.date]) {
+            dataMap[d.date] = { 
+              date: d.date, 
+              breakfast: { booked: false, guests: 0 }, 
+              lunch: { booked: false, guests: 0 }, 
+              dinner: { booked: false, guests: 0 }
+            };
+          }
+          if (d.action === 'book') {
+             dataMap[d.date][d.meal].booked = true;
+             dataMap[d.date][d.meal].guests = parseInt(d.guests) || 0;
+          }
+        });
+
+        tbody.innerHTML = '';
+        const sortedDates = Object.keys(dataMap).sort();
+        if (sortedDates.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">No booking records found.</td></tr>';
+          document.getElementById('user-total-points-pill').textContent = 'Total Points: 0';
+          document.getElementById('user-total-amount-pill').textContent = 'Total Amount: ₹0';
+          return;
+        }
+
+        sortedDates.forEach(date => {
+          const row = dataMap[date];
+          const dateObj = new Date(date);
+          const daysNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+          const dayName = daysNames[dateObj.getDay()];
+
+          const dateCfg = dateConfigsCache[date] || {};
+          const weeklyData = weeklyMenuConfig[dayName] || {
+            breakfast: { points: 1 },
+            lunch: { points: 2 },
+            dinner: { points: 2 }
+          };
+
+          const bPts = parseFloat(dateCfg.breakfast?.points ?? weeklyData.breakfast?.points ?? 1) || 0;
+          const lPts = parseFloat(dateCfg.lunch?.points ?? weeklyData.lunch?.points ?? 2) || 0;
+          const dPts = parseFloat(dateCfg.dinner?.points ?? weeklyData.dinner?.points ?? 2) || 0;
+
+          let dayPts = 0;
+          let maxGuestsEntered = 0;
+
+          const processMeal = (mealType, pts) => {
+             if (row[mealType].booked) {
+                let gCount = row[mealType].guests;
+                if (gCount > maxGuestsEntered) maxGuestsEntered = gCount;
+
+                let portions = 0;
+                if (isGuestToken) {
+                    portions = gCount > 0 ? gCount : 1;
+                } else {
+                    portions = 1 + gCount;
+                }
+                dayPts += (pts * portions);
+                return '✔️';
+             }
+             return '❌';
+          };
+
+          const bIcon = processMeal('breakfast', bPts);
+          const lIcon = processMeal('lunch', lPts);
+          const dIcon = processMeal('dinner', dPts);
+
+          totalUserPoints += dayPts;
+
+          let guestsStr = '';
+          if (maxGuestsEntered > 0) {
+             guestsStr = `<small style="color:#ef4444; font-weight:bold;">(+${maxGuestsEntered} Guests)</small>`;
+          }
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${formatDateToDMY(row.date)} ${guestsStr}</td>
+            <td style="text-align:center;">${bIcon}</td>
+            <td style="text-align:center;">${lIcon}</td>
+            <td style="text-align:center;">${dIcon}</td>
+            <td style="text-align:right; font-weight:600; color:#1e3c72;">${dayPts} Pts</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        const totalAmount = totalUserPoints * globalPointRate;
+        document.getElementById('user-total-points-pill').textContent = `Total Points: ${totalUserPoints}`;
+        document.getElementById('user-total-amount-pill').textContent = `Total Amount: ₹${totalAmount.toFixed(2)}`;
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" style="color:red;">${err.message}</td></tr>`;
       }
     }
 
