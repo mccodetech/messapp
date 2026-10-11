@@ -1574,7 +1574,7 @@
           tbody.appendChild(tr);
         });
 
-        const totalAmount = totalUserPoints * globalPointRate;
+        const totalAmount = totalUserPoints * (globalPointRate || 41);
         document.getElementById('user-total-points-pill').textContent = `Total Points: ${totalUserPoints}`;
         document.getElementById('user-total-amount-pill').textContent = `Total Amount: ₹${totalAmount.toFixed(2)}`;
       } catch (err) {
