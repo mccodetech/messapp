@@ -440,6 +440,19 @@
         </div>
       </div>
 
+      <div id="install-banner" style="display: none; background: var(--primary-gradient); color: #fff; padding: 10px 16px; border-radius: 12px; margin-bottom: 16px; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i class="fa-solid fa-cloud-arrow-down" style="font-size: 24px;"></i>
+          <div>
+            <h4 style="font-size: 0.9rem; margin-bottom: 2px;">Install Suprabhatham Mess App</h4>
+            <p style="font-size: 0.75rem; opacity: 0.9;">Add to your home screen for quick and easy access.</p>
+          </div>
+        </div>
+        <button class="btn-pill" onclick="triggerInstall()" style="background: #fff; color: #1e3c72; white-space: nowrap; padding: 6px 14px; font-size: 0.78rem;">
+          Install Now
+        </button>
+      </div>
+
       <!-- VIEW 1: BOOKING -->
       <div id="view-booking" class="tab-view">
         <div class="timing-notice">
@@ -2870,6 +2883,45 @@
       c.appendChild(t);
       setTimeout(() => t.remove(), 2500);
     }
+    let deferredInstallPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // ബ്രൗസറിന്റെ ഡിഫോൾട്ട് പ്രോംപ്റ്റ് തടയുന്നു
+      e.preventDefault();
+      deferredInstallPrompt = e;
+
+      // ആപ്പ് ഇതിനകം ഇൻസ്റ്റാൾ ചെയ്തിട്ടുണ്ടോ എന്ന് പരിശോധിക്കുന്നു
+      if (!window.matchMedia('(display-mode: standalone)').matches) {
+        const banner = document.getElementById('install-banner');
+        if (banner) banner.style.display = 'flex';
+      }
+    });
+
+    async function triggerInstall() {
+      if (!deferredInstallPrompt) {
+        alert('Install prompt is not available right now. You can also install this app from your browser menu (Add to Home Screen).');
+        return;
+      }
+
+      deferredInstallPrompt.prompt();
+      const { outcome } = await deferredInstallPrompt.userChoice;
+      
+      if (outcome === 'accepted') {
+        console.log('User accepted the install prompt');
+        const banner = document.getElementById('install-banner');
+        if (banner) banner.style.display = 'none';
+      } else {
+        console.log('User dismissed the install prompt');
+      }
+      
+      deferredInstallPrompt = null;
+    }
+
+    window.addEventListener('appinstalled', () => {
+      const banner = document.getElementById('install-banner');
+      if (banner) banner.style.display = 'none';
+      deferredInstallPrompt = null;
+    });
   </script>
 </body>
 </html>
