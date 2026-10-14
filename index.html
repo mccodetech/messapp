@@ -976,11 +976,19 @@
     document.addEventListener('DOMContentLoaded', () => {
       const today = new Date();
       let startYear = today.getFullYear();
-      let startMonth = today.getMonth(); // നിലവിലെ മാസം
-      
-      // മുൻമാസം 26 മുതൽ അടുത്ത മാസം 25 വരെ സെറ്റ് ചെയ്യുന്നു
-      const startDateObj = new Date(startYear, startMonth - 1, 26);
-      const endDateObj = new Date(startYear, startMonth, 25);
+      let startMonth = today.getMonth();
+      let startDay = today.getDate();
+
+      // ഇന്നത്തെ തീയതി 26-ാം തീയതിക്ക് മുൻപാണെങ്കിൽ മുൻമാസം 26 മുതൽ ഈ മാസം 25 വരെ എടുക്കും, 
+      // അല്ലെങ്കിൽ ഈ മാസം 26 മുതൽ അടുത്ത മാസം 25 വരെ എടുക്കും.
+      let startDateObj, endDateObj;
+      if (startDay < 26) {
+        startDateObj = new Date(startYear, startMonth - 1, 26);
+        endDateObj = new Date(startYear, startMonth, 25);
+      } else {
+        startDateObj = new Date(startYear, startMonth, 26);
+        endDateObj = new Date(startYear, startMonth + 1, 25);
+      }
 
       const firstDay = startDateObj.toISOString().split('T')[0];
       const lastDay = endDateObj.toISOString().split('T')[0];
