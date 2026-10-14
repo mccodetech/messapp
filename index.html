@@ -1872,9 +1872,8 @@
       const tokenInput = document.getElementById(`assign_token_${tempDocId}`);
       const token = tokenInput.value.trim();
       
-      // ടോക്കൺ നമ്പർ നൽകിയിട്ടില്ലെങ്കിൽ എറർ കാണിക്കുക
       if (!token) {
-        return showModal('Error', 'Please enter a valid Token number before approving!', 'error');
+        return showModal('Error', 'దయവായി ടോക്കൺ നമ്പർ നൽകുക!', 'error');
       }
 
       try {
@@ -1882,18 +1881,18 @@
         const existingTokenSnap = await window.fs.getDoc(existingTokenRef);
         
         if (existingTokenSnap.exists()) {
-          return showModal('Error', `Token #${token} already exists! Please use a different token number.`, 'error');
+          return showModal('Error', `ടോക്കൺ #${token} നിലവിലുണ്ട്! ദയവായി മറ്റൊരു നമ്പർ നൽകുക.`, 'error');
         }
 
         const tempRef = window.fs.doc(window.db, 'users', tempDocId);
         const docSnap = await window.fs.getDoc(tempRef);
         if (!docSnap.exists()) {
-          return showModal('Error', 'Pending user record not found.', 'error');
+          return showModal('Error', 'രജിസ്ട്രേഷൻ ഡാറ്റ ലഭ്യമല്ല.', 'error');
         }
         
         const userData = docSnap.data();
 
-        // പുതിയ ടോക്കൺ നമ്പർ വെച്ച് യൂസർ ഡോക്യുമെന്റ് ക്രിയേറ്റ് ചെയ്യുന്നു
+        // പുതിയ ടോക്കൺ ഐഡിയിൽ ഡാറ്റ സേവ് ചെയ്യുന്നു
         const targetRef = window.fs.doc(window.db, 'users', token);
         await window.fs.setDoc(targetRef, {
           ...userData,
@@ -1902,7 +1901,7 @@
           updatedAt: new Date().toISOString()
         });
 
-        // പഴയ ടെമ്പ് ഡോക്യുമെന്റ് ഡിലീറ്റ് ചെയ്യുകയോ അപ്ഡേറ്റ് ചെയ്യുകയോ ചെയ്യുന്നു
+        // പഴയ ടെമ്പ് ഐഡി ഡാറ്റ ഡിലീറ്റ് ചെയ്യുന്നു
         await window.fs.deleteDoc(tempRef);
 
         const cleanPhone = phone.replace(/\D/g, '');
@@ -1910,7 +1909,7 @@
         const waUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waMsg)}`;
         window.open(waUrl, '_blank');
 
-        showModal('User Approved', `Assigned Token #${token} to ${name} & Opened WhatsApp`, 'success');
+        showModal('User Approved', `ടോക്കൺ #${token}_${name} വിജയകരമായി നൽകി`, 'success');
         loadAdminPendingUsers();
         loadAdminMembersRegister();
       } catch (err) {
