@@ -1611,14 +1611,26 @@
       select.innerHTML = `<option value="">-- Book for Myself (${currentUser.name}) --</option>`;
       try {
         const snap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
+        let usersArray = [];
         snap.forEach(docSnap => {
           const u = docSnap.data();
           if (u.status === 'active' && u.token && u.role === 'user') {
-            const opt = document.createElement('option');
-            opt.value = u.token;
-            opt.textContent = `#${u.token} - ${u.name} (${u.category})`;
-            select.appendChild(opt);
+            usersArray.push(u);
           }
+        });
+
+        // ടോക്കൺ നമ്പർ അനുസരിച്ച് കൃത്യമായ ക്രമത്തിൽ (1, 2, 3... 10...) സോർട്ട് ചെയ്യുന്നു
+        usersArray.sort((a, b) => {
+          const numA = parseInt(String(a.token).replace(/\D/g, '')) || 0;
+          const numB = parseInt(String(b.token).replace(/\D/g, '')) || 0;
+          return numA - numB;
+        });
+
+        usersArray.forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u.token;
+          opt.textContent = `#${u.token} - ${u.name} (${u.category})`;
+          select.appendChild(opt);
         });
       } catch (err) {
         console.error(err);
