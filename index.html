@@ -1871,7 +1871,11 @@
     async function approveUser(tempDocId, phone, name) {
       const tokenInput = document.getElementById(`assign_token_${tempDocId}`);
       const token = tokenInput.value.trim();
-      if (!token) return showToast('Please enter a Token number', 'error');
+      
+      // ടോക്കൺ നമ്പർ നൽകിയിട്ടില്ലെങ്കിൽ എറർ കാണിക്കുക
+      if (!token) {
+        return showModal('Error', 'Please enter a valid Token number before approving!', 'error');
+      }
 
       try {
         const existingTokenRef = window.fs.doc(window.db, 'users', token);
@@ -1883,8 +1887,13 @@
 
         const tempRef = window.fs.doc(window.db, 'users', tempDocId);
         const docSnap = await window.fs.getDoc(tempRef);
+        if (!docSnap.exists()) {
+          return showModal('Error', 'Pending user record not found.', 'error');
+        }
+        
         const userData = docSnap.data();
 
+        // പുതിയ ടോക്കൺ നമ്പർ വെച്ച് യൂസർ ഡോക്യുമെന്റ് ക്രിയേറ്റ് ചെയ്യുന്നു
         const targetRef = window.fs.doc(window.db, 'users', token);
         await window.fs.setDoc(targetRef, {
           ...userData,
@@ -1893,9 +1902,8 @@
           updatedAt: new Date().toISOString()
         });
 
-        if (tempDocId !== token) {
-          await window.fs.updateDoc(tempRef, { status: 'approved' });
-        }
+        // പഴയ ടെമ്പ് ഡോക്യുമെന്റ് ഡിലീറ്റ് ചെയ്യുകയോ അപ്ഡേറ്റ് ചെയ്യുകയോ ചെയ്യുന്നു
+        await window.fs.deleteDoc(tempRef);
 
         const cleanPhone = phone.replace(/\D/g, '');
         const waMsg = `🎉 *സ്വാഗതം, ${name}!*\n\nസുപ്രഭാതം മെസ് മാനേജ്‌മെന്റ് സിസ്റ്റത്തിലേക്കുള്ള നിങ്ങളുടെ രജിസ്ട്രേഷൻ അഡ്മിൻ അപ്രൂവ് ചെയ്തിരിക്കുന്നു.\n\n🔑 *നിങ്ങളുടെ ടോക്കൺ നമ്പർ:* #${token}\n\nഇപ്പോൾ നിങ്ങൾക്ക് ആപ്പിൽ ലോഗ് ഇൻ ചെയ്ത് മെസ് ബുക്കിംഗുകൾ നടത്താവുന്നതാണ്.\n\n🔗 ലോഗിൻ ചെയ്യുക: https://mccodetech.github.io/messapp/`;
@@ -1904,6 +1912,7 @@
 
         showModal('User Approved', `Assigned Token #${token} to ${name} & Opened WhatsApp`, 'success');
         loadAdminPendingUsers();
+        loadAdminMembersRegister();
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
