@@ -974,36 +974,44 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      const today = new Date();
-      let startYear = today.getFullYear();
-      let startMonth = today.getMonth();
-      let startDay = today.getDate();
+      const now = new Date();
+      // ലോക്കൽ തീയതി കൃത്യമായി ലഭിക്കാൻ
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const day = now.getDate();
 
-      // ഇന്നത്തെ തീയതി 26-ാം തീയതിക്ക് മുൻപാണെങ്കിൽ മുൻമാസം 26 മുതൽ ഈ മാസം 25 വരെ എടുക്കും, 
-      // അല്ലെങ്കിൽ ഈ മാസം 26 മുതൽ അടുത്ത മാസം 25 വരെ എടുക്കും.
       let startDateObj, endDateObj;
-      if (startDay < 26) {
-        startDateObj = new Date(startYear, startMonth - 1, 26);
-        endDateObj = new Date(startYear, startMonth, 25);
+      if (day < 26) {
+        // മുൻമാസം 26 മുതൽ ഈ മാസം 25 വരെ
+        startDateObj = new Date(year, month - 1, 26);
+        endDateObj = new Date(year, month, 25);
       } else {
-        startDateObj = new Date(startYear, startMonth, 26);
-        endDateObj = new Date(startYear, startMonth + 1, 25);
+        // ഈ മാസം 26 മുതൽ അടുത്ത മാസം 25 വരെ
+        startDateObj = new Date(year, month, 26);
+        endDateObj = new Date(year, month + 1, 25);
       }
 
-      const firstDay = startDateObj.toISOString().split('T')[0];
-      const lastDay = endDateObj.toISOString().split('T')[0];
+      // YYYY-MM-DD ഫോർമാറ്റിലേക്ക് മാറ്റുന്നു
+      const formatDateStr = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dt = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${dt}`;
+      };
+
+      const firstDay = formatDateStr(startDateObj);
+      const lastDay = formatDateStr(endDateObj);
 
       if (document.getElementById('rep-start-date')) document.getElementById('rep-start-date').value = firstDay;
       if (document.getElementById('rep-end-date')) document.getElementById('rep-end-date').value = lastDay;
 
       const kp = document.getElementById('kitchen-date-picker');
-      if (kp) kp.value = new Date().toISOString().split('T')[0];
+      if (kp) kp.value = formatDateStr(now);
       const hp = document.getElementById('holiday-date-picker');
-      if (hp) hp.value = new Date().toISOString().split('T')[0];
+      if (hp) hp.value = formatDateStr(now);
 
       checkExistingSession();
     });
-
     function checkExistingSession() {
       const saved = localStorage.getItem('snec_mess_session');
       const savedNav = localStorage.getItem('snec_mess_active_nav') || 'booking';
