@@ -974,17 +974,24 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      const today = new Date().toISOString().split('T')[0];
-      const kp = document.getElementById('kitchen-date-picker');
-      if (kp) kp.value = today;
-      const hp = document.getElementById('holiday-date-picker');
-      if (hp) hp.value = today;
+      const today = new Date();
+      let startYear = today.getFullYear();
+      let startMonth = today.getMonth(); // നിലവിലെ മാസം
+      
+      // മുൻമാസം 26 മുതൽ അടുത്ത മാസം 25 വരെ സെറ്റ് ചെയ്യുന്നു
+      const startDateObj = new Date(startYear, startMonth - 1, 26);
+      const endDateObj = new Date(startYear, startMonth, 25);
 
-      const dateObj = new Date();
-      const firstDay = new Date(dateObj.getFullYear(), dateObj.getMonth(), 1).toISOString().split('T')[0];
-      const lastDay = new Date(dateObj.getFullYear(), dateObj.getMonth() + 1, 0).toISOString().split('T')[0];
+      const firstDay = startDateObj.toISOString().split('T')[0];
+      const lastDay = endDateObj.toISOString().split('T')[0];
+
       if (document.getElementById('rep-start-date')) document.getElementById('rep-start-date').value = firstDay;
       if (document.getElementById('rep-end-date')) document.getElementById('rep-end-date').value = lastDay;
+
+      const kp = document.getElementById('kitchen-date-picker');
+      if (kp) kp.value = new Date().toISOString().split('T')[0];
+      const hp = document.getElementById('holiday-date-picker');
+      if (hp) hp.value = new Date().toISOString().split('T')[0];
 
       checkExistingSession();
     });
