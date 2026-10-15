@@ -1026,7 +1026,52 @@
       }
       return dateStr;
     }
+// ബീപ് സൗണ്ട് പ്ലേ ചെയ്യാനുള്ള ഫങ്ഷൻ
+    function playBeepSound() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5 note
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.3); // 0.3 സെക്കൻഡ് സൗണ്ട്
+      } catch (e) {
+        console.error("Audio play error", e);
+      }
+    }
 
+    // സമയം പരിശോധിച്ച് റിമൈൻഡർ നൽകുന്ന ഫങ്ഷൻ
+    function checkCutoffReminders() {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+
+      // രാവിലെ 5:50 (ബ്രേക്ക്ഫാസ്റ്റ് കട്ട് ഓഫ് 6:00-ന് 10 മിനിറ്റ് മുമ്പ്)
+      if (hours === 5 && minutes === 50) {
+        playBeepSound();
+        showToast('⚠️ ജാഗ്രത: പ്രഭാതഭക്ഷണ ബുക്കിംഗ് അവസാനിപ്പിക്കാൻ 10 മിനിറ്റ് കൂടിയേ ബാക്കിയുള്ളൂ!', 'error');
+      }
+      
+      // രാവിലെ 9:50 (ലഞ്ച് കട്ട് ഓഫ് 10:00-ന് 10 മിനിറ്റ് മുമ്പ്)
+      if (hours === 9 && minutes === 50) {
+        playBeepSound();
+        showToast('⚠️ ജാഗ്രത: ഉച്ചഭക്ഷണ ബുക്കിംഗ് അവസാനിപ്പിക്കാൻ 10 മിനിറ്റ് കൂടിയേ ബാക്കിയുള്ളൂ!', 'error');
+      }
+
+      // ഉച്ചകഴിഞ്ഞ് 3:50 (ഡിന്നർ കട്ട് ഓഫ് 4:00-ന് 10 മിനിറ്റ് മുമ്പ്)
+      if (hours === 15 && minutes === 50) {
+        playBeepSound();
+        showToast('⚠️ ജാഗ്രത: അത്താഴ ബുക്കിംഗ് അവസാനിപ്പിക്കാൻ 10 മിനിറ്റ് കൂടിയേ ബാക്കിയുള്ളൂ!', 'error');
+      }
+    }
+
+    // ഓരോ ഒരു മിനിറ്റിലും സമയം പരിശോധിക്കാൻ സെറ്റ് ചെയ്യുന്നു
+    setInterval(checkCutoffReminders, 60000);
+    
     document.addEventListener('DOMContentLoaded', () => {
       const now = new Date();
       const year = now.getFullYear();
