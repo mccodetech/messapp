@@ -487,22 +487,26 @@
           </div>
 
           <!-- Target User Selector with Search for Admin -->
-          <div id="admin-proxy-container" style="display:none; margin-bottom: 12px; padding: 10px; background: #f1f5f9; border-radius: 10px; flex-direction:column; gap: 8px;">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <label style="font-size: 0.82rem; font-weight: 600; width:110px;">Booking for:</label>
-              <input type="text" id="admin-user-search" class="input-control" placeholder="Search by Token # or Name..." style="padding: 6px 12px; font-size:0.82rem;" onkeyup="filterAdminUserDropdown()">
-            </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <label style="font-size: 0.82rem; font-weight: 600; width:110px;">Select Member:</label>
-              <div style="display:flex; align-items:center; gap:8px; border-top: 1px solid #cbd5e1; margin-top: 4px; padding-top: 8px;">
-  <label style="font-size: 0.82rem; font-weight: 600; width:110px;">Select Date:</label>
-  <input type="date" id="admin-week-date" class="input-control" style="flex: 1; padding: 6px 12px;" onchange="changeBookingWeek()" title="Select any date to view that week">
+<div id="admin-proxy-container" style="display:none; margin-bottom: 12px; padding: 10px; background: #f1f5f9; border-radius: 10px; flex-direction:column; gap: 8px;">
+  
+  <div style="display:flex; align-items:center; gap:8px;">
+    <label style="font-size: 0.82rem; font-weight: 600; width:110px;">Booking for:</label>
+    <input type="text" id="admin-user-search" class="input-control" placeholder="Search by Token # or Name..." style="padding: 6px 12px; font-size:0.82rem;" onkeyup="filterAdminUserDropdown()">
+  </div>
+  
+  <div style="display:flex; align-items:center; gap:8px;">
+    <label style="font-size: 0.82rem; font-weight: 600; width:110px;">Select Member:</label>
+    <select id="admin-target-token" class="input-control" style="flex: 1; padding: 6px 12px;" onchange="onAdminTargetUserChange()">
+      <option value="">-- Book for Myself --</option>
+    </select>
+  </div>
+
+  <div style="display:flex; align-items:center; gap:8px; border-top: 1px solid #cbd5e1; margin-top: 4px; padding-top: 8px;">
+    <label style="font-size: 0.82rem; font-weight: 600; width:110px;">Select Date:</label>
+    <input type="date" id="admin-week-date" class="input-control" style="flex: 1; padding: 6px 12px;" onchange="changeBookingWeek()" title="Select any date to view that week">
+  </div>
+  
 </div>
-              <select id="admin-target-token" class="input-control" style="flex: 1; padding: 6px 12px;" onchange="onAdminTargetUserChange()">
-                <option value="">-- Book for Myself --</option>
-              </select>
-            </div>
-          </div>
 
           <div id="subadmin-mode-container" style="display:none; margin-bottom: 12px; padding: 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
             <div>
