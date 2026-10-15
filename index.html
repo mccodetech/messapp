@@ -494,6 +494,10 @@
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
               <label style="font-size: 0.82rem; font-weight: 600; width:110px;">Select Member:</label>
+              <div style="display:flex; align-items:center; gap:8px; border-top: 1px solid #cbd5e1; margin-top: 4px; padding-top: 8px;">
+  <label style="font-size: 0.82rem; font-weight: 600; width:110px;">Select Date:</label>
+  <input type="date" id="admin-week-date" class="input-control" style="flex: 1; padding: 6px 12px;" onchange="changeBookingWeek()" title="Select any date to view that week">
+</div>
               <select id="admin-target-token" class="input-control" style="flex: 1; padding: 6px 12px;" onchange="onAdminTargetUserChange()">
                 <option value="">-- Book for Myself --</option>
               </select>
@@ -1008,6 +1012,7 @@
     let globalPointRate = 41;
     let subAdminCurrentMode = 'self';
     let currentConfirmAction = null;
+    let currentBookingWeekBase = new Date();
 
     function formatDateToDMY(dateStr) {
       if (!dateStr || dateStr === 'N/A') return 'N/A';
@@ -1053,7 +1058,16 @@
 
       checkExistingSession();
     });
-
+function changeBookingWeek() {
+  const dateVal = document.getElementById('admin-week-date').value;
+  if (dateVal) {
+    currentBookingWeekBase = new Date(dateVal);
+  } else {
+    currentBookingWeekBase = new Date();
+  }
+  renderBulkTable();
+  loadExistingBookings();
+}
     function checkExistingSession() {
       const saved = localStorage.getItem('snec_mess_session');
       const savedNav = localStorage.getItem('snec_mess_active_nav') || 'booking';
@@ -2256,11 +2270,10 @@
       const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const shortDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       
-      const today = new Date();
-      const currentDay = today.getDay();
-      
-      const sunday = new Date(today);
-      sunday.setDate(today.getDate() - currentDay);
+      const baseDate = currentBookingWeekBase || new Date();
+const currentDay = baseDate.getDay();
+const sunday = new Date(baseDate);
+sunday.setDate(baseDate.getDate() - currentDay);
 
       const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
       const isSubAdmin = currentUser.role === 'user' && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
