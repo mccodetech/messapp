@@ -534,7 +534,7 @@
         </div>
       </div>
 
-      <!-- VIEW 2: USER REPORTS -->
+     <!-- VIEW 2: USER REPORTS -->
       <div id="view-report" class="tab-view" style="display: none;">
         <div class="section-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
@@ -571,6 +571,25 @@
               </button>
             </div>
           </div>
+
+          <!-- TABLE CONTAINER (ഇതാണ് മിസ്സായിപ്പോയത്) -->
+          <div style="overflow-x: auto;">
+            <table>
+              <thead>
+                <tr style="color: #64748b;">
+                  <th>Date</th>
+                  <th style="text-align: center;">Breakfast</th>
+                  <th style="text-align: center;">Lunch</th>
+                  <th style="text-align: center;">Dinner</th>
+                  <th style="text-align: right;">Day Points</th>
+                </tr>
+              </thead>
+              <tbody id="report-table-body"></tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
 
       <!-- VIEW 3: ADMIN DASHBOARD -->
       <div id="view-admin" class="tab-view" style="display: none;">
@@ -2608,6 +2627,8 @@ sunday.setDate(baseDate.getDate() - currentDay);
 
     async function loadMonthlyReport() {
       const tbody = document.getElementById('report-table-body');
+      if (!tbody) return; // tbody പേജിൽ ലഭ്യമല്ലെങ്കിൽ എറർ വരാതെ തടയുന്നു
+
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
 
       const startDate = document.getElementById('user-rep-start-date')?.value || '';
