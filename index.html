@@ -339,9 +339,9 @@
           <input type="text" id="login-identifier" class="input-control" placeholder="Token number or admin user">
         </div>
         <div class="input-group">
-          <label><i class="fa-solid fa-key"></i> Password</label>
+          <label><i class="fa-solid fa-key"></i> Password / Registered Mobile Number</label>
           <div class="password-wrapper">
-            <input type="password" id="login-pass" class="input-control" placeholder="Password">
+            <input type="password" id="login-pass" class="input-control" placeholder="Enter Password or Mobile Number">
             <i class="fa-solid fa-eye toggle-password" onclick="togglePasswordVisibility('login-pass', this)"></i>
           </div>
         </div>
@@ -1177,8 +1177,9 @@ function changeBookingWeek() {
     async function handleLogin() {
       const id = document.getElementById('login-identifier').value.trim();
       const pass = document.getElementById('login-pass').value.trim();
-      if (!id || !pass) return showToast('Enter token/username and password', 'error');
+      if (!id || !pass) return showToast('Please enter Token/Username and Password or Mobile Number', 'error');
 
+      // Admin & Super Admin Logins
       if (id === 'sadmin' && pass === 'sadmin_4321') {
         currentUser = { token: '0', name: 'Super Admin', role: 'superadmin', status: 'active', category: 'ADMIN' };
         return setSessionAndEnter(currentUser);
@@ -1192,11 +1193,24 @@ function changeBookingWeek() {
         const userRef = window.fs.doc(window.db, 'users', id);
         const docSnap = await window.fs.getDoc(userRef);
 
-        if (!docSnap.exists() || docSnap.data().password !== pass) {
-          return showModal('Login Failed', 'Invalid Token or Password', 'error');
+        if (!docSnap.exists()) {
+          return showModal('Login Failed', 'Invalid Token Number or User does not exist.', 'error');
         }
 
         const data = docSnap.data();
+
+        // ഫോൺ നമ്പർ താരതമ്യം ചെയ്യുമ്പോൾ സ്പേസും സിംബലുകളും ഒഴിവാക്കി പരിശോധിക്കുന്നു
+        const enteredPassClean = pass.replace(/\D/g, '');
+        const savedPhoneClean = (data.phone || '').replace(/\D/g, '');
+
+        // പാസ്‌വേഡ് ശരിയാണോ അതോ നൽകിയത് രജിസ്റ്റർ ചെയ്ത ഫോൺ നമ്പർ ആണോ എന്ന് പരിശോധിക്കുന്നു
+        const isPasswordMatch = data.password === pass;
+        const isPhoneMatch = savedPhoneClean && enteredPassClean && (savedPhoneClean === enteredPassClean);
+
+        if (!isPasswordMatch && !isPhoneMatch) {
+          return showModal('Login Failed', 'Invalid Password or Mobile Number!', 'error');
+        }
+
         if (data.status === 'pending') {
           return showModal('Pending Approval', 'Your account is waiting for Admin approval.', 'info');
         }
@@ -1210,7 +1224,6 @@ function changeBookingWeek() {
         showModal('Error', err.message, 'error');
       }
     }
-
     function setSessionAndEnter(user) {
       localStorage.setItem('snec_mess_session', JSON.stringify(user));
       localStorage.setItem('snec_mess_active_nav', 'booking');
