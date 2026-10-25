@@ -538,7 +538,10 @@
       <div id="view-report" class="tab-view" style="display: none;">
         <div class="section-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-            <h3 style="font-size: 0.95rem;">My Booking Summary & Points</h3>
+            <div>
+              <h3 style="font-size: 0.95rem;">My Booking Summary & Points</h3>
+              <p style="font-size: 0.78rem; color:#64748b;">View summary for selected billing cycle or custom dates.</p>
+            </div>
             <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
               <div id="user-total-points-pill" style="background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; padding:4px 12px; border-radius:20px; font-size:0.85rem; font-weight:600;">
                 Total Points: 0
@@ -548,22 +551,26 @@
               </div>
             </div>
           </div>
-          <div style="overflow-x: auto;">
-            <table>
-              <thead>
-                <tr style="color: #64748b;">
-                  <th>Date</th>
-                  <th style="text-align: center;">Breakfast</th>
-                  <th style="text-align: center;">Lunch</th>
-                  <th style="text-align: center;">Dinner</th>
-                  <th style="text-align: right;">Day Points</th>
-                </tr>
-              </thead>
-              <tbody id="report-table-body"></tbody>
-            </table>
+
+          <!-- Date Filters for User Report -->
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:10px; border-radius:10px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;" class="no-print">
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button class="btn-pill btn-light" style="padding:4px 10px; font-size:0.75rem;" onclick="setUserBillingCycle('prev')">
+                <i class="fa-solid fa-backward-step"></i> Previous Month (26-25)
+              </button>
+              <button class="btn-pill btn-light" style="padding:4px 10px; font-size:0.75rem;" onclick="setUserBillingCycle('current')">
+                <i class="fa-solid fa-calendar-day"></i> Current Month (26-25)
+              </button>
+            </div>
+            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+              <input type="date" id="user-rep-start-date" class="input-control" style="width:130px; padding:4px 8px; font-size:0.78rem;">
+              <span style="font-size:0.78rem; color:#64748b;">to</span>
+              <input type="date" id="user-rep-end-date" class="input-control" style="width:130px; padding:4px 8px; font-size:0.78rem;">
+              <button class="btn-pill btn-primary" style="padding:4px 10px; font-size:0.75rem;" onclick="loadMonthlyReport()">
+                <i class="fa-solid fa-filter"></i> Filter
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
 
       <!-- VIEW 3: ADMIN DASHBOARD -->
       <div id="view-admin" class="tab-view" style="display: none;">
@@ -1097,8 +1104,13 @@
       const firstDay = formatDateStr(startDateObj);
       const lastDay = formatDateStr(endDateObj);
 
-      if (document.getElementById('rep-start-date')) document.getElementById('rep-start-date').value = firstDay;
+     if (document.getElementById('rep-start-date')) document.getElementById('rep-start-date').value = firstDay;
       if (document.getElementById('rep-end-date')) document.getElementById('rep-end-date').value = lastDay;
+
+      // യൂസർ റിപ്പോർട്ടിനുള്ള ഡിഫോൾട്ട് തീയതി (26 മുതൽ 25 വരെ):
+      if (document.getElementById('user-rep-start-date')) document.getElementById('user-rep-start-date').value = firstDay;
+      if (document.getElementById('user-rep-end-date')) document.getElementById('user-rep-end-date').value = lastDay;
+      
 
       const kp = document.getElementById('kitchen-date-picker');
       if (kp) kp.value = formatDateStr(now);
@@ -2565,9 +2577,42 @@ sunday.setDate(baseDate.getDate() - currentDay);
       }
     }
 
+    // മുൻ മാസത്തെയും നിലവിലെ മാസത്തെയും 26 - 25 സൈക്കിൾ സെലക്ട് ചെയ്യുന്ന ഫംഗ്ഷൻ
+    function setUserBillingCycle(type) {
+      const now = new Date();
+      let year = now.getFullYear();
+      let month = now.getMonth();
+      const day = now.getDate();
+
+      let currentCycleStartMonth = (day < 26) ? month - 1 : month;
+
+      if (type === 'prev') {
+        currentCycleStartMonth -= 1;
+      }
+
+      const startDateObj = new Date(year, currentCycleStartMonth, 26);
+      const endDateObj = new Date(year, currentCycleStartMonth + 1, 25);
+
+      const formatDateStr = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dt = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${dt}`;
+      };
+
+      document.getElementById('user-rep-start-date').value = formatDateStr(startDateObj);
+      document.getElementById('user-rep-end-date').value = formatDateStr(endDateObj);
+
+      loadMonthlyReport();
+    }
+
     async function loadMonthlyReport() {
       const tbody = document.getElementById('report-table-body');
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
+
+      const startDate = document.getElementById('user-rep-start-date')?.value || '';
+      const endDate = document.getElementById('user-rep-end-date')?.value || '';
+
       try {
         await loadWeeklyMenuConfig();
         await loadAllDateConfigs();
@@ -2586,6 +2631,11 @@ sunday.setDate(baseDate.getDate() - currentDay);
 
         querySnapshot.forEach(docSnap => {
           const d = docSnap.data();
+
+          // തീയതി ഫിൽട്ടർ: നൽകിയ Start & End Date പരിധിയിലുള്ളവ മാത്രം എടുക്കുന്നു
+          if (startDate && d.date < startDate) return;
+          if (endDate && d.date > endDate) return;
+
           if (!dataMap[d.date]) {
             dataMap[d.date] = { 
               date: d.date, 
@@ -2603,7 +2653,7 @@ sunday.setDate(baseDate.getDate() - currentDay);
         tbody.innerHTML = '';
         const sortedDates = Object.keys(dataMap).sort();
         if (sortedDates.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">No booking records found.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#64748b;">No booking records found for the selected period.</td></tr>';
           document.getElementById('user-total-points-pill').textContent = 'Total Points: 0';
           document.getElementById('user-total-amount-pill').textContent = 'Total Amount: ₹0';
           return;
