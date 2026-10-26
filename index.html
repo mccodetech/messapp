@@ -2586,6 +2586,7 @@
             const docId = `${guestTokenToSave}_${date}_${meal}`;
             const ref = window.fs.doc(window.db, 'bookings', docId);
             
+            // Guest count 0-il kooduthal aanengil mathram save cheyyunnu
             if (guestCount > 0) {
               await window.fs.setDoc(ref, {
                 token: guestTokenToSave,
@@ -2598,16 +2599,10 @@
                 timestamp
               });
             } else {
-              await window.fs.setDoc(ref, {
-                token: guestTokenToSave,
-                name: guestNameToSave,
-                category: guestCategoryToSave,
-                date: date,
-                meal: meal,
-                action: 'cancel',
-                guests: 0,
-                timestamp
-              });
+              // 0 aanengil 'cancel' ennu save cheyyathey direct delete cheyyunnu
+              try {
+                await window.fs.deleteDoc(ref);
+              } catch(e) {}
             }
           }
         } else {
@@ -2620,20 +2615,29 @@
 
             const docId = `${activeUserToBook.token}_${date}_${meal}`;
             const ref = window.fs.doc(window.db, 'bookings', docId);
-            await window.fs.setDoc(ref, {
-              token: activeUserToBook.token,
-              name: activeUserToBook.name,
-              category: activeUserToBook.category || 'OTHER',
-              date: date,
-              meal: meal,
-              action: isBooked ? 'book' : 'cancel',
-              guests: guestCount,
-              timestamp
-            });
+
+            // Checkbox tick aanengil mathram save cheyyunnu
+            if (isBooked) {
+              await window.fs.setDoc(ref, {
+                token: activeUserToBook.token,
+                name: activeUserToBook.name,
+                category: activeUserToBook.category || 'OTHER',
+                date: date,
+                meal: meal,
+                action: 'book',
+                guests: guestCount,
+                timestamp
+              });
+            } else {
+              // Uncheck cheythal database-il ninnu aa document direct remove cheyyunnu
+              try {
+                await window.fs.deleteDoc(ref);
+              } catch(e) {}
+            }
           }
         }
 
-        showModal('Success', 'Weekly bookings and guest details successfully saved!', 'success');
+        showModal('Success', 'Weekly bookings successfully saved!', 'success');
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
