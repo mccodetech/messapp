@@ -2545,6 +2545,11 @@
       const timestamp = new Date().toISOString();
 
       let activeUserToBook = currentUser;
+      const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+      const isSubAdmin = currentUser.role === 'user' && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
+      const hasGuestPerm = isSubAdmin && subAdminPermissions[currentUser.token] === true;
+
+      // Admin veroralude token select cheythittundengil aa user-e fetch cheyyunnu
       if (adminSelectedTargetUser) {
         try {
           const userDoc = await window.fs.getDoc(window.fs.doc(window.db, 'users', adminSelectedTargetUser));
@@ -2553,10 +2558,6 @@
           }
         } catch(e) { console.error(e); }
       }
-
-      const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
-      const isSubAdmin = currentUser.role === 'user' && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
-      const hasGuestPerm = isSubAdmin && subAdminPermissions[currentUser.token] === true;
 
       try {
         if (hasGuestPerm && subAdminCurrentMode === 'guest') {
@@ -2619,7 +2620,7 @@
                 timestamp
               });
             } else {
-              // Uncheck cheythal database-il ninnu aa document direct remove cheyyunnu
+              // Uncheck cheythal database-il ninnu direct remove cheyyunnu
               try {
                 await window.fs.deleteDoc(ref);
               } catch(e) {}
@@ -2628,7 +2629,31 @@
         }
 
         showModal('Success', 'Weekly bookings successfully saved!', 'success');
-        loadExistingBookings(); // Save cheytha udan thanne tick-ukal reload cheyyunnu
+
+        // Admin proxy fields poornamayi reset cheythu clean aakkunnu
+        if (isAdmin) {
+          adminSelectedTargetUser = null;
+          const targetSelect = document.getElementById('admin-target-token');
+          if (targetSelect) targetSelect.value = '';
+
+          const searchInput = document.getElementById('admin-user-search');
+          if (searchInput) searchInput.value = '';
+
+          // Dropdown filter list reset cheyyunnu
+          filterAdminUserDropdown();
+
+          // Title default aakkunnu
+          const title = document.getElementById('booking-section-title');
+          if (title) title.textContent = 'Weekly Booking Schedule & Menu';
+        }
+
+        // Table-ile field-ukal clean cheythu fresh aakkunnu
+        document.querySelectorAll('.bulk-cb').forEach(cb => cb.checked = false);
+        document.querySelectorAll('.guest-input').forEach(inp => inp.value = 0);
+
+        // Nilavil login cheytha aalude swantham booking reload cheyyunnu
+        loadExistingBookings();
+
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
