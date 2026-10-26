@@ -3086,11 +3086,16 @@
       const tbody = document.getElementById('admin-table-body');
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading records...</td></tr>';
       try {
-        const q = window.fs.query(window.fs.collection(window.db, 'bookings'), window.fs.limit(60));
+        // action == 'book' ആയവ മാത്രം ഫിൽട്ടർ ചെയ്ത് എടുക്കുന്നു
+        const q = window.fs.query(
+          window.fs.collection(window.db, 'bookings'),
+          window.fs.where('action', '==', 'book'),
+          window.fs.limit(100)
+        );
         const querySnapshot = await window.fs.getDocs(q);
         tbody.innerHTML = '';
         if (querySnapshot.empty) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">No booking records found.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">No active booking records found.</td></tr>';
           return;
         }
         querySnapshot.forEach(docSnap => {
@@ -3105,11 +3110,11 @@
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${formatDateToDMY(d.date)}</td>
-            <td>#${d.token}</td>
+            <td><b>#${d.token}</b></td>
             <td>${d.name || 'N/A'}${guestsStr}</td>
             <td>${d.category || 'N/A'}</td>
             <td>${d.meal}</td>
-            <td>${d.action === 'book' ? '<span style="color:#10b981; font-weight:600;">Booked</span>' : '<span style="color:#ef4444; font-weight:600;">Cancelled</span>'}</td>
+            <td><span style="color:#10b981; font-weight:600;">Booked</span></td>
           `;
           tbody.appendChild(tr);
         });
