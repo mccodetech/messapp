@@ -2975,7 +2975,6 @@
             .header-area h2 { font-size: 16px; margin: 0; font-weight: 800; }
             .header-area h4 { font-size: 12px; margin: 0; color: #222; font-weight: 600; }
             
-            /* 3 കോളങ്ങളായി തിരിക്കുന്നു - 60+ ആളുകൾ ഒരു പേജിൽ ഒതുങ്ങും */
             .grid-container {
               display: grid;
               grid-template-columns: repeat(3, 1fr);
@@ -2994,21 +2993,20 @@
             .info-part {
               display: flex;
               align-items: center;
-              gap: 6px;
+              gap: 8px;
               overflow: hidden;
               white-space: nowrap;
             }
 
-            /* ടോക്കൺ നമ്പർ വലുതും കട്ടിയുള്ളതുമായി കാണാൻ */
+            /* # ഒഴിവാക്കി, ഫോണ്ട് സൈസ് 16px ആക്കി ഉയർത്തി */
             .token-badge {
-              font-size: 13.5px;
+              font-size: 16px;
               font-weight: 900;
               color: #000;
-              min-width: 32px;
+              min-width: 28px;
               display: inline-block;
             }
 
-            /* പേര് ചെറുതായി ഒതുങ്ങി നിൽക്കാൻ */
             .name-text {
               font-size: 10px;
               font-weight: 600;
@@ -3018,7 +3016,6 @@
               max-width: 140px;
             }
 
-            /* ടിക്ക് ചെയ്യാനുള്ള ചെക്ക്ബോക്സ് ബോക്സ് */
             .checkbox-box {
               width: 15px;
               height: 15px;
@@ -3037,13 +3034,13 @@
 
           <div class="grid-container">
             ${list.length > 0 ? list.map((item) => {
-              // ടോക്കൺ നമ്പറും പേരും വേർതിരിച്ചെടുക്കുന്നു
-              const match = item.match(/^#(\d+)\s*(.*)$/);
+              // # ഒഴിവാക്കി ടോക്കൺ നമ്പറും പേരും മാത്രമെടുക്കുന്നു
+              const match = item.match(/^#?(\d+)\s*(.*)$/);
               let tokenPart = '';
-              let namePart = item.replace('#', '');
+              let namePart = item.replace(/^#/, '');
 
               if (match) {
-                tokenPart = '#' + match[1];
+                tokenPart = match[1]; // # ഇല്ലാതെ നമ്പർ മാത്രം (ഉദാ: 1, 4, 12)
                 namePart = match[2];
               }
 
