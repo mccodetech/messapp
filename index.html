@@ -991,10 +991,13 @@
             <div id="admin-sec-allbookings" class="admin-sub-sec" style="display:none;">
               <div class="section-card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-                  <h3 style="font-size: 0.95rem;">All Member Bookings</h3>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <h3 style="font-size: 0.95rem;">Member Bookings</h3>
+                    <input type="date" id="allbookings-date-picker" class="input-control" style="width:145px; padding:4px 8px; font-size:0.8rem;" onchange="loadAdminAllBookings()" />
+                  </div>
                   <div style="display:flex; gap:6px; flex-wrap:wrap;">
                     <button class="btn-pill btn-danger" onclick="clearAllBookingsHistory()">
-                      <i class="fa-solid fa-trash-can"></i> Clear All History
+                      <i class="fa-solid fa-trash-can"></i> Clear Day
                     </button>
                     <button class="btn-pill btn-light" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
                     <button class="btn-pill btn-primary" onclick="exportAdminTableToCSV()"><i class="fa-solid fa-file-excel"></i> Export CSV</button>
@@ -3084,22 +3087,54 @@
 
     async function loadAdminAllBookings() {
       const tbody = document.getElementById('admin-table-body');
+      let dateInput = document.getElementById('allbookings-date-picker');
+      
+      // ഡേറ്റ് പിക്കറിൽ തീയതി ഇല്ലെങ്കിൽ ഇന്നത്തെ തീയതി സെറ്റ് ചെയ്യുന്നു
+      if (dateInput && !dateInput.value) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+      }
+      
+      const selectedDate = dateInput ? dateInput.value : '';
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading records...</td></tr>';
+      
       try {
-        // action == 'book' ആയവ മാത്രം ഫിൽട്ടർ ചെയ്ത് എടുക്കുന്നു
-        const q = window.fs.query(
-          window.fs.collection(window.db, 'bookings'),
-          window.fs.where('action', '==', 'book'),
-          window.fs.limit(100)
-        );
+        let q;
+        if (selectedDate) {
+          // തിരഞ്ഞെടുത്ത തീയതിയിലെ 'Booked' ആയവ മാത്രം കൃത്യമായി ഫിൽട്ടർ ചെയ്യുന്നു
+          q = window.fs.query(
+            window.fs.collection(window.db, 'bookings'),
+            window.fs.where('date', '==', selectedDate),
+            window.fs.where('action', '==', 'book')
+          );
+        } else {
+          q = window.fs.query(
+            window.fs.collection(window.db, 'bookings'),
+            window.fs.where('action', '==', 'book'),
+            window.fs.limit(60)
+          );
+        }
+
         const querySnapshot = await window.fs.getDocs(q);
         tbody.innerHTML = '';
+        
         if (querySnapshot.empty) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">No active booking records found.</td></tr>';
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748b;">No bookings found for ${selectedDate ? formatDateToDMY(selectedDate) : 'this selection'}.</td></tr>`;
           return;
         }
+
+        let bookingsList = [];
         querySnapshot.forEach(docSnap => {
-          const d = docSnap.data();
+          bookingsList.push(docSnap.data());
+        });
+
+        // ടോക്കൺ നമ്പർ ക്രമത്തിൽ സോർട്ട് ചെയ്യുന്നു (1, 2, 3...)
+        bookingsList.sort((a, b) => {
+          const numA = parseInt(String(a.token).replace(/\D/g, '')) || 0;
+          const numB = parseInt(String(b.token).replace(/\D/g, '')) || 0;
+          return numA - numB;
+        });
+
+        bookingsList.forEach(d => {
           let guestsStr = '';
           if (d.token && (String(d.token).includes('_GUEST') || Object.values(guestTokensConfig).map(String).includes(String(d.token)))) {
             guestsStr = ` (${d.guests || 1} Nos)`;
@@ -3113,7 +3148,7 @@
             <td><b>#${d.token}</b></td>
             <td>${d.name || 'N/A'}${guestsStr}</td>
             <td>${d.category || 'N/A'}</td>
-            <td>${d.meal}</td>
+            <td style="text-transform: capitalize;">${d.meal}</td>
             <td><span style="color:#10b981; font-weight:600;">Booked</span></td>
           `;
           tbody.appendChild(tr);
