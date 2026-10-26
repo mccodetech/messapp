@@ -6,9 +6,9 @@
   <title>Suprabhatham Mess Booking - SNEC</title>
 
   <!-- PWA Manifest & App Icons -->
-<link rel="manifest" href="manifest.json" />
-<link rel="icon" type="image/png" href="icon.png" sizes="192x192" />
-<link rel="apple-touch-icon" href="icon.png" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" href="icon.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="icon.png" />
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
@@ -341,7 +341,7 @@
         <div class="input-group">
           <label><i class="fa-solid fa-key"></i> Password / Registered Mobile Number</label>
           <div class="password-wrapper">
-            <input type="password" id="login-pass" class="input-control" placeholder="Enter Password or Mobile Number">
+            <input type="password" id="login-pass" class="input-control" placeholder="Password or Mobile Number">
             <i class="fa-solid fa-eye toggle-password" onclick="togglePasswordVisibility('login-pass', this)"></i>
           </div>
         </div>
@@ -487,26 +487,24 @@
           </div>
 
           <!-- Target User Selector with Search for Admin -->
-<div id="admin-proxy-container" style="display:none; margin-bottom: 12px; padding: 10px; background: #f1f5f9; border-radius: 10px; flex-direction:column; gap: 8px;">
-  
-  <div style="display:flex; align-items:center; gap:8px;">
-    <label style="font-size: 0.82rem; font-weight: 600; width:110px;">Booking for:</label>
-    <input type="text" id="admin-user-search" class="input-control" placeholder="Search by Token # or Name..." style="padding: 6px 12px; font-size:0.82rem;" onkeyup="filterAdminUserDropdown()">
-  </div>
-  
-  <div style="display:flex; align-items:center; gap:8px;">
-    <label style="font-size: 0.82rem; font-weight: 600; width:110px;">Select Member:</label>
-    <select id="admin-target-token" class="input-control" style="flex: 1; padding: 6px 12px;" onchange="onAdminTargetUserChange()">
-      <option value="">-- Book for Myself --</option>
-    </select>
-  </div>
+          <div id="admin-proxy-container" style="display:none; margin-bottom: 12px; padding: 10px; background: #f1f5f9; border-radius: 10px; flex-direction:column; gap: 8px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <label style="font-size: 0.82rem; font-weight: 600; width:110px;">Booking for:</label>
+              <input type="text" id="admin-user-search" class="input-control" placeholder="Search by Token # or Name..." style="padding: 6px 12px; font-size:0.82rem;" onkeyup="filterAdminUserDropdown()">
+            </div>
+            
+            <div style="display:flex; align-items:center; gap:8px;">
+              <label style="font-size: 0.82rem; font-weight: 600; width:110px;">Select Member:</label>
+              <select id="admin-target-token" class="input-control" style="flex: 1; padding: 6px 12px;" onchange="onAdminTargetUserChange()">
+                <option value="">-- Book for Myself --</option>
+              </select>
+            </div>
 
-  <div style="display:flex; align-items:center; gap:8px; border-top: 1px solid #cbd5e1; margin-top: 4px; padding-top: 8px;">
-    <label style="font-size: 0.82rem; font-weight: 600; width:110px;">Select Date:</label>
-    <input type="date" id="admin-week-date" class="input-control" style="flex: 1; padding: 6px 12px;" onchange="changeBookingWeek()" title="Select any date to view that week">
-  </div>
-  
-</div>
+            <div style="display:flex; align-items:center; gap:8px; border-top: 1px solid #cbd5e1; margin-top: 4px; padding-top: 8px;">
+              <label style="font-size: 0.82rem; font-weight: 600; width:110px;">Select Date:</label>
+              <input type="date" id="admin-week-date" class="input-control" style="flex: 1; padding: 6px 12px;" onchange="changeBookingWeek()" title="Select any date to view that week">
+            </div>
+          </div>
 
           <div id="subadmin-mode-container" style="display:none; margin-bottom: 12px; padding: 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
             <div>
@@ -534,7 +532,7 @@
         </div>
       </div>
 
-     <!-- VIEW 2: USER REPORTS -->
+      <!-- VIEW 2: USER REPORTS -->
       <div id="view-report" class="tab-view" style="display: none;">
         <div class="section-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
@@ -572,7 +570,7 @@
             </div>
           </div>
 
-          <!-- TABLE CONTAINER (ഇതാണ് മിസ്സായിപ്പോയത്) -->
+          <!-- Table Container -->
           <div style="overflow-x: auto;">
             <table>
               <thead>
@@ -587,15 +585,13 @@
               <tbody id="report-table-body"></tbody>
             </table>
           </div>
-
         </div>
       </div>
 
       <!-- VIEW 3: ADMIN DASHBOARD -->
       <div id="view-admin" class="tab-view" style="display: none;">
-        
         <div class="admin-layout">
-          <!-- ലെഫ്റ്റ് സൈഡ് അഡ്മിൻ സബ് മെനു -->
+          <!-- Admin Submenu -->
           <div class="admin-sidebar-menu no-print">
             <button class="admin-menu-btn active" id="atab-btn-kitchen" onclick="switchAdminSubTab('kitchen')">
               <i class="fa-solid fa-kitchen-set"></i> Kitchen Report
@@ -626,7 +622,7 @@
             </button>
           </div>
 
-          <!-- റൈറ്റ് സൈഡ് കണ്ടെന്റ് ഏരിയ -->
+          <!-- Admin Content Area -->
           <div class="admin-content-area">
             
             <!-- 1. KITCHEN REPORT SECTION -->
@@ -1052,50 +1048,47 @@
       }
       return dateStr;
     }
-// ബീപ് സൗണ്ട് പ്ലേ ചെയ്യാനുള്ള ഫങ്ഷൻ
+
+    // Beep Sound
     function playBeepSound() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
         oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5 note
-        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        gainNode.setValueAtTime(0.1, audioCtx.currentTime);
         oscillator.connect(gainNode);
         gainNode.connect(audioCtx.destination);
         oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.3); // 0.3 സെക്കൻഡ് സൗണ്ട്
+        oscillator.stop(audioCtx.currentTime + 0.3);
       } catch (e) {
         console.error("Audio play error", e);
       }
     }
 
-    // സമയം പരിശോധിച്ച് റിമൈൻഡർ നൽകുന്ന ഫങ്ഷൻ
+    // Cut-off Check Reminders
     function checkCutoffReminders() {
       const now = new Date();
       const hours = now.getHours();
       const minutes = now.getMinutes();
 
-      // രാവിലെ 5:50 (ബ്രേക്ക്ഫാസ്റ്റ് കട്ട് ഓഫ് 6:00-ന് 10 മിനിറ്റ് മുമ്പ്)
       if (hours === 5 && minutes === 50) {
         playBeepSound();
         showToast('⚠️ ജാഗ്രത: പ്രഭാതഭക്ഷണ ബുക്കിംഗ് അവസാനിപ്പിക്കാൻ 10 മിനിറ്റ് കൂടിയേ ബാക്കിയുള്ളൂ!', 'error');
       }
       
-      // രാവിലെ 9:50 (ലഞ്ച് കട്ട് ഓഫ് 10:00-ന് 10 മിനിറ്റ് മുമ്പ്)
       if (hours === 9 && minutes === 50) {
         playBeepSound();
         showToast('⚠️ ജാഗ്രത: ഉച്ചഭക്ഷണ ബുക്കിംഗ് അവസാനിപ്പിക്കാൻ 10 മിനിറ്റ് കൂടിയേ ബാക്കിയുള്ളൂ!', 'error');
       }
 
-      // ഉച്ചകഴിഞ്ഞ് 3:50 (ഡിന്നർ കട്ട് ഓഫ് 4:00-ന് 10 മിനിറ്റ് മുമ്പ്)
       if (hours === 15 && minutes === 50) {
         playBeepSound();
         showToast('⚠️ ജാഗ്രത: അത്താഴ ബുക്കിംഗ് അവസാനിപ്പിക്കാൻ 10 മിനിറ്റ് കൂടിയേ ബാക്കിയുള്ളൂ!', 'error');
       }
     }
 
-    // ഓരോ ഒരു മിനിറ്റിലും സമയം പരിശോധിക്കാൻ സെറ്റ് ചെയ്യുന്നു
     setInterval(checkCutoffReminders, 60000);
     
     document.addEventListener('DOMContentLoaded', () => {
@@ -1123,13 +1116,11 @@
       const firstDay = formatDateStr(startDateObj);
       const lastDay = formatDateStr(endDateObj);
 
-     if (document.getElementById('rep-start-date')) document.getElementById('rep-start-date').value = firstDay;
+      if (document.getElementById('rep-start-date')) document.getElementById('rep-start-date').value = firstDay;
       if (document.getElementById('rep-end-date')) document.getElementById('rep-end-date').value = lastDay;
 
-      // യൂസർ റിപ്പോർട്ടിനുള്ള ഡിഫോൾട്ട് തീയതി (26 മുതൽ 25 വരെ):
       if (document.getElementById('user-rep-start-date')) document.getElementById('user-rep-start-date').value = firstDay;
       if (document.getElementById('user-rep-end-date')) document.getElementById('user-rep-end-date').value = lastDay;
-      
 
       const kp = document.getElementById('kitchen-date-picker');
       if (kp) kp.value = formatDateStr(now);
@@ -1138,19 +1129,29 @@
 
       checkExistingSession();
     });
-function changeBookingWeek() {
-  const dateVal = document.getElementById('admin-week-date').value;
-  if (dateVal) {
-    currentBookingWeekBase = new Date(dateVal);
-  } else {
-    currentBookingWeekBase = new Date();
-  }
-  renderBulkTable();
-  loadExistingBookings();
-}
+
+    function changeBookingWeek() {
+      const dateVal = document.getElementById('admin-week-date').value;
+      if (dateVal) {
+        currentBookingWeekBase = new Date(dateVal);
+      } else {
+        currentBookingWeekBase = new Date();
+      }
+      renderBulkTable();
+      loadExistingBookings();
+    }
+
+    // Safe session check
     function checkExistingSession() {
-      const saved = localStorage.getItem('snec_mess_session');
-      const savedNav = localStorage.getItem('snec_mess_active_nav') || 'booking';
+      let saved = null;
+      let savedNav = 'booking';
+      try {
+        saved = localStorage.getItem('snec_mess_session');
+        savedNav = localStorage.getItem('snec_mess_active_nav') || 'booking';
+      } catch (err) {
+        console.warn("Storage restricted", err);
+      }
+
       if (saved && saved !== "undefined" && saved !== "null") {
         try {
           currentUser = JSON.parse(saved);
@@ -1174,12 +1175,12 @@ function changeBookingWeek() {
       document.getElementById('tab-btn-reg').style.background = type === 'register' ? '#fff' : 'transparent';
     }
 
+    // Login with Password or Mobile Number
     async function handleLogin() {
       const id = document.getElementById('login-identifier').value.trim();
       const pass = document.getElementById('login-pass').value.trim();
-      if (!id || !pass) return showToast('Please enter Token/Username and Password or Mobile Number', 'error');
+      if (!id || !pass) return showToast('Enter token/username and password/mobile number', 'error');
 
-      // Admin & Super Admin Logins
       if (id === 'sadmin' && pass === 'sadmin_4321') {
         currentUser = { token: '0', name: 'Super Admin', role: 'superadmin', status: 'active', category: 'ADMIN' };
         return setSessionAndEnter(currentUser);
@@ -1194,21 +1195,18 @@ function changeBookingWeek() {
         const docSnap = await window.fs.getDoc(userRef);
 
         if (!docSnap.exists()) {
-          return showModal('Login Failed', 'Invalid Token Number or User does not exist.', 'error');
+          return showModal('Login Failed', 'Invalid Token or User not found', 'error');
         }
 
         const data = docSnap.data();
-
-        // ഫോൺ നമ്പർ താരതമ്യം ചെയ്യുമ്പോൾ സ്പേസും സിംബലുകളും ഒഴിവാക്കി പരിശോധിക്കുന്നു
         const enteredPassClean = pass.replace(/\D/g, '');
         const savedPhoneClean = (data.phone || '').replace(/\D/g, '');
 
-        // പാസ്‌വേഡ് ശരിയാണോ അതോ നൽകിയത് രജിസ്റ്റർ ചെയ്ത ഫോൺ നമ്പർ ആണോ എന്ന് പരിശോധിക്കുന്നു
         const isPasswordMatch = data.password === pass;
         const isPhoneMatch = savedPhoneClean && enteredPassClean && (savedPhoneClean === enteredPassClean);
 
         if (!isPasswordMatch && !isPhoneMatch) {
-          return showModal('Login Failed', 'Invalid Password or Mobile Number!', 'error');
+          return showModal('Login Failed', 'Invalid Password or Mobile Number', 'error');
         }
 
         if (data.status === 'pending') {
@@ -1224,9 +1222,14 @@ function changeBookingWeek() {
         showModal('Error', err.message, 'error');
       }
     }
+
     function setSessionAndEnter(user) {
-      localStorage.setItem('snec_mess_session', JSON.stringify(user));
-      localStorage.setItem('snec_mess_active_nav', 'booking');
+      try {
+        localStorage.setItem('snec_mess_session', JSON.stringify(user));
+        localStorage.setItem('snec_mess_active_nav', 'booking');
+      } catch(e) {
+        console.warn("Storage restricted", e);
+      }
       currentUser = user;
       document.getElementById('auth-overlay').style.display = 'none';
       renderAuthenticatedUI('booking');
@@ -1297,8 +1300,12 @@ function changeBookingWeek() {
 
     function handleLogout() {
       showConfirmModal('ലോഗ് ഔട്ട്', 'നിങ്ങൾക്ക് തീർച്ചയായും ലോഗ് ഔട്ട് ചെയ്യണമെന്നുണ്ടോ?', () => {
-        localStorage.removeItem('snec_mess_session');
-        localStorage.removeItem('snec_mess_active_nav');
+        try {
+          localStorage.removeItem('snec_mess_session');
+          localStorage.removeItem('snec_mess_active_nav');
+        } catch(e) {
+          console.warn(e);
+        }
         currentUser = null;
         document.getElementById('app-container').style.display = 'none';
         document.getElementById('auth-overlay').style.display = 'flex';
@@ -2105,7 +2112,9 @@ function changeBookingWeek() {
       document.querySelectorAll('.tab-view').forEach(el => el.style.display = 'none');
 
       if (saveState) {
-        localStorage.setItem('snec_mess_active_nav', name);
+        try {
+          localStorage.setItem('snec_mess_active_nav', name);
+        } catch(e) { console.warn(e); }
       }
 
       if (name === 'booking') {
@@ -2149,6 +2158,7 @@ function changeBookingWeek() {
       if (sec === 'allbookings') loadAdminAllBookings();
     }
 
+    // Optimized: Only queries bookings for the selected date range
     async function loadPointsAndBookingsReport() {
       const startDate = document.getElementById('rep-start-date').value;
       const endDate = document.getElementById('rep-end-date').value;
@@ -2181,7 +2191,14 @@ function changeBookingWeek() {
         await loadPointRateConfig();
 
         const usersMap = {};
-        const bookingsSnap = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
+        
+        // Optimized Firestore range query
+        const bookingsQuery = window.fs.query(
+          window.fs.collection(window.db, 'bookings'),
+          window.fs.where('date', '>=', startDate),
+          window.fs.where('date', '<=', endDate)
+        );
+        const bookingsSnap = await window.fs.getDocs(bookingsQuery);
         
         bookingsSnap.forEach(docSnap => {
           const b = docSnap.data();
@@ -2364,9 +2381,9 @@ function changeBookingWeek() {
       const shortDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       
       const baseDate = currentBookingWeekBase || new Date();
-const currentDay = baseDate.getDay();
-const sunday = new Date(baseDate);
-sunday.setDate(baseDate.getDate() - currentDay);
+      const currentDay = baseDate.getDay();
+      const sunday = new Date(baseDate);
+      sunday.setDate(baseDate.getDate() - currentDay);
 
       const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
       const isSubAdmin = currentUser.role === 'user' && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
@@ -2473,6 +2490,7 @@ sunday.setDate(baseDate.getDate() - currentDay);
       modal.classList.add('active');
     }
 
+    // Optimized: Only queries the 7 days of the currently selected week
     async function loadExistingBookings() {
       if (!currentUser) return;
       document.querySelectorAll('.bulk-cb').forEach(cb => cb.checked = false);
@@ -2492,10 +2510,22 @@ sunday.setDate(baseDate.getDate() - currentDay);
 
       if (!targetToken) return;
 
+      const baseDate = currentBookingWeekBase || new Date();
+      const currentDay = baseDate.getDay();
+      const sunday = new Date(baseDate);
+      sunday.setDate(baseDate.getDate() - currentDay);
+      const saturday = new Date(sunday);
+      saturday.setDate(sunday.getDate() + 6);
+
+      const startWeekStr = sunday.toISOString().split('T')[0];
+      const endWeekStr = saturday.toISOString().split('T')[0];
+
       try {
         const q = window.fs.query(
           window.fs.collection(window.db, 'bookings'),
-          window.fs.where('token', '==', targetToken)
+          window.fs.where('token', '==', targetToken),
+          window.fs.where('date', '>=', startWeekStr),
+          window.fs.where('date', '<=', endWeekStr)
         );
         const querySnapshot = await window.fs.getDocs(q);
         querySnapshot.forEach(docSnap => {
@@ -2510,7 +2540,7 @@ sunday.setDate(baseDate.getDate() - currentDay);
           }
         });
       } catch (err) {
-        console.error(err);
+        console.error("Booking load error:", err);
       }
     }
 
@@ -2609,7 +2639,7 @@ sunday.setDate(baseDate.getDate() - currentDay);
       }
     }
 
-    // മുൻ മാസത്തെയും നിലവിലെ മാസത്തെയും 26 - 25 സൈക്കിൾ സെലക്ട് ചെയ്യുന്ന ഫംഗ്ഷൻ
+    // Previous / Current month cycle selector
     function setUserBillingCycle(type) {
       const now = new Date();
       let year = now.getFullYear();
@@ -2638,9 +2668,10 @@ sunday.setDate(baseDate.getDate() - currentDay);
       loadMonthlyReport();
     }
 
+    // Optimized User Report with date-range query
     async function loadMonthlyReport() {
       const tbody = document.getElementById('report-table-body');
-      if (!tbody) return; // tbody പേജിൽ ലഭ്യമല്ലെങ്കിൽ എറർ വരാതെ തടയുന്നു
+      if (!tbody) return;
 
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
 
@@ -2653,9 +2684,15 @@ sunday.setDate(baseDate.getDate() - currentDay);
         await loadSubAdminsConfig();
         await loadPointRateConfig();
 
+        let qConstraints = [
+          window.fs.where('token', '==', currentUser.token)
+        ];
+        if (startDate) qConstraints.push(window.fs.where('date', '>=', startDate));
+        if (endDate) qConstraints.push(window.fs.where('date', '<=', endDate));
+
         const q = window.fs.query(
           window.fs.collection(window.db, 'bookings'),
-          window.fs.where('token', '==', currentUser.token)
+          ...qConstraints
         );
         const querySnapshot = await window.fs.getDocs(q);
         const dataMap = {};
@@ -2665,10 +2702,6 @@ sunday.setDate(baseDate.getDate() - currentDay);
 
         querySnapshot.forEach(docSnap => {
           const d = docSnap.data();
-
-          // തീയതി ഫിൽട്ടർ: നൽകിയ Start & End Date പരിധിയിലുള്ളവ മാത്രം എടുക്കുന്നു
-          if (startDate && d.date < startDate) return;
-          if (endDate && d.date > endDate) return;
 
           if (!dataMap[d.date]) {
             dataMap[d.date] = { 
@@ -3034,14 +3067,13 @@ sunday.setDate(baseDate.getDate() - currentDay);
       c.appendChild(t);
       setTimeout(() => t.remove(), 2500);
     }
+
     let deferredInstallPrompt = null;
 
     window.addEventListener('beforeinstallprompt', (e) => {
-      // ബ്രൗസറിന്റെ ഡിഫോൾട്ട് പ്രോംപ്റ്റ് തടയുന്നു
       e.preventDefault();
       deferredInstallPrompt = e;
 
-      // ആപ്പ് ഇതിനകം ഇൻസ്റ്റാൾ ചെയ്തിട്ടുണ്ടോ എന്ന് പരിശോധിക്കുന്നു
       if (!window.matchMedia('(display-mode: standalone)').matches) {
         const banner = document.getElementById('install-banner');
         if (banner) banner.style.display = 'flex';
