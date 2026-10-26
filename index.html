@@ -1186,7 +1186,8 @@
         return setSessionAndEnter(currentUser);
       }
       if (id === 'admin' && pass === 'admin123') {
-        currentUser = { token: '1', name: 'Admin', role: 'admin', status: 'active', category: 'ADMIN' };
+        // ടോക്കൺ 1 എന്നത് മാറ്റി 'ADMIN' എന്നാക്കുന്നു (യഥാർത്ഥ #1 യൂസറുമായി കൂട്ടിമുട്ടില്ല)
+        currentUser = { token: 'ADMIN', name: 'System Admin', role: 'admin', status: 'active', category: 'ADMIN' };
         return setSessionAndEnter(currentUser);
       }
 
@@ -1328,20 +1329,24 @@
     async function renderAuthenticatedUI(navTab = 'booking') {
       document.getElementById('app-container').style.display = 'flex';
       document.getElementById('user-display-name').textContent = currentUser.name;
-      document.getElementById('user-display-token').textContent = '#' + (currentUser.token || 'Pending');
-
+      
       const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+      
+      // അഡ്മിൻ ആണെങ്കിൽ # ഇല്ലാതെ വെറും 'Admin' എന്ന് മാത്രം കാണിക്കുന്നു
+      document.getElementById('user-display-token').textContent = isAdmin ? 'Admin' : ('#' + (currentUser.token || 'Pending'));
+
       document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? 'flex' : 'none');
       
+      // അഡ്മിന് പേഴ്സണൽ Reports ടാബ് ആവശ്യമില്ലാത്തതിനാൽ ഹൈഡ് ചെയ്യുന്നു
+      const userReportNav = document.getElementById('nav-report');
+      if (userReportNav) {
+        userReportNav.style.display = isAdmin ? 'none' : 'flex';
+      }
+
       await loadSubAdminsConfig();
       await loadPointRateConfig();
 
-      const isSubAdmin = !isAdmin && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
-      const hasGuestPermission = isSubAdmin && subAdminPermissions[currentUser.token] === true;
-      
       const proxyContainer = document.getElementById('admin-proxy-container');
-      const subAdminContainer = document.getElementById('subadmin-mode-container');
-      
       if (isAdmin && proxyContainer) {
         proxyContainer.style.display = 'flex';
         loadAdminTargetMembersDropdown();
@@ -1349,25 +1354,15 @@
         proxyContainer.style.display = 'none';
       }
 
-      if (hasGuestPermission && subAdminContainer) {
-        let myCategory = '';
-        Object.keys(subAdminsConfig).forEach(cat => {
-          if (subAdminsConfig[cat] === currentUser.token) myCategory = cat;
-        });
-        document.getElementById('subadmin-cat-name').textContent = myCategory;
-        subAdminContainer.style.display = 'flex';
-      } else if (subAdminContainer) {
-        subAdminContainer.style.display = 'none';
-      }
-      
-      if (window.innerWidth <= 768) {
-        const mobLogout = document.querySelector('.mobile-logout-btn');
-        if (mobLogout) mobLogout.style.display = 'inline-flex';
-      }
-
       await loadWeeklyMenuConfig();
       await loadAllDateConfigs();
-      switchNav(navTab, false);
+
+      // അഡ്മിൻ കയറുമ്പോൾ നേരിട്ട് Admin Dashboard-ലേക്കും, സാധാരണക്കാർ Booking-ലേക്കും പോകുന്നു
+      if (isAdmin) {
+        switchNav('admin', false);
+      } else {
+        switchNav(navTab, false);
+      }
     }
 
     function switchSubAdminMode(mode) {
@@ -1654,7 +1649,7 @@
     async function loadAdminTargetMembersDropdown() {
       const select = document.getElementById('admin-target-token');
       if (!select) return;
-      select.innerHTML = `<option value="">-- Book for Myself --</option>`;
+      select.innerHTML = `<option value="">-- Select Member to Book --</option>`;
       try {
         const snap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
         let usersArray = [];
