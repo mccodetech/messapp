@@ -2819,6 +2819,19 @@
           if (d.meal === 'dinner') currentKitchenData.dinner.push(entry);
         });
 
+        // Token number 1 muthal kramamayi sort cheyyunnu (1, 2, 3...)
+        const sortTokens = (list) => {
+          return list.sort((a, b) => {
+            const numA = parseInt((a.match(/#(\d+)/) || [])[1]) || 99999;
+            const numB = parseInt((b.match(/#(\d+)/) || [])[1]) || 99999;
+            return numA - numB;
+          });
+        };
+
+        currentKitchenData.breakfast = sortTokens(currentKitchenData.breakfast);
+        currentKitchenData.lunch = sortTokens(currentKitchenData.lunch);
+        currentKitchenData.dinner = sortTokens(currentKitchenData.dinner);
+
         document.getElementById('count-breakfast').textContent = currentKitchenData.breakfast.length;
         document.getElementById('count-lunch').textContent = currentKitchenData.lunch.length;
         document.getElementById('count-dinner').textContent = currentKitchenData.dinner.length;
