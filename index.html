@@ -2907,23 +2907,44 @@
       const formattedDate = formatDateToDMY(date);
       let text = `🍽️ *SUPRABHATHAM MESS REPORT*\n📅 *Date:* ${formattedDate}\n----------------------------\n`;
 
+      // # ഉം ബുള്ളറ്റ് ডോട്ടും ഒഴിവാക്കി, വലിയ പേരുകൾ ഒരു വരിയിൽ ഒതുക്കാൻ ചുരുക്കുന്ന ഫങ്ഷൻ
+      const formatWaList = (list) => {
+        return list.map(item => {
+          // # കളഞ്ഞ് ടോക്കൺ നമ്പറും പേരും മാത്രമെടുക്കുന്നു
+          const cleaned = item.replace(/^#/, '');
+          const match = cleaned.match(/^(\d+)\s*(.*)$/);
+
+          if (!match) return cleaned;
+
+          const token = match[1];
+          let name = match[2];
+
+          // വലിയ പേരുകൾ രണ്ടാമത്തെ വരിയിലേക്ക് പോകാതെ 16 അക്ഷരത്തിൽ ചുരുക്കുന്നു
+          if (name.length > 16) {
+            name = name.substring(0, 15).trim() + '..';
+          }
+
+          return `${token}. ${name}`;
+        }).join('\n');
+      };
+
       if (type === 'breakfast' || type === 'all') {
         text += `🌅 *Breakfast:* ${countB || breakfast.length} Nos\n`;
-        if (breakfast.length > 0) text += breakfast.map(b => ` • ${b}`).join('\n') + '\n';
+        if (breakfast.length > 0) text += formatWaList(breakfast) + '\n';
         if (type !== 'all') text += `----------------------------\n`;
       }
 
       if (type === 'lunch' || type === 'all') {
         if (type === 'all') text += `\n`;
         text += `☀️ *Lunch:* ${countL || lunch.length} Nos\n`;
-        if (lunch.length > 0) text += lunch.map(l => ` • ${l}`).join('\n') + '\n';
+        if (lunch.length > 0) text += formatWaList(lunch) + '\n';
         if (type !== 'all') text += `----------------------------\n`;
       }
 
       if (type === 'dinner' || type === 'all') {
         if (type === 'all') text += `\n`;
         text += `🌙 *Dinner:* ${countD || dinner.length} Nos\n`;
-        if (dinner.length > 0) text += dinner.map(d => ` • ${d}`).join('\n') + '\n';
+        if (dinner.length > 0) text += formatWaList(dinner) + '\n';
         if (type !== 'all') text += `----------------------------\n`;
       }
 
