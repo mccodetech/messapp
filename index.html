@@ -2684,16 +2684,11 @@
         await loadSubAdminsConfig();
         await loadPointRateConfig();
 
-        let qConstraints = [
-          window.fs.where('token', '==', currentUser.token)
-        ];
-        if (startDate) qConstraints.push(window.fs.where('date', '>=', startDate));
-        if (endDate) qConstraints.push(window.fs.where('date', '<=', endDate));
-
         const q = window.fs.query(
           window.fs.collection(window.db, 'bookings'),
-          ...qConstraints
+          window.fs.where('token', '==', currentUser.token)
         );
+        
         const querySnapshot = await window.fs.getDocs(q);
         const dataMap = {};
         let totalUserPoints = 0;
