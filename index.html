@@ -1013,6 +1013,7 @@
                         <th>Category</th>
                         <th>Meal</th>
                         <th>Status</th>
+                        <th>Booked At</th>
                       </tr>
                     </thead>
                     <tbody id="admin-table-body"></tbody>
@@ -3089,18 +3090,16 @@
       const tbody = document.getElementById('admin-table-body');
       let dateInput = document.getElementById('allbookings-date-picker');
       
-      // ഡേറ്റ് പിക്കറിൽ തീയതി ഇല്ലെങ്കിൽ ഇന്നത്തെ തീയതി സെറ്റ് ചെയ്യുന്നു
       if (dateInput && !dateInput.value) {
         dateInput.value = new Date().toISOString().split('T')[0];
       }
       
       const selectedDate = dateInput ? dateInput.value : '';
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading records...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading records...</td></tr>';
       
       try {
         let q;
         if (selectedDate) {
-          // തിരഞ്ഞെടുത്ത തീയതിയിലെ 'Booked' ആയവ മാത്രം കൃത്യമായി ഫിൽട്ടർ ചെയ്യുന്നു
           q = window.fs.query(
             window.fs.collection(window.db, 'bookings'),
             window.fs.where('date', '==', selectedDate),
@@ -3118,7 +3117,7 @@
         tbody.innerHTML = '';
         
         if (querySnapshot.empty) {
-          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#64748b;">No bookings found for ${selectedDate ? formatDateToDMY(selectedDate) : 'this selection'}.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#64748b;">No bookings found for ${selectedDate ? formatDateToDMY(selectedDate) : 'this selection'}.</td></tr>`;
           return;
         }
 
@@ -3127,7 +3126,6 @@
           bookingsList.push(docSnap.data());
         });
 
-        // ടോക്കൺ നമ്പർ ക്രമത്തിൽ സോർട്ട് ചെയ്യുന്നു (1, 2, 3...)
         bookingsList.sort((a, b) => {
           const numA = parseInt(String(a.token).replace(/\D/g, '')) || 0;
           const numB = parseInt(String(b.token).replace(/\D/g, '')) || 0;
@@ -3142,6 +3140,17 @@
             guestsStr = ` (+${d.guests} Guest)`;
           }
 
+          // ബുക്ക് ചെയ്ത തീയതിയും സമയവും കൃത്യമായി ഫോർമാറ്റ് ചെയ്യുന്നു
+          let bookedTimeStr = 'N/A';
+          if (d.timestamp) {
+            try {
+              const dt = new Date(d.timestamp);
+              bookedTimeStr = dt.toLocaleDateString('en-GB') + ' ' + dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            } catch(e) {
+              bookedTimeStr = d.timestamp;
+            }
+          }
+
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td>${formatDateToDMY(d.date)}</td>
@@ -3150,11 +3159,12 @@
             <td>${d.category || 'N/A'}</td>
             <td style="text-transform: capitalize;">${d.meal}</td>
             <td><span style="color:#10b981; font-weight:600;">Booked</span></td>
+            <td><small style="color:#64748b; font-weight:600;">${bookedTimeStr}</small></td>
           `;
           tbody.appendChild(tr);
         });
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" style="color:red;">${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="color:red;">${err.message}</td></tr>`;
       }
     }
 
