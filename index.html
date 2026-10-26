@@ -1252,18 +1252,17 @@
       }
 
       try {
-        const usersSnapshot = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
-        let alreadyExists = false;
+        // ഫോൺ നമ്പർ മാത്രം പരിശോധിച്ച് 1 റീഡ് ആക്കി ചുരുക്കുന്നു
+        const qPhone = window.fs.query(window.fs.collection(window.db, 'users'), window.fs.where('phone', '==', phone), window.fs.limit(1));
+        const phoneSnap = await window.fs.getDocs(qPhone);
+        if (!phoneSnap.empty) {
+          return showModal('Already Registered', 'An account with this mobile number already exists.', 'info');
+        }
 
-        usersSnapshot.forEach(docSnap => {
-          const u = docSnap.data();
-          if ((u.phone && u.phone === phone) || (u.email && u.email.toLowerCase() === email.toLowerCase())) {
-            alreadyExists = true;
-          }
-        });
-
-        if (alreadyExists) {
-          return showModal('Already Registered', 'An account with this mobile number or email already exists in the system.', 'info');
+        const qEmail = window.fs.query(window.fs.collection(window.db, 'users'), window.fs.where('email', '==', email.toLowerCase()), window.fs.limit(1));
+        const emailSnap = await window.fs.getDocs(qEmail);
+        if (!emailSnap.empty) {
+          return showModal('Already Registered', 'An account with this email address already exists.', 'info');
         }
 
         const tempId = 'temp_' + Date.now();
@@ -3087,7 +3086,8 @@
       const tbody = document.getElementById('admin-table-body');
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading records...</td></tr>';
       try {
-        const querySnapshot = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
+        const q = window.fs.query(window.fs.collection(window.db, 'bookings'), window.fs.limit(60));
+        const querySnapshot = await window.fs.getDocs(q);
         tbody.innerHTML = '';
         if (querySnapshot.empty) {
           tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#64748b;">No booking records found.</td></tr>';
