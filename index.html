@@ -2920,8 +2920,8 @@
           let name = match[2];
 
           // വലിയ പേരുകൾ രണ്ടാമത്തെ വരിയിലേക്ക് പോകാതെ 16 അക്ഷരത്തിൽ ചുരുക്കുന്നു
-          if (name.length > 16) {
-            name = name.substring(0, 15).trim() + '..';
+          if (name.length > 12) {
+            name = name.substring(0, 11).trim() + '..';
           }
 
           return `${token}. ${name}`;
