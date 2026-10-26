@@ -2490,7 +2490,6 @@
       modal.classList.add('active');
     }
 
-    // Optimized: Only queries the 7 days of the currently selected week
     async function loadExistingBookings() {
       if (!currentUser) return;
       document.querySelectorAll('.bulk-cb').forEach(cb => cb.checked = false);
@@ -2510,28 +2509,19 @@
 
       if (!targetToken) return;
 
-      const baseDate = currentBookingWeekBase || new Date();
-      const currentDay = baseDate.getDay();
-      const sunday = new Date(baseDate);
-      sunday.setDate(baseDate.getDate() - currentDay);
-      const saturday = new Date(sunday);
-      saturday.setDate(sunday.getDate() + 6);
-
-      const startWeekStr = sunday.toISOString().split('T')[0];
-      const endWeekStr = saturday.toISOString().split('T')[0];
-
       try {
+        // Index aavashyamillathe direct token mathram vechu load cheyyunnu
         const q = window.fs.query(
           window.fs.collection(window.db, 'bookings'),
-          window.fs.where('token', '==', targetToken),
-          window.fs.where('date', '>=', startWeekStr),
-          window.fs.where('date', '<=', endWeekStr)
+          window.fs.where('token', '==', targetToken)
         );
         const querySnapshot = await window.fs.getDocs(q);
+        
         querySnapshot.forEach(docSnap => {
           const d = docSnap.data();
           const cb = document.querySelector(`.bulk-cb[data-date="${d.date}"][data-meal="${d.meal}"]`);
           const guestInp = document.querySelector(`.guest-input[data-date="${d.date}"][data-meal="${d.meal}"]`);
+          
           if (cb) {
             cb.checked = (d.action === 'book');
           }
@@ -2638,6 +2628,7 @@
         }
 
         showModal('Success', 'Weekly bookings successfully saved!', 'success');
+        loadExistingBookings(); // Save cheytha udan thanne tick-ukal reload cheyyunnu
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
