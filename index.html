@@ -17,7 +17,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import {  
-      getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs  
+      getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, limit  
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -34,7 +34,7 @@
     window.auth = getAuth(app);
     window.db = getFirestore(app);
     window.sendPasswordResetEmail = sendPasswordResetEmail;
-    window.fs = { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs };
+    window.fs = { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, limit };
   </script>
 
   <style>
