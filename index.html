@@ -2436,8 +2436,11 @@
       sunday.setDate(baseDate.getDate() - currentDay);
 
       const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
-      const isSubAdmin = currentUser.role === 'user' && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
-      const hasGuestPerm = isSubAdmin && subAdminPermissions[currentUser.token] === true;
+      
+      // ലോഗിൻ ചെയ്തത് ഗസ്റ്റ് അക്കൗണ്ട് ആണോ എന്ന് പരിശോധിക്കുന്നു (ഉദാ: 89 - SNEC GUEST)
+      const isGuestAccount = (currentUser.name && currentUser.name.toUpperCase().includes('GUEST')) || 
+                             String(currentUser.token).toUpperCase().includes('GUEST') || 
+                             (guestTokensConfig && Object.values(guestTokensConfig).map(String).includes(String(currentUser.token)));
 
       for (let i = 0; i < 7; i++) {
         const dayDate = new Date(sunday);
@@ -2481,7 +2484,22 @@
         const lLocked = isMealSlotLocked(dateStr, 'lunch');
         const dLocked = isMealSlotLocked(dateStr, 'dinner');
 
-        const showGuestInput = isAdmin || (hasGuestPerm && subAdminCurrentMode === 'guest');
+        // റെൻഡർ ചെയ്യേണ്ട ഇൻപുട്ട് ഫീൽഡുകൾ
+        const renderCellInput = (mealType, locked) => {
+          if (isGuestAccount) {
+            // ഗസ്റ്റ് അക്കൗണ്ടിന് എണ്ണം (Count) നൽകാനുള്ള ബോക്സ് മാത്രം
+            return `<input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="${mealType}" min="0" value="0" placeholder="Count" style="width:75px; text-align:center; padding:4px 6px; font-weight:bold; font-size:0.85rem;" ${locked ? 'disabled title="Slot locked"' : ''}>`;
+          } else if (isAdmin) {
+            // അഡ്മിന് ടിക്ക് ബോക്സും ഒപ്പം ഗസ്റ്റ് ഉണ്ടെങ്കിൽ എണ്ണവും
+            return `
+              <input type="checkbox" class="bulk-cb meal-${mealType}" data-date="${dateStr}" data-meal="${mealType}" ${locked ? 'disabled title="Slot locked"' : ''}>
+              <input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="${mealType}" min="0" value="0" placeholder="+G" style="width:55px; padding:2px 4px; font-size:0.75rem;" ${locked ? 'disabled title="Slot locked"' : ''} title="Additional Guests">
+            `;
+          } else {
+            // സാധാരണ മെമ്പർമാർക്ക് ടിക്ക് ബോക്സ് മാത്രം
+            return `<input type="checkbox" class="bulk-cb meal-${mealType}" data-date="${dateStr}" data-meal="${mealType}" ${locked ? 'disabled title="Slot locked"' : ''}>`;
+          }
+        };
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -2496,8 +2514,7 @@
                 </button>
               </div>
               <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
-                <input type="checkbox" class="bulk-cb meal-breakfast" data-date="${dateStr}" data-meal="breakfast" ${bLocked ? 'disabled title="Slot locked"' : ''}>
-                ${showGuestInput ? `<input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="breakfast" min="0" value="0" placeholder="Guest" style="width:65px; padding:2px 4px; font-size:0.75rem; border-radius:4px;" ${bLocked ? 'disabled title="Slot locked"' : ''} title="Guest count">` : ''}
+                ${renderCellInput('breakfast', bLocked)}
               </div>
             `}
           </td>
@@ -2509,8 +2526,7 @@
                 </button>
               </div>
               <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
-                <input type="checkbox" class="bulk-cb meal-lunch" data-date="${dateStr}" data-meal="lunch" ${lLocked ? 'disabled title="Slot locked"' : ''}>
-                ${showGuestInput ? `<input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="lunch" min="0" value="0" placeholder="Guest" style="width:65px; padding:2px 4px; font-size:0.75rem; border-radius:4px;" ${lLocked ? 'disabled title="Slot locked"' : ''} title="Guest count">` : ''}
+                ${renderCellInput('lunch', lLocked)}
               </div>
             `}
           </td>
@@ -2522,8 +2538,7 @@
                 </button>
               </div>
               <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
-                <input type="checkbox" class="bulk-cb meal-dinner" data-date="${dateStr}" data-meal="dinner" ${dLocked ? 'disabled title="Slot locked"' : ''}>
-                ${showGuestInput ? `<input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="dinner" min="0" value="0" placeholder="Guest" style="width:65px; padding:2px 4px; font-size:0.75rem; border-radius:4px;" ${dLocked ? 'disabled title="Slot locked"' : ''} title="Guest count">` : ''}
+                ${renderCellInput('dinner', dLocked)}
               </div>
             `}
           </td>
@@ -2545,33 +2560,23 @@
       document.querySelectorAll('.bulk-cb').forEach(cb => cb.checked = false);
       document.querySelectorAll('.guest-input').forEach(inp => inp.value = 0);
 
-      const isSubAdmin = currentUser.role === 'user' && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
-      const hasGuestPerm = isSubAdmin && subAdminPermissions[currentUser.token] === true;
-
-      let targetToken = adminSelectedTargetUser || currentUser.token;
-      if (hasGuestPerm && subAdminCurrentMode === 'guest') {
-        let myCat = '';
-        Object.keys(subAdminsConfig).forEach(c => {
-          if (subAdminsConfig[c] === currentUser.token) myCat = c;
-        });
-        targetToken = guestTokensConfig[myCat] || `${currentUser.token}_GUEST`;
+      let targetToken = currentUser.token;
+      if (adminSelectedTargetUser) {
+        targetToken = adminSelectedTargetUser;
       }
 
       if (!targetToken) return;
 
       try {
-        // Index aavashyamillathe direct token mathram vechu load cheyyunnu
         const q = window.fs.query(
           window.fs.collection(window.db, 'bookings'),
           window.fs.where('token', '==', targetToken)
         );
         const querySnapshot = await window.fs.getDocs(q);
-        
         querySnapshot.forEach(docSnap => {
           const d = docSnap.data();
           const cb = document.querySelector(`.bulk-cb[data-date="${d.date}"][data-meal="${d.meal}"]`);
           const guestInp = document.querySelector(`.guest-input[data-date="${d.date}"][data-meal="${d.meal}"]`);
-          
           if (cb) {
             cb.checked = (d.action === 'book');
           }
@@ -2589,50 +2594,42 @@
     }
 
     async function saveBulkBookings() {
-      const cbs = document.querySelectorAll('.bulk-cb:not(:disabled)');
-      const guestInputs = document.querySelectorAll('.guest-input:not(:disabled)');
       showToast('Saving bookings...', 'info');
       const timestamp = new Date().toISOString();
 
       let activeUserToBook = currentUser;
       const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
-      const isSubAdmin = currentUser.role === 'user' && subAdminsConfig && Object.values(subAdminsConfig).includes(currentUser.token);
-      const hasGuestPerm = isSubAdmin && subAdminPermissions[currentUser.token] === true;
 
-      // Admin veroralude token select cheythittundengil aa user-e fetch cheyyunnu
       if (adminSelectedTargetUser) {
         try {
           const userDoc = await window.fs.getDoc(window.fs.doc(window.db, 'users', adminSelectedTargetUser));
           if (userDoc.exists()) {
             activeUserToBook = userDoc.data();
           }
-        } catch(e) { console.error(e); }
+        } catch(e) {}
       }
 
-      try {
-        if (hasGuestPerm && subAdminCurrentMode === 'guest') {
-          let myCat = '';
-          Object.keys(subAdminsConfig).forEach(c => {
-            if (subAdminsConfig[c] === currentUser.token) myCat = c;
-          });
-          const guestTokenToSave = guestTokensConfig[myCat] || `${currentUser.token}_GUEST`;
-          const guestNameToSave = `${myCat} GUEST`;
-          const guestCategoryToSave = myCat;
+      const isGuestAccount = (activeUserToBook.name && activeUserToBook.name.toUpperCase().includes('GUEST')) || 
+                             String(activeUserToBook.token).toUpperCase().includes('GUEST') || 
+                             (guestTokensConfig && Object.values(guestTokensConfig).map(String).includes(String(activeUserToBook.token)));
 
+      try {
+        if (isGuestAccount) {
+          // ഗസ്റ്റ് അക്കൗണ്ട് സേവ് ചെയ്യുന്ന രീതി
+          const guestInputs = document.querySelectorAll('.guest-input:not(:disabled)');
           for (let inp of guestInputs) {
             const date = inp.dataset.date;
             const meal = inp.dataset.meal;
             const guestCount = parseInt(inp.value) || 0;
 
-            const docId = `${guestTokenToSave}_${date}_${meal}`;
+            const docId = `${activeUserToBook.token}_${date}_${meal}`;
             const ref = window.fs.doc(window.db, 'bookings', docId);
             
-            // Guest count 0-il kooduthal aanengil mathram save cheyyunnu
             if (guestCount > 0) {
               await window.fs.setDoc(ref, {
-                token: guestTokenToSave,
-                name: guestNameToSave,
-                category: guestCategoryToSave,
+                token: activeUserToBook.token,
+                name: activeUserToBook.name,
+                category: activeUserToBook.category || 'OTHER',
                 date: date,
                 meal: meal,
                 action: 'book',
@@ -2640,13 +2637,14 @@
                 timestamp
               });
             } else {
-              // 0 aanengil 'cancel' ennu save cheyyathey direct delete cheyyunnu
               try {
                 await window.fs.deleteDoc(ref);
               } catch(e) {}
             }
           }
         } else {
+          // സാധാരണ മെമ്പർമാർ സേവ് ചെയ്യുന്ന രീതി
+          const cbs = document.querySelectorAll('.bulk-cb:not(:disabled)');
           for (let cb of cbs) {
             const date = cb.dataset.date;
             const meal = cb.dataset.meal;
@@ -2657,7 +2655,6 @@
             const docId = `${activeUserToBook.token}_${date}_${meal}`;
             const ref = window.fs.doc(window.db, 'bookings', docId);
 
-            // Checkbox tick aanengil mathram save cheyyunnu
             if (isBooked) {
               await window.fs.setDoc(ref, {
                 token: activeUserToBook.token,
@@ -2670,7 +2667,6 @@
                 timestamp
               });
             } else {
-              // Uncheck cheythal database-il ninnu direct remove cheyyunnu
               try {
                 await window.fs.deleteDoc(ref);
               } catch(e) {}
@@ -2678,30 +2674,7 @@
           }
         }
 
-        showModal('Success', 'Weekly bookings successfully saved!', 'success');
-
-        // Admin proxy fields poornamayi reset cheythu clean aakkunnu
-        if (isAdmin) {
-          adminSelectedTargetUser = null;
-          const targetSelect = document.getElementById('admin-target-token');
-          if (targetSelect) targetSelect.value = '';
-
-          const searchInput = document.getElementById('admin-user-search');
-          if (searchInput) searchInput.value = '';
-
-          // Dropdown filter list reset cheyyunnu
-          filterAdminUserDropdown();
-
-          // Title default aakkunnu
-          const title = document.getElementById('booking-section-title');
-          if (title) title.textContent = 'Weekly Booking Schedule & Menu';
-        }
-
-        // Table-ile field-ukal clean cheythu fresh aakkunnu
-        document.querySelectorAll('.bulk-cb').forEach(cb => cb.checked = false);
-        document.querySelectorAll('.guest-input').forEach(inp => inp.value = 0);
-
-        // Nilavil login cheytha aalude swantham booking reload cheyyunnu
+        showModal('Success', 'Bookings successfully saved!', 'success');
         loadExistingBookings();
 
       } catch (err) {
