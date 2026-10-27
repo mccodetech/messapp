@@ -1053,47 +1053,86 @@
       return dateStr;
     }
 
-    // Beep Sound
+    // ശ്രദ്ധ ആകർഷിക്കുന്ന ഡബിൾ ബീപ് അലാറം ശബ്ദം
     function playBeepSound() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-        gainNode.setValueAtTime(0.1, audioCtx.currentTime);
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.3);
+        
+        const playTone = (freq, start, duration) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, start);
+          gain.gain.setValueAtTime(0.2, start);
+          gain.gain.exponentialRampToValueAtTime(0.01, start + duration);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(start);
+          osc.stop(start + duration);
+        };
+
+        const now = audioCtx.currentTime;
+        playTone(784, now, 0.25);        // ആദ്യത്തെ ബീപ്
+        playTone(1046.5, now + 0.3, 0.4); // രണ്ടാമത്തെ ഉയർന്ന ബീപ്
       } catch (e) {
-        console.error("Audio play error", e);
+        console.error("Audio error", e);
       }
     }
 
-    // Cut-off Check Reminders
+    // അലാറം ഒരേ മിനിറ്റിൽ വീണ്ടും വീണ്ടും അടിക്കാതിരിക്കാൻ
+    let lastAlertKey = '';
+
     function checkCutoffReminders() {
       const now = new Date();
       const hours = now.getHours();
       const minutes = now.getMinutes();
 
-      if (hours === 5 && minutes === 50) {
-        playBeepSound();
-        showToast('⚠️ ജാഗ്രത: പ്രഭാതഭക്ഷണ ബുക്കിംഗ് അവസാനിപ്പിക്കാൻ 10 മിനിറ്റ് കൂടിയേ ബാക്കിയുള്ളൂ!', 'error');
-      }
-      
-      if (hours === 9 && minutes === 50) {
-        playBeepSound();
-        showToast('⚠️ ജാഗ്രത: ഉച്ചഭക്ഷണ ബുക്കിംഗ് അവസാനിപ്പിക്കാൻ 10 മിനിറ്റ് കൂടിയേ ബാക്കിയുള്ളൂ!', 'error');
+      let mealName = '';
+      let cutoffTime = '';
+      let alertKey = '';
+
+      // 30 മിനിറ്റ് മുമ്പുള്ള മുന്നറിയിപ്പ് സമയങ്ങൾ
+      if (hours === 5 && minutes === 30) {
+        mealName = 'പ്രഭാതഭക്ഷണ (Breakfast)';
+        cutoffTime = '6:00 AM';
+        alertKey = 'B_ALERT';
+      } else if (hours === 9 && minutes === 30) {
+        mealName = 'ഉച്ചഭക്ഷണ (Lunch)';
+        cutoffTime = '10:00 AM';
+        alertKey = 'L_ALERT';
+      } else if (hours === 15 && minutes === 30) {
+        mealName = 'അത്താഴ (Dinner)';
+        cutoffTime = '4:00 PM';
+        alertKey = 'D_ALERT';
       }
 
-      if (hours === 15 && minutes === 50) {
+      // മുന്നറിയിപ്പ് കാണിക്കുന്നു
+      if (mealName && lastAlertKey !== alertKey) {
+        lastAlertKey = alertKey;
         playBeepSound();
-        showToast('⚠️ ജാഗ്രത: അത്താഴ ബുക്കിംഗ് അവസാനിപ്പിക്കാൻ 10 മിനിറ്റ് കൂടിയേ ബാക്കിയുള്ളൂ!', 'error');
+
+        // യൂസർ ബട്ടൺ അമർത്തുന്നത് വരെ സ്ക്രീനിൽ നിലനിൽക്കുന്ന പോപ്പ്-അപ്പ്
+        const modal = document.getElementById('app-modal');
+        document.getElementById('modal-icon').className = 'fa-solid fa-bell';
+        document.getElementById('modal-icon').style.color = '#ef4444';
+        document.getElementById('modal-title').textContent = '⚠️ മെസ് ബുക്കിംഗ് അലാറം!';
+        document.getElementById('modal-message').innerHTML = `
+          <div style="font-size:0.95rem; line-height:1.5; color:#1e293b;">
+            <b>${mealName}</b> ബുക്കിംഗ് അവസാനിക്കാൻ <b>30 മിനിറ്റ്</b> കൂടിയേ ബാക്കിയുള്ളൂ!<br>
+            <span style="color:#ef4444; font-weight:700;">കട്ട്-ഓഫ് സമയം: ${cutoffTime}</span>
+          </div>
+        `;
+        document.getElementById('modal-actions').innerHTML = `
+          <button class="btn-pill btn-primary" onclick="closeModal()" style="width: 100%; padding:10px;">
+            മനസ്സിലായി / ഇപ്പോൾ ബുക്ക് ചെയ്യാം
+          </button>
+        `;
+        modal.classList.add('active');
       }
     }
 
-    setInterval(checkCutoffReminders, 60000);
+    // ഓരോ 30 സെക്കൻഡിലും സമയം കൃത്യമായി പരിശോധിക്കുന്നു
+    setInterval(checkCutoffReminders, 30000);
     
     document.addEventListener('DOMContentLoaded', () => {
       const now = new Date();
