@@ -2513,11 +2513,10 @@
       if (mealType === 'dinner') return currentHour >= 16;
       return false;
     }
-
     function renderBulkTable() {
-      const tbody = document.getElementById('bulk-table-body');
-      if (!tbody) return;
-      tbody.innerHTML = '';
+      const container = document.getElementById('bulk-cards-body');
+      if (!container) return;
+      container.innerHTML = '';
 
       const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       const shortDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -2527,9 +2526,6 @@
       const sunday = new Date(baseDate);
       sunday.setDate(baseDate.getDate() - currentDay);
 
-      const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
-      
-      // Guest account aano ennu thettillaathe check cheyyunnu
       const isGuestAccount = currentUser && (
         (currentUser.name && currentUser.name.toUpperCase().includes('GUEST')) || 
         String(currentUser.token).toUpperCase().includes('GUEST') ||
@@ -2555,16 +2551,19 @@
         const mealLeaves = dateCfg.mealLeaves || { breakfast: false, lunch: false, dinner: false };
 
         if (isH) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td class="day-cell">
-              <b>${shortDays[dayIndex]}</b> <span>${formatDateToDMY(dateStr)}</span>
-            </td>
-            <td colspan="3" style="text-align: center; color: #ef4444; font-weight: 600; background: #fef2f2;">
-              Mess Holiday / Leave
-            </td>
+          const holidayCard = document.createElement('div');
+          holidayCard.className = 'day-card';
+          holidayCard.style.borderLeft = '5px solid #ef4444';
+          holidayCard.innerHTML = `
+            <div class="day-card-header">
+              <span class="day-title">${shortDays[dayIndex]}</span>
+              <span class="day-date">${formatDateToDMY(dateStr)}</span>
+            </div>
+            <div style="text-align: center; color: #ef4444; font-weight: 600; padding: 10px; background: #fef2f2; border-radius: 8px;">
+              🚫 Mess Holiday / Leave
+            </div>
           `;
-          tbody.appendChild(tr);
+          container.appendChild(holidayCard);
           continue;
         }
 
@@ -2579,75 +2578,55 @@
         const lLocked = isMealSlotLocked(dateStr, 'lunch');
         const dLocked = isMealSlotLocked(dateStr, 'dinner');
 
-        // Guest-inu number box mathram, normal aalkkarkku checkbox mathram
-        const renderInputCell = (mealType, locked) => {
+        const renderInputUI = (mealType, locked) => {
           if (isGuestAccount) {
-            return `
-              <div style="display:flex; justify-content:center; align-items:center;">
-                <input type="number" 
-                       class="guest-input" 
-                       data-date="${dateStr}" 
-                       data-meal="${mealType}" 
-                       min="0" 
-                       value="0" 
-                       placeholder="Count" 
-                       style="width: 70px; height: 32px; text-align: center; font-size: 0.95rem; font-weight: bold; border: 2px solid #1e3c72; border-radius: 6px; outline: none;" 
-                       ${locked ? 'disabled title="Slot locked"' : ''}>
-              </div>
-            `;
+            return `<input type="number" class="app-count-input guest-input" data-date="${dateStr}" data-meal="${mealType}" min="0" value="0" placeholder="0" ${locked ? 'disabled' : ''}>`;
           } else {
-            return `
-              <div style="display:flex; justify-content:center; align-items:center;">
-                <input type="checkbox" 
-                       class="bulk-cb meal-${mealType}" 
-                       data-date="${dateStr}" 
-                       data-meal="${mealType}" 
-                       ${locked ? 'disabled title="Slot locked"' : ''}>
-              </div>
-            `;
+            return `<input type="checkbox" class="app-checkbox bulk-cb meal-${mealType}" data-date="${dateStr}" data-meal="${mealType}" ${locked ? 'disabled' : ''}>`;
           }
         };
 
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="day-cell">
-            <b>${shortDays[dayIndex]}</b> <span>${formatDateToDMY(dateStr)}</span>
-          </td>
-          <td>
-            ${mealLeaves.breakfast ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
-              <div style="margin-bottom:4px; text-align:center;">
-                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${bItem.replace(/'/g, "\\'")}', '${bPts} Pts', 'Breakfast (${shortDays[dayIndex]} - ${formatDateToDMY(dateStr)})')">
-                  <i class="fa-solid fa-utensils"></i> Menu (${bPts}Pts)
-                </button>
-              </div>
-              ${renderInputCell('breakfast', bLocked)}
-            `}
-          </td>
-          <td>
-            ${mealLeaves.lunch ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
-              <div style="margin-bottom:4px; text-align:center;">
-                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${lItem.replace(/'/g, "\\'")}', '${lPts} Pts', 'Lunch (${shortDays[dayIndex]} - ${formatDateToDMY(dateStr)})')">
-                  <i class="fa-solid fa-utensils"></i> Menu (${lPts}Pts)
-                </button>
-              </div>
-              ${renderInputCell('lunch', lLocked)}
-            `}
-          </td>
-          <td>
-            ${mealLeaves.dinner ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
-              <div style="margin-bottom:4px; text-align:center;">
-                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${dItem.replace(/'/g, "\\'")}', '${dPts} Pts', 'Dinner (${shortDays[dayIndex]} - ${formatDateToDMY(dateStr)})')">
-                  <i class="fa-solid fa-utensils"></i> Menu (${dPts}Pts)
-                </button>
-              </div>
-              ${renderInputCell('dinner', dLocked)}
-            `}
-          </td>
+        const card = document.createElement('div');
+        card.className = 'day-card';
+        card.innerHTML = `
+          <div class="day-card-header">
+            <span class="day-title">${shortDays[dayIndex]}</span>
+            <span class="day-date">${formatDateToDMY(dateStr)}</span>
+          </div>
+
+          <div class="meals-grid">
+            <!-- Breakfast Box -->
+            <div class="meal-box">
+              <span class="meal-label">🌅 Brkfast</span>
+              ${mealLeaves.breakfast ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:bold;">Leave</span>' : `
+                <button class="meal-menu-btn" onclick="showMenuPopup('${bItem.replace(/'/g, "\\'")}', '${bPts} Pts', 'Breakfast')">${bPts} Pts</button>
+                ${renderInputUI('breakfast', bLocked)}
+              `}
+            </div>
+
+            <!-- Lunch Box -->
+            <div class="meal-box">
+              <span class="meal-label">☀️ Lunch</span>
+              ${mealLeaves.lunch ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:bold;">Leave</span>' : `
+                <button class="meal-menu-btn" onclick="showMenuPopup('${lItem.replace(/'/g, "\\'")}', '${lPts} Pts', 'Lunch')">${lPts} Pts</button>
+                ${renderInputUI('lunch', lLocked)}
+              `}
+            </div>
+
+            <!-- Dinner Box -->
+            <div class="meal-box">
+              <span class="meal-label">🌙 Dinner</span>
+              ${mealLeaves.dinner ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:bold;">Leave</span>' : `
+                <button class="meal-menu-btn" onclick="showMenuPopup('${dItem.replace(/'/g, "\\'")}', '${dPts} Pts', 'Dinner')">${dPts} Pts</button>
+                ${renderInputUI('dinner', dLocked)}
+              `}
+            </div>
+          </div>
         `;
-        tbody.appendChild(tr);
+        container.appendChild(card);
       }
     }
-
+    
     function showMenuPopup(itemDesc, ptsDesc, titleHeader) {
       const modal = document.getElementById('app-modal');
       document.getElementById('modal-title').textContent = titleHeader;
