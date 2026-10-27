@@ -2449,7 +2449,12 @@
       loadExistingBookings();
     }
 async function loadTodayHomeCounts() {
-      const todayDate = new Date().toISOString().split('T')[0];
+      // ഇന്ത്യൻ സമയം (IST) അനുസരിച്ചുള്ള തീയതി കൃത്യമായി എടുക്കുന്നു
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const todayDate = `${year}-${month}-${day}`;
       const dateEl = document.getElementById('home-today-date');
       if (dateEl) {
         dateEl.textContent = formatDateToDMY(todayDate);
