@@ -3002,8 +3002,13 @@
       let totalNos = 0;
 
       if (mealType === 'breakfast') { title = '🌅 Breakfast List'; list = breakfast; totalNos = countB; }
-      if (mealType === 'lunch') { title = '☀️ Lunch List'; list = lunch; totalNos = countL; }
-      if (mealType === 'dinner') { title = '🌙 Dinner List'; list = dinner; totalNos = countD; }
+      else if (mealType === 'lunch') { title = '☀️ Lunch List'; list = lunch; totalNos = countL; }
+      else if (mealType === 'dinner') { title = '🌙 Dinner List'; list = dinner; totalNos = countD; }
+      else {
+        title = 'Slip';
+        list = [...breakfast, ...lunch, ...dinner];
+        totalNos = (countB + countL + countD);
+      }
 
       // ടോക്കൺ നമ്പർ ക്രമത്തിൽ കൃത്യമായി സോർട്ട് ചെയ്യുന്നു (1, 2, 3...)
       list.sort((a, b) => {
@@ -3033,10 +3038,11 @@
             .header-area h2 { font-size: 16px; margin: 0; font-weight: 800; }
             .header-area h4 { font-size: 12px; margin: 0; color: #222; font-weight: 600; }
             
-            .grid-container {
-              display: grid;
-              grid-template-columns: repeat(3, 1fr);
-              gap: 4px 14px;
+            /* വെർട്ടിക്കൽ ക്രമത്തിൽ (മുകളിൽ നിന്ന് താഴേക്ക്) 3 കോളങ്ങളായി തിരിക്കുന്നു */
+            .column-container {
+              column-count: 3;
+              column-gap: 16px;
+              width: 100%;
             }
 
             .item-row {
@@ -3046,6 +3052,8 @@
               padding: 3px 2px;
               border-bottom: 1px dotted #bbb;
               height: 28px;
+              break-inside: avoid;
+              page-break-inside: avoid;
             }
 
             .info-part {
@@ -3056,9 +3064,9 @@
               white-space: nowrap;
             }
 
-            /* # ഒഴിവാക്കി, ഫോണ്ട് സൈസ് 16px ആക്കി ഉയർത്തി */
+            /* ടോക്കൺ നമ്പർ വലുതും കട്ടിയുള്ളതുമായി കാണിക്കുന്നു */
             .token-badge {
-              font-size: 16px;
+              font-size: 15px;
               font-weight: 900;
               color: #000;
               min-width: 28px;
@@ -3071,7 +3079,7 @@
               color: #333;
               overflow: hidden;
               text-overflow: ellipsis;
-              max-width: 140px;
+              max-width: 135px;
             }
 
             .checkbox-box {
@@ -3090,15 +3098,14 @@
             <h4>Date: ${formattedDate} | Total: ${totalNos || list.length} Nos</h4>
           </div>
 
-          <div class="grid-container">
+          <div class="column-container">
             ${list.length > 0 ? list.map((item) => {
-              // # ഒഴിവാക്കി ടോക്കൺ നമ്പറും പേരും മാത്രമെടുക്കുന്നു
               const match = item.match(/^#?(\d+)\s*(.*)$/);
               let tokenPart = '';
               let namePart = item.replace(/^#/, '');
 
               if (match) {
-                tokenPart = match[1]; // # ഇല്ലാതെ നമ്പർ മാത്രം (ഉദാ: 1, 4, 12)
+                tokenPart = match[1];
                 namePart = match[2];
               }
 
@@ -3111,7 +3118,7 @@
                   <span class="checkbox-box"></span>
                 </div>
               `;
-            }).join('') : '<p style="grid-column: span 3; text-align:center;">No bookings for this meal.</p>'}
+            }).join('') : '<p style="text-align:center;">No bookings for this meal.</p>'}
           </div>
 
           <script>
