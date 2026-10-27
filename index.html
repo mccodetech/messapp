@@ -2425,6 +2425,7 @@
 
     function renderBulkTable() {
       const tbody = document.getElementById('bulk-table-body');
+      if (!tbody) return;
       tbody.innerHTML = '';
 
       const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -2435,12 +2436,15 @@
       const sunday = new Date(baseDate);
       sunday.setDate(baseDate.getDate() - currentDay);
 
-      const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+      const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
       
-      // ലോഗിൻ ചെയ്തത് ഗസ്റ്റ് അക്കൗണ്ട് ആണോ എന്ന് പരിശോധിക്കുന്നു (ഉദാ: 89 - SNEC GUEST)
-      const isGuestAccount = (currentUser.name && currentUser.name.toUpperCase().includes('GUEST')) || 
-                             String(currentUser.token).toUpperCase().includes('GUEST') || 
-                             (guestTokensConfig && Object.values(guestTokensConfig).map(String).includes(String(currentUser.token)));
+      // Guest account aano ennu thettillaathe check cheyyunnu
+      const isGuestAccount = currentUser && (
+        (currentUser.name && currentUser.name.toUpperCase().includes('GUEST')) || 
+        String(currentUser.token).toUpperCase().includes('GUEST') ||
+        currentUser.category === 'GUEST' ||
+        String(currentUser.token) === '89'
+      );
 
       for (let i = 0; i < 7; i++) {
         const dayDate = new Date(sunday);
@@ -2484,20 +2488,32 @@
         const lLocked = isMealSlotLocked(dateStr, 'lunch');
         const dLocked = isMealSlotLocked(dateStr, 'dinner');
 
-        // റെൻഡർ ചെയ്യേണ്ട ഇൻപുട്ട് ഫീൽഡുകൾ
-        const renderCellInput = (mealType, locked) => {
+        // Guest-inu number box mathram, normal aalkkarkku checkbox mathram
+        const renderInputCell = (mealType, locked) => {
           if (isGuestAccount) {
-            // ഗസ്റ്റ് അക്കൗണ്ടിന് എണ്ണം (Count) നൽകാനുള്ള ബോക്സ് മാത്രം
-            return `<input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="${mealType}" min="0" value="0" placeholder="Count" style="width:75px; text-align:center; padding:4px 6px; font-weight:bold; font-size:0.85rem;" ${locked ? 'disabled title="Slot locked"' : ''}>`;
-          } else if (isAdmin) {
-            // അഡ്മിന് ടിക്ക് ബോക്സും ഒപ്പം ഗസ്റ്റ് ഉണ്ടെങ്കിൽ എണ്ണവും
             return `
-              <input type="checkbox" class="bulk-cb meal-${mealType}" data-date="${dateStr}" data-meal="${mealType}" ${locked ? 'disabled title="Slot locked"' : ''}>
-              <input type="number" class="input-control guest-input" data-date="${dateStr}" data-meal="${mealType}" min="0" value="0" placeholder="+G" style="width:55px; padding:2px 4px; font-size:0.75rem;" ${locked ? 'disabled title="Slot locked"' : ''} title="Additional Guests">
+              <div style="display:flex; justify-content:center; align-items:center;">
+                <input type="number" 
+                       class="guest-input" 
+                       data-date="${dateStr}" 
+                       data-meal="${mealType}" 
+                       min="0" 
+                       value="0" 
+                       placeholder="Count" 
+                       style="width: 70px; height: 32px; text-align: center; font-size: 0.95rem; font-weight: bold; border: 2px solid #1e3c72; border-radius: 6px; outline: none;" 
+                       ${locked ? 'disabled title="Slot locked"' : ''}>
+              </div>
             `;
           } else {
-            // സാധാരണ മെമ്പർമാർക്ക് ടിക്ക് ബോക്സ് മാത്രം
-            return `<input type="checkbox" class="bulk-cb meal-${mealType}" data-date="${dateStr}" data-meal="${mealType}" ${locked ? 'disabled title="Slot locked"' : ''}>`;
+            return `
+              <div style="display:flex; justify-content:center; align-items:center;">
+                <input type="checkbox" 
+                       class="bulk-cb meal-${mealType}" 
+                       data-date="${dateStr}" 
+                       data-meal="${mealType}" 
+                       ${locked ? 'disabled title="Slot locked"' : ''}>
+              </div>
+            `;
           }
         };
 
@@ -2508,38 +2524,32 @@
           </td>
           <td>
             ${mealLeaves.breakfast ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
-              <div style="margin-bottom:4px;">
-                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${bItem.replace(/'/g, "\\'")}', '${bPts} Pts', 'Breakfast (${shortDays[dayIndex]} -${formatDateToDMY(dateStr)})')">
+              <div style="margin-bottom:4px; text-align:center;">
+                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${bItem.replace(/'/g, "\\'")}', '${bPts} Pts', 'Breakfast (${shortDays[dayIndex]} - ${formatDateToDMY(dateStr)})')">
                   <i class="fa-solid fa-utensils"></i> Menu (${bPts}Pts)
                 </button>
               </div>
-              <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
-                ${renderCellInput('breakfast', bLocked)}
-              </div>
+              ${renderInputCell('breakfast', bLocked)}
             `}
           </td>
           <td>
             ${mealLeaves.lunch ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
-              <div style="margin-bottom:4px;">
-                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${lItem.replace(/'/g, "\\'")}', '${lPts} Pts', 'Lunch (${shortDays[dayIndex]} -${formatDateToDMY(dateStr)})')">
+              <div style="margin-bottom:4px; text-align:center;">
+                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${lItem.replace(/'/g, "\\'")}', '${lPts} Pts', 'Lunch (${shortDays[dayIndex]} - ${formatDateToDMY(dateStr)})')">
                   <i class="fa-solid fa-utensils"></i> Menu (${lPts}Pts)
                 </button>
               </div>
-              <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
-                ${renderCellInput('lunch', lLocked)}
-              </div>
+              ${renderInputCell('lunch', lLocked)}
             `}
           </td>
           <td>
             ${mealLeaves.dinner ? '<span style="color:#ef4444; font-size:0.75rem; font-weight:600;">Leave</span>' : `
-              <div style="margin-bottom:4px;">
-                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${dItem.replace(/'/g, "\\'")}', '${dPts} Pts', 'Dinner (${shortDays[dayIndex]} -${formatDateToDMY(dateStr)})')">
+              <div style="margin-bottom:4px; text-align:center;">
+                <button class="btn-pill btn-light" style="padding:2px 8px; font-size:0.72rem;" onclick="showMenuPopup('${dItem.replace(/'/g, "\\'")}', '${dPts} Pts', 'Dinner (${shortDays[dayIndex]} - ${formatDateToDMY(dateStr)})')">
                   <i class="fa-solid fa-utensils"></i> Menu (${dPts}Pts)
                 </button>
               </div>
-              <div style="display:flex; align-items:center; gap:6px; justify-content:center;">
-                ${renderCellInput('dinner', dLocked)}
-              </div>
+              ${renderInputCell('dinner', dLocked)}
             `}
           </td>
         `;
