@@ -713,6 +713,32 @@
           <h3>Suprabhatham Mess ✨</h3>
           <p>Easily plan and track your daily meals</p>
         </div>
+        <!-- Today's Total Live Booking Counter -->
+        <div style="background:#ffffff; border-radius:18px; padding:14px; margin-bottom:18px; border:1px solid #e2e8f0; box-shadow:0 4px 15px rgba(0,0,0,0.04);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span style="font-size:0.85rem; font-weight:700; color:#1e293b; display:flex; align-items:center; gap:6px;">
+              <i class="fa-solid fa-utensils" style="color:#f59e0b;"></i> Today's Total Meals
+            </span>
+            <span id="home-today-date" style="font-size:0.75rem; color:#64748b; background:#f8fafc; padding:3px 8px; border-radius:10px; font-weight:600;"></span>
+          </div>
+          <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; text-align:center;">
+            <!-- Breakfast -->
+            <div style="background:#fffbeb; padding:10px 4px; border-radius:14px; border:1px solid #fef3c7;">
+              <div style="font-size:0.72rem; color:#b45309; font-weight:700;">🌅 Breakfast</div>
+              <div id="home-count-breakfast" style="font-size:1.25rem; font-weight:900; color:#1e293b; margin-top:2px;">0</div>
+            </div>
+            <!-- Lunch -->
+            <div style="background:#f0fdf4; padding:10px 4px; border-radius:14px; border:1px solid #dcfce7;">
+              <div style="font-size:0.72rem; color:#15803d; font-weight:700;">☀️ Lunch</div>
+              <div id="home-count-lunch" style="font-size:1.25rem; font-weight:900; color:#1e293b; margin-top:2px;">0</div>
+            </div>
+            <!-- Dinner -->
+            <div style="background:#f8fafc; padding:10px 4px; border-radius:14px; border:1px solid #e2e8f0;">
+              <div style="font-size:0.72rem; color:#475569; font-weight:700;">🌙 Dinner</div>
+              <div id="home-count-dinner" style="font-size:1.25rem; font-weight:900; color:#1e293b; margin-top:2px;">0</div>
+            </div>
+          </div>
+        </div>
 
         <div class="home-grid">
           <!-- Booking Card -->
@@ -2422,7 +2448,45 @@
       }
       loadExistingBookings();
     }
+async function loadTodayHomeCounts() {
+      const todayDate = new Date().toISOString().split('T')[0];
+      const dateEl = document.getElementById('home-today-date');
+      if (dateEl) {
+        dateEl.textContent = formatDateToDMY(todayDate);
+      }
 
+      let counts = { breakfast: 0, lunch: 0, dinner: 0 };
+
+      try {
+        const q = window.fs.query(
+          window.fs.collection(window.db, 'bookings'),
+          window.fs.where('date', '==', todayDate)
+        );
+        const snap = await window.fs.getDocs(q);
+        
+        snap.forEach(doc => {
+          const d = doc.data();
+          if (d.action === 'book') {
+            const guestCount = parseInt(d.guests) || 0;
+            const totalForEntry = 1 + guestCount;
+            if (counts[d.meal] !== undefined) {
+              counts[d.meal] += totalForEntry;
+            }
+          }
+        });
+
+        const bEl = document.getElementById('home-count-breakfast');
+        const lEl = document.getElementById('home-count-lunch');
+        const dEl = document.getElementById('home-count-dinner');
+        if (bEl) bEl.textContent = counts.breakfast;
+        if (lEl) lEl.textContent = counts.lunch;
+        if (dEl) dEl.textContent = counts.dinner;
+
+      } catch (err) {
+        console.error("Home counts load error:", err);
+      }
+    }
+    
     function switchNav(name, saveState = true) {
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-view').forEach(el => el.style.display = 'none');
