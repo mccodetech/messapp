@@ -416,6 +416,65 @@
         padding: 7px 10px !important;
       }
     }
+    /* App Home Menu Tiles */
+    .home-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .home-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 24px 16px;
+      text-align: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+    }
+    .home-card:active {
+      transform: scale(0.96);
+      background: #f8fafc;
+    }
+    .home-card-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+    .home-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 0;
+    }
+    .home-card p {
+      font-size: 0.75rem;
+      color: #64748b;
+      margin: 0;
+    }
+    .back-to-home-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #1e3c72;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
@@ -524,7 +583,10 @@
           <h2>Suprabhatham</h2>
         </div>
         <ul class="nav-list">
-          <li class="nav-item active" id="nav-booking" onclick="switchNav('booking')">
+          <li class="nav-item active" id="nav-home" onclick="switchNav('home')">
+            <i class="fa-solid fa-house"></i> <span>Home</span>
+          </li>
+          <li class="nav-item" id="nav-booking" onclick="switchNav('booking')">
             <i class="fa-solid fa-calendar-check"></i> <span id="nav-label-booking">Booking</span>
           </li>
           <li class="nav-item" id="nav-report" onclick="switchNav('report')">
@@ -572,8 +634,39 @@
         </button>
       </div>
 
+      <!-- VIEW 0: HOME DASHBOARD -->
+      <div id="view-home" class="tab-view">
+        <div style="text-align: center; margin: 10px 0 20px 0;">
+          <h3 style="font-size: 1.15rem; color: #1e293b;">Welcome to Suprabhatham</h3>
+          <p style="font-size: 0.8rem; color: #64748b;">Select an option below to proceed</p>
+        </div>
+
+        <div class="home-grid">
+          <!-- Booking Card -->
+          <div class="home-card" onclick="switchNav('booking')">
+            <div class="home-card-icon" style="background: #eff6ff; color: #2563eb;">
+              <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <h3>Book Meals</h3>
+            <p>Weekly Schedule & Menu</p>
+          </div>
+
+          <!-- Reports Card -->
+          <div class="home-card" onclick="switchNav('report')">
+            <div class="home-card-icon" style="background: #f0fdf4; color: #16a34a;">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <h3>My Reports</h3>
+            <p>Points & Summary</p>
+          </div>
+        </div>
+      </div>
+
       <!-- VIEW 1: BOOKING -->
       <div id="view-booking" class="tab-view">
+        <button class="back-to-home-btn" onclick="switchNav('home')">
+          <i class="fa-solid fa-arrow-left"></i> Back to Home
+        </button>
         <div class="timing-notice">
           <i class="fa-solid fa-clock"></i>
           <span><b>Cut-off times:</b> Breakfast: 6:00 AM | Lunch: 10:00 AM | Dinner: 4:00 PM.</span>
@@ -638,6 +731,9 @@
 
       <!-- VIEW 2: USER REPORTS -->
       <div id="view-report" class="tab-view" style="display: none;">
+        <button class="back-to-home-btn" onclick="switchNav('home')">
+          <i class="fa-solid fa-arrow-left"></i> Back to Home
+        </button>
         <div class="section-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
             <div>
@@ -1507,7 +1603,7 @@
       if (isAdmin) {
         switchNav('admin', false);
       } else {
-        switchNav(navTab, false);
+        switchNav('home', false);
       }
     }
 
@@ -2255,13 +2351,19 @@
       if (saveState) {
         try {
           localStorage.setItem('snec_mess_active_nav', name);
-        } catch(e) { console.warn(e); }
+        } catch(e) {}
       }
 
-      if (name === 'booking') {
+      if (name === 'home') {
+        const homeNav = document.getElementById('nav-home');
+        if (homeNav) homeNav.classList.add('active');
+        document.getElementById('view-home').style.display = 'block';
+        document.getElementById('view-title').textContent = 'Suprabhatham Mess';
+      } else if (name === 'booking') {
         document.getElementById('nav-booking').classList.add('active');
         document.getElementById('view-booking').style.display = 'block';
         document.getElementById('view-title').textContent = 'Mess Booking Portal';
+
         renderBulkTable();
         loadExistingBookings();
         checkSpecialNotice();
