@@ -2788,14 +2788,6 @@
               `}
             </div>
           </div>
-          
-${isGuestAccount ? `
-  <div style="margin-top:8px; border-top:1px dashed #e2e8f0; padding-top:6px;">
-    <input type="text" class="input-control guest-day-remark" data-date="${dateStr}" 
-           placeholder="📝 ${shortDays[dayIndex]} - Guest name / purpose" 
-           style="font-size:0.75rem; padding:5px 10px; width:100%; border-radius:6px; background:#fff;">
-  </div>
-` : ''}
         `;
         container.appendChild(card);
       }
