@@ -554,6 +554,33 @@
       </div>
     </div>
   </div>
+  <!-- Guest Meal Booking Popup Modal -->
+<div class="modal-overlay" id="guest-meal-modal">
+  <div class="modal-card" style="text-align: left; max-width: 360px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #f1f5f9; padding-bottom:8px;">
+      <h3 id="modal-meal-title" style="font-size:1rem; color:#1e3c72; margin:0;">Guest Booking</h3>
+      <button onclick="closeGuestMealModal()" style="border:none; background:transparent; font-size:1.2rem; cursor:pointer; color:#64748b;">&times;</button>
+    </div>
+    
+    <input type="hidden" id="modal-target-date">
+    <input type="hidden" id="modal-target-meal">
+
+    <div class="input-group" style="margin-bottom:12px;">
+      <label style="font-size:0.8rem; font-weight:700; color:#475569;">എത്ര ആളുകൾ (Guest Count):</label>
+      <input type="number" id="modal-guest-count" class="input-control" min="0" placeholder="0" style="font-size:1.1rem; font-weight:700; text-align:center;">
+    </div>
+
+    <div class="input-group" style="margin-bottom:16px;">
+      <label style="font-size:0.8rem; font-weight:700; color:#475569;">വിവരങ്ങൾ / റഫറൻസ് (Guest Details & Purpose):</label>
+      <textarea id="modal-guest-remarks" class="input-control" rows="3" placeholder="ഉദാ: Dr. Rashid (English Dept) / 2 Auditors" style="border-radius:10px; resize:none;"></textarea>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <button class="btn-pill btn-light" onclick="closeGuestMealModal()" style="flex:1;">Cancel</button>
+      <button class="btn-pill btn-success" onclick="applyGuestMealModalData()" style="flex:1;">Confirm</button>
+    </div>
+  </div>
+</div>
 
   <!-- AUTH SCREEN -->
   <div id="auth-overlay">
@@ -2658,11 +2685,7 @@
         (guestTokensConfig && Object.values(guestTokensConfig).map(String).includes(String(targetToken)))
       );
 
-      // ഗസ്റ്റ് ബുക്കിംഗിന് മാത്രം Remarks ഫീൽഡ് കാണിക്കുന്നു
-      const remarksBox = document.getElementById('guest-remarks-container');
-      if (remarksBox) {
-        remarksBox.style.display = isGuestAccount ? 'block' : 'none';
-      }
+      
 
       for (let i = 0; i < 7; i++) {
         const dayDate = new Date(sunday);
@@ -2711,7 +2734,19 @@
 
         const renderInputUI = (mealType, locked) => {
           if (isGuestAccount) {
-            return `<input type="number" class="app-count-input guest-input" data-date="${dateStr}" data-meal="${mealType}" min="0" value="0" placeholder="0" ${locked ? 'disabled' : ''}>`;
+            return `
+              <button type="button" class="btn-pill guest-slot-btn" 
+                      id="btn-guest-${dateStr}-${mealType}"
+                      data-date="${dateStr}" 
+                      data-meal="${mealType}" 
+                      data-count="0" 
+                      data-remarks=""
+                      onclick="openGuestMealModal('${dateStr}', '${mealType}')"
+                      style="font-size:0.75rem; padding:4px 8px; border-radius:8px; border:1px solid #3b82f6; background:#eff6ff; color:#1e40af; font-weight:700; width:100%;"
+                      ${locked ? 'disabled' : ''}>
+                0 Nos
+              </button>
+            `;
           } else {
             return `<input type="checkbox" class="app-checkbox bulk-cb meal-${mealType}" data-date="${dateStr}" data-meal="${mealType}" ${locked ? 'disabled' : ''}>`;
           }
@@ -2777,7 +2812,14 @@ ${isGuestAccount ? `
     async function loadExistingBookings() {
       if (!currentUser) return;
       document.querySelectorAll('.bulk-cb').forEach(cb => cb.checked = false);
-      document.querySelectorAll('.guest-input').forEach(inp => inp.value = 0);
+      document.querySelectorAll('.guest-slot-btn').forEach(btn => {
+  btn.setAttribute('data-count', '0');
+  btn.setAttribute('data-remarks', '');
+  btn.innerHTML = '0 Nos';
+  btn.style.background = '#eff6ff';
+  btn.style.color = '#1e40af';
+  btn.closest('.meal-box')?.classList.remove('active-booked');
+});
 
       let targetToken = currentUser.token;
       if (adminSelectedTargetUser) {
@@ -2795,16 +2837,26 @@ ${isGuestAccount ? `
         querySnapshot.forEach(docSnap => {
           const d = docSnap.data();
           const cb = document.querySelector(`.bulk-cb[data-date="${d.date}"][data-meal="${d.meal}"]`);
-          const guestInp = document.querySelector(`.guest-input[data-date="${d.date}"][data-meal="${d.meal}"]`);
-          if (cb) {
+         if (cb) {
             cb.checked = (d.action === 'book');
           }
-          if (guestInp) {
-            guestInp.value = d.guests || 0;
-          }
-          if (d.remarks) {
-            const remarkField = document.querySelector(`.guest-day-remark[data-date="${d.date}"]`);
-            if (remarkField) remarkField.value = d.remarks;
+
+          const guestBtn = document.getElementById(`btn-guest-${d.date}-${d.meal}`);
+          if (guestBtn) {
+            const count = d.guests || 0;
+            guestBtn.setAttribute('data-count', count);
+            guestBtn.setAttribute('data-remarks', d.remarks || '');
+            if (count > 0 && d.action === 'book') {
+              guestBtn.innerHTML = `👤 ${count} Nos`;
+              guestBtn.style.background = '#2563eb';
+              guestBtn.style.color = '#ffffff';
+              guestBtn.closest('.meal-box')?.classList.add('active-booked');
+            } else {
+              guestBtn.innerHTML = `0 Nos`;
+              guestBtn.style.background = '#eff6ff';
+              guestBtn.style.color = '#1e40af';
+              guestBtn.closest('.meal-box')?.classList.remove('active-booked');
+            }
           }
         });
       } catch (err) {
@@ -2837,23 +2889,19 @@ ${isGuestAccount ? `
         (guestTokensConfig && Object.values(guestTokensConfig).map(String).includes(String(activeUserToBook.token)))
       );
 
-      const remarksVal = document.getElementById('booking-remarks-input')?.value.trim() || '';
-
       try {
-        if (isGuestAccount) {
-          const guestInputs = document.querySelectorAll('.guest-input:not(:disabled)');
-          for (let inp of guestInputs) {
-            const date = inp.dataset.date;
-            const meal = inp.dataset.meal;
-            const guestCount = parseInt(inp.value) || 0;
+       if (isGuestAccount) {
+          const guestBtns = document.querySelectorAll('.guest-slot-btn:not(:disabled)');
+          for (let btn of guestBtns) {
+            const date = btn.dataset.date;
+            const meal = btn.dataset.meal;
+            const guestCount = parseInt(btn.getAttribute('data-count')) || 0;
+            const mealRemark = btn.getAttribute('data-remarks') || '';
 
             const docId = `${activeUserToBook.token}_${date}_${meal}`;
             const ref = window.fs.doc(window.db, 'bookings', docId);
-            
-            if (guestCount > 0) {
-              const dayRemarkInput = document.querySelector(`.guest-day-remark[data-date="${date}"]`);
-              const dayRemark = dayRemarkInput ? dayRemarkInput.value.trim() : '';
 
+            if (guestCount > 0) {
               await window.fs.setDoc(ref, {
                 token: activeUserToBook.token,
                 name: activeUserToBook.name,
@@ -2862,7 +2910,7 @@ ${isGuestAccount ? `
                 meal: meal,
                 action: 'book',
                 guests: guestCount,
-                remarks: dayRemark,
+                remarks: mealRemark,
                 timestamp
               });
             } else {
@@ -2870,6 +2918,8 @@ ${isGuestAccount ? `
                 await window.fs.deleteDoc(ref);
               } catch(e) {}
             }
+          }
+        }
           }
         } else {
           const cbs = document.querySelectorAll('.bulk-cb:not(:disabled)');
@@ -3510,6 +3560,51 @@ ${isGuestAccount ? `
       if (banner) banner.style.display = 'none';
       deferredInstallPrompt = null;
     });
+
+    function openGuestMealModal(dateStr, mealType) {
+      const btn = document.getElementById(`btn-guest-${dateStr}-${mealType}`);
+      const currentCount = btn ? btn.getAttribute('data-count') || 0 : 0;
+      const currentRemarks = btn ? btn.getAttribute('data-remarks') || '' : '';
+
+      document.getElementById('modal-target-date').value = dateStr;
+      document.getElementById('modal-target-meal').value = mealType;
+      document.getElementById('modal-guest-count').value = currentCount > 0 ? currentCount : '';
+      document.getElementById('modal-guest-remarks').value = currentRemarks;
+
+      document.getElementById('modal-meal-title').textContent = `${formatDateToDMY(dateStr)} - ${mealType.toUpperCase()} Guest`;
+      document.getElementById('guest-meal-modal').classList.add('active');
+    }
+
+    function closeGuestMealModal() {
+      document.getElementById('guest-meal-modal').classList.remove('active');
+    }
+
+    function applyGuestMealModalData() {
+      const dateStr = document.getElementById('modal-target-date').value;
+      const mealType = document.getElementById('modal-target-meal').value;
+      const countVal = parseInt(document.getElementById('modal-guest-count').value) || 0;
+      const remarksVal = document.getElementById('modal-guest-remarks').value.trim();
+
+      const btn = document.getElementById(`btn-guest-${dateStr}-${mealType}`);
+      if (btn) {
+        btn.setAttribute('data-count', countVal);
+        btn.setAttribute('data-remarks', remarksVal);
+        
+        if (countVal > 0) {
+          btn.innerHTML = `👤 ${countVal} Nos`;
+          btn.style.background = '#2563eb';
+          btn.style.color = '#ffffff';
+          btn.closest('.meal-box')?.classList.add('active-booked');
+        } else {
+          btn.innerHTML = `0 Nos`;
+          btn.style.background = '#eff6ff';
+          btn.style.color = '#1e40af';
+          btn.closest('.meal-box')?.classList.remove('active-booked');
+        }
+      }
+      closeGuestMealModal();
+    }
+    
   </script>
 </body>
 </html>
