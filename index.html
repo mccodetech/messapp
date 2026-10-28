@@ -2850,7 +2850,7 @@ ${isGuestAccount ? `
             const docId = `${activeUserToBook.token}_${date}_${meal}`;
             const ref = window.fs.doc(window.db, 'bookings', docId);
             
-            // ആ ദിവസത്തെ മാത്രം remark എടുക്കുന്നു
+            if (guestCount > 0) {
               const dayRemarkInput = document.querySelector(`.guest-day-remark[data-date="${date}"]`);
               const dayRemark = dayRemarkInput ? dayRemarkInput.value.trim() : '';
 
