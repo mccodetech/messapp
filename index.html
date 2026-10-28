@@ -2753,6 +2753,14 @@
               `}
             </div>
           </div>
+          // renderBulkTable ഫങ്ഷനിൽ day-card ഉണ്ടാക്കുമ്പോൾ (meals-grid കഴിഞ്ഞ ഉടൻ):
+${isGuestAccount ? `
+  <div style="margin-top:8px; border-top:1px dashed #e2e8f0; padding-top:6px;">
+    <input type="text" class="input-control guest-day-remark" data-date="${dateStr}" 
+           placeholder="📝 ${shortDays[dayIndex]} - Guest name / purpose" 
+           style="font-size:0.75rem; padding:5px 10px; width:100%; border-radius:6px; background:#fff;">
+  </div>
+` : ''}
         `;
         container.appendChild(card);
       }
@@ -2794,8 +2802,9 @@
           if (guestInp) {
             guestInp.value = d.guests || 0;
           }
-          if (d.remarks && document.getElementById('booking-remarks-input')) {
-            document.getElementById('booking-remarks-input').value = d.remarks;
+          if (d.remarks) {
+            const remarkField = document.querySelector(`.guest-day-remark[data-date="${d.date}"]`);
+            if (remarkField) remarkField.value = d.remarks;
           }
         });
       } catch (err) {
@@ -2841,7 +2850,10 @@
             const docId = `${activeUserToBook.token}_${date}_${meal}`;
             const ref = window.fs.doc(window.db, 'bookings', docId);
             
-            if (guestCount > 0) {
+            // ആ ദിവസത്തെ മാത്രം remark എടുക്കുന്നു
+              const dayRemarkInput = document.querySelector(`.guest-day-remark[data-date="${date}"]`);
+              const dayRemark = dayRemarkInput ? dayRemarkInput.value.trim() : '';
+
               await window.fs.setDoc(ref, {
                 token: activeUserToBook.token,
                 name: activeUserToBook.name,
@@ -2850,7 +2862,7 @@
                 meal: meal,
                 action: 'book',
                 guests: guestCount,
-                remarks: remarksVal,
+                remarks: dayRemark,
                 timestamp
               });
             } else {
