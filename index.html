@@ -115,7 +115,6 @@
       margin-bottom: 20px;
     }
 
-    /* Admin Vertical Sidebar Menu Styles */
     .admin-layout {
       display: flex;
       gap: 20px;
@@ -180,7 +179,6 @@
     .btn-whatsapp { background-color: var(--whatsapp-color); color: #fff; }
     .btn-light { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
-    /* Modern Android App / Card Layout for Booking */
     .bulk-table-container {
       border: none !important;
       background: transparent !important;
@@ -245,11 +243,6 @@
       min-height: 85px;
     }
 
-    .meal-box.active-booked {
-      background: #f0fdf4;
-      border-color: #86efac;
-    }
-
     .meal-label {
       font-size: 0.75rem;
       font-weight: 700;
@@ -290,6 +283,7 @@
       background: #fff;
       outline: none;
     }
+
     .timing-notice {
       background: #f0fdf4;
       border: 1px solid #bbf7d0;
@@ -408,15 +402,10 @@
         align-items: center !important;
         margin-bottom: 16px !important;
       }
-      .header-bar .logout-text {
-        display: none;
-      }
-      .header-bar .btn-danger {
-        display: inline-flex !important;
-        padding: 7px 10px !important;
-      }
+      .header-bar .logout-text { display: none; }
+      .header-bar .btn-danger { display: inline-flex !important; padding: 7px 10px !important; }
     }
-    /* Premium Android App Home Dashboard */
+
     #view-home {
       padding: 10px 4px;
       animation: fadeIn 0.3s ease-in-out;
@@ -713,7 +702,7 @@
           <h3>Suprabhatham Mess ✨</h3>
           <p>Easily plan and track your daily meals</p>
         </div>
-        <!-- Today's Total Live Booking Counter -->
+        <!-- Today's Total Live Booking Counter (Admin Only) -->
         <div id="home-today-counter-card" style="display:none; background:#ffffff; border-radius:18px; padding:14px; margin-bottom:18px; border:1px solid #e2e8f0; box-shadow:0 4px 15px rgba(0,0,0,0.04);">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <span style="font-size:0.85rem; font-weight:700; color:#1e293b; display:flex; align-items:center; gap:6px;">
@@ -798,7 +787,7 @@
             </div>
           </div>
 
-          <!-- Target User Selector with Search for Admin -->
+          <!-- Target User Selector for Admin -->
           <div id="admin-proxy-container" style="display:none; margin-bottom: 12px; padding: 10px; background: #f1f5f9; border-radius: 10px; flex-direction:column; gap: 8px;">
             <div style="display:flex; align-items:center; gap:8px;">
               <label style="font-size: 0.82rem; font-weight: 600; width:110px;">Booking for:</label>
@@ -818,14 +807,12 @@
             </div>
           </div>
 
-          <div id="subadmin-mode-container" style="display:none; margin-bottom: 12px; padding: 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-            <div>
-              <i class="fa-solid fa-user-shield" style="color:#1e40af;"></i> <b style="color:#1e40af;">Sub-Admin Mode (<span id="subadmin-cat-name"></span>):</b>
-            </div>
-            <div style="display:flex; background:#e0e7ff; border-radius:50px; padding:3px; gap:4px;">
-              <button class="btn-pill" id="submode-btn-self" onclick="switchSubAdminMode('self')" style="background:#fff; color:#1e3c72; padding:4px 12px; font-size:0.78rem;">My Booking</button>
-              <button class="btn-pill" id="submode-btn-guest" onclick="switchSubAdminMode('guest')" style="background:transparent; color:#475569; padding:4px 12px; font-size:0.78rem;">Manage Category Guests</button>
-            </div>
+          <!-- Guest Remarks Container (ഗസ്റ്റ് ബുക്കിംഗിന് മാത്രം) -->
+          <div id="guest-remarks-container" style="display:none; margin-bottom: 14px; padding: 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px;">
+            <label style="font-size: 0.82rem; font-weight: 700; color: #1e40af; display:block; margin-bottom: 4px;">
+              <i class="fa-solid fa-pen-to-square"></i> Guest Details / Remarks (ആർക്കുവേണ്ടി / ആരുടെ റഫറൻസ്):
+            </label>
+            <input type="text" id="booking-remarks-input" class="input-control" placeholder="e.g. Dr. Rashid (Guest Lecture) - Dept of English" style="background:#fff; border-radius:8px;">
           </div>
 
           <div class="bulk-table-container">
@@ -875,7 +862,6 @@
             </div>
           </div>
 
-          <!-- Table Container -->
           <div style="overflow-x: auto;">
             <table>
               <thead>
@@ -908,7 +894,7 @@
               <i class="fa-solid fa-calendar-xmark"></i> Holiday & Leave
             </button>
             <button class="admin-menu-btn" id="atab-btn-subadmin" onclick="switchAdminSubTab('subadmin')">
-              <i class="fa-solid fa-user-gear"></i> Category Sub-Admins
+              <i class="fa-solid fa-ticket"></i> Category Guest Tokens
             </button>
             <button class="admin-menu-btn" id="atab-btn-guestrep" onclick="switchAdminSubTab('guestrep')">
               <i class="fa-solid fa-users-rectangle"></i> Category Guests
@@ -1112,15 +1098,15 @@
               </div>
             </div>
 
-            <!-- 4. SUB-ADMIN ASSIGNMENT SECTION -->
+            <!-- 4. GUEST TOKEN ASSIGNMENT SECTION (SIMPLIFIED) -->
             <div id="admin-sec-subadmin" class="admin-sub-sec" style="display:none;">
               <div class="section-card">
-                <h3 style="margin-bottom: 12px; font-size: 0.95rem; color:#1e3c72;">Assign Category Sub-Admins & Guest Tokens</h3>
-                <p style="font-size: 0.8rem; color:#64748b; margin-bottom: 14px;">Select a department/category, assign a member, guest token number, and permissions.</p>
+                <h3 style="margin-bottom: 6px; font-size: 0.95rem; color:#1e3c72;"><i class="fa-solid fa-ticket"></i> Assign Category Guest Tokens</h3>
+                <p style="font-size: 0.8rem; color:#64748b; margin-bottom: 14px;">Assign a fixed guest token number for each department to easily book meals for guests.</p>
                 
                 <div class="input-group">
                   <label>Select Category / Department</label>
-                  <select id="subadmin-category-select" class="input-control" onchange="loadCurrentSubAdminForCategory()">
+                  <select id="subadmin-category-select" class="input-control" onchange="loadCurrentGuestTokenForCategory()">
                     <option value="SNEC">SNEC</option>
                     <option value="E LEARNING">E LEARNING</option>
                     <option value="SUPRABHATHAM">SUPRABHATHAM</option>
@@ -1131,31 +1117,17 @@
                   </select>
                 </div>
 
-                <div class="input-group" style="margin-bottom: 10px;">
-                  <label>Select Member (Sub-Admin)</label>
-                  <select id="subadmin-member-select" class="input-control">
-                    <option value="">-- Select Member --</option>
-                  </select>
-                </div>
-
                 <div class="input-group" style="margin-bottom: 14px;">
-                  <label>Guest Token Number (e.g. #SNEC_GUEST or #999)</label>
-                  <input type="text" id="subadmin-guest-token" class="input-control" placeholder="e.g., SNEC_GUEST">
-                </div>
-
-                <div class="input-group" style="margin-bottom: 14px; background: #f8fafc; padding: 10px; border-radius: 10px; border: 1px solid #e2e8f0;">
-                  <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:600; color:#1e3c72;">
-                    <input type="checkbox" id="subadmin-guest-perm" style="width:18px; height:18px; accent-color:#1e3c72;">
-                    Allow this Sub-Admin to Manage Category Guests
-                  </label>
+                  <label>Guest Token Number (e.g. 76, 89, 99)</label>
+                  <input type="text" id="subadmin-guest-token" class="input-control" placeholder="Enter Token Number">
                 </div>
 
                 <div style="display:flex; gap:10px;">
-                  <button class="btn-pill btn-success" onclick="saveCategorySubAdmin()">
-                    <i class="fa-solid fa-floppy-disk"></i> Save Sub-Admin Settings
+                  <button class="btn-pill btn-success" onclick="saveCategoryGuestToken()">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Guest Token
                   </button>
-                  <button class="btn-pill btn-danger" onclick="removeCategorySubAdmin()">
-                    <i class="fa-solid fa-trash"></i> Remove Sub-Admin
+                  <button class="btn-pill btn-danger" onclick="removeCategoryGuestToken()">
+                    <i class="fa-solid fa-trash"></i> Remove Token
                   </button>
                 </div>
               </div>
@@ -1167,7 +1139,7 @@
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
                   <div>
                     <h3 style="font-size: 0.95rem; color:#1e3c72;">Category Guests Summary Report</h3>
-                    <p style="font-size: 0.8rem; color:#64748b;">View monthly guest counts, breakdown and total points for each department.</p>
+                    <p style="font-size: 0.8rem; color:#64748b;">View guest meals and notes/remarks for each department.</p>
                   </div>
                   <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
                     <select id="guestrep-cat-select" class="input-control" style="width:160px; padding:6px 10px;" onchange="loadCategoryGuestsReport()">
@@ -1190,13 +1162,13 @@
                     <thead>
                       <tr style="color: #64748b;">
                         <th>Category</th>
-                        <th>Sub-Admin / Manager</th>
                         <th>Guest Token</th>
-                        <th style="text-align:center;">Breakfast Guests</th>
-                        <th style="text-align:center;">Lunch Guests</th>
-                        <th style="text-align:center;">Dinner Guests</th>
+                        <th style="text-align:center;">Breakfast</th>
+                        <th style="text-align:center;">Lunch</th>
+                        <th style="text-align:center;">Dinner</th>
                         <th style="text-align:center;">Total Guests</th>
                         <th style="text-align:right;">Total Guest Pts</th>
+                        <th>Recent Remarks</th>
                       </tr>
                     </thead>
                     <tbody id="guestrep-tbody">
@@ -1318,6 +1290,7 @@
                         <th>Category</th>
                         <th>Meal</th>
                         <th>Status</th>
+                        <th>Remarks / Purpose</th>
                         <th>Booked At</th>
                       </tr>
                     </thead>
@@ -1329,7 +1302,6 @@
 
           </div>
         </div>
-
       </div>
 
     </div>
@@ -1337,17 +1309,15 @@
 
   <script>
     let currentUser = null;
-    let currentKitchenData = { date: '', breakfast: [], lunch: [], dinner: [] };
+    let currentKitchenData = { date: '', breakfast: [], lunch: [], dinner: [], countB: 0, countL: 0, countD: 0 };
     let adminSelectedTargetUser = null;
     let weeklyMenuConfig = {};
     let dateConfigsCache = {};
-    let subAdminsConfig = {};
-    let subAdminPermissions = {};
     let guestTokensConfig = {};
     let globalPointRate = 41;
-    let subAdminCurrentMode = 'self';
     let currentConfirmAction = null;
     let currentBookingWeekBase = new Date();
+
     // ഏത് ടൈംസോണിലും ലോക്കൽ തീയതി (YYYY-MM-DD) കൃത്യമായി നൽകുന്ന ഫങ്ഷൻ
     function getLocalDateString(dateObj = new Date()) {
       const year = dateObj.getFullYear();
@@ -1365,11 +1335,9 @@
       return dateStr;
     }
 
-    // ശ്രദ്ധ ആകർഷിക്കുന്ന ഡബിൾ ബീപ് അലാറം ശബ്ദം
     function playBeepSound() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
         const playTone = (freq, start, duration) => {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
@@ -1384,14 +1352,13 @@
         };
 
         const now = audioCtx.currentTime;
-        playTone(784, now, 0.25);        // ആദ്യത്തെ ബീപ്
-        playTone(1046.5, now + 0.3, 0.4); // രണ്ടാമത്തെ ഉയർന്ന ബീപ്
+        playTone(784, now, 0.25);
+        playTone(1046.5, now + 0.3, 0.4);
       } catch (e) {
         console.error("Audio error", e);
       }
     }
 
-    // അലാറം ഒരേ മിനിറ്റിൽ വീണ്ടും വീണ്ടും അടിക്കാതിരിക്കാൻ
     let lastAlertKey = '';
 
     function checkCutoffReminders() {
@@ -1403,7 +1370,6 @@
       let cutoffTime = '';
       let alertKey = '';
 
-      // 30 മിനിറ്റ് മുമ്പുള്ള മുന്നറിയിപ്പ് സമയങ്ങൾ
       if (hours === 5 && minutes === 30) {
         mealName = 'പ്രഭാതഭക്ഷണ (Breakfast)';
         cutoffTime = '6:00 AM';
@@ -1418,12 +1384,10 @@
         alertKey = 'D_ALERT';
       }
 
-      // മുന്നറിയിപ്പ് കാണിക്കുന്നു
       if (mealName && lastAlertKey !== alertKey) {
         lastAlertKey = alertKey;
         playBeepSound();
 
-        // യൂസർ ബട്ടൺ അമർത്തുന്നത് വരെ സ്ക്രീനിൽ നിലനിൽക്കുന്ന പോപ്പ്-അപ്പ്
         const modal = document.getElementById('app-modal');
         document.getElementById('modal-icon').className = 'fa-solid fa-bell';
         document.getElementById('modal-icon').style.color = '#ef4444';
@@ -1443,7 +1407,6 @@
       }
     }
 
-    // ഓരോ 30 സെക്കൻഡിലും സമയം കൃത്യമായി പരിശോധിക്കുന്നു
     setInterval(checkCutoffReminders, 30000);
     
     document.addEventListener('DOMContentLoaded', () => {
@@ -1461,15 +1424,8 @@
         endDateObj = new Date(year, month + 1, 25);
       }
 
-      const formatDateStr = (d) => {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const dt = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${dt}`;
-      };
-
-      const firstDay = formatDateStr(startDateObj);
-      const lastDay = formatDateStr(endDateObj);
+      const firstDay = getLocalDateString(startDateObj);
+      const lastDay = getLocalDateString(endDateObj);
 
       if (document.getElementById('rep-start-date')) document.getElementById('rep-start-date').value = firstDay;
       if (document.getElementById('rep-end-date')) document.getElementById('rep-end-date').value = lastDay;
@@ -1478,9 +1434,9 @@
       if (document.getElementById('user-rep-end-date')) document.getElementById('user-rep-end-date').value = lastDay;
 
       const kp = document.getElementById('kitchen-date-picker');
-      if (kp) kp.value = formatDateStr(now);
+      if (kp) kp.value = getLocalDateString(now);
       const hp = document.getElementById('holiday-date-picker');
-      if (hp) hp.value = formatDateStr(now);
+      if (hp) hp.value = getLocalDateString(now);
 
       checkExistingSession();
     });
@@ -1496,7 +1452,6 @@
       loadExistingBookings();
     }
 
-    // Safe session check
     function checkExistingSession() {
       let saved = null;
       let savedNav = 'booking';
@@ -1530,7 +1485,6 @@
       document.getElementById('tab-btn-reg').style.background = type === 'register' ? '#fff' : 'transparent';
     }
 
-    // Login with Password or Mobile Number
     async function handleLogin() {
       const id = document.getElementById('login-identifier').value.trim();
       const pass = document.getElementById('login-pass').value.trim();
@@ -1541,7 +1495,6 @@
         return setSessionAndEnter(currentUser);
       }
       if (id === 'admin' && pass === 'admin123') {
-        // ടോക്കൺ 1 എന്നത് മാറ്റി 'ADMIN' എന്നാക്കുന്നു (യഥാർത്ഥ #1 യൂസറുമായി കൂട്ടിമുട്ടില്ല)
         currentUser = { token: 'ADMIN', name: 'System Admin', role: 'admin', status: 'active', category: 'ADMIN' };
         return setSessionAndEnter(currentUser);
       }
@@ -1607,7 +1560,6 @@
       }
 
       try {
-        // ഫോൺ നമ്പർ മാത്രം പരിശോധിച്ച് 1 റീഡ് ആക്കി ചുരുക്കുന്നു
         const qPhone = window.fs.query(window.fs.collection(window.db, 'users'), window.fs.where('phone', '==', phone), window.fs.limit(1));
         const phoneSnap = await window.fs.getDocs(qPhone);
         if (!phoneSnap.empty) {
@@ -1686,18 +1638,15 @@
       
       const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
       
-      // അഡ്മിൻ ആണെങ്കിൽ # ഇല്ലാതെ വെറും 'Admin' എന്ന് മാത്രം കാണിക്കുന്നു
       document.getElementById('user-display-token').textContent = isAdmin ? 'Admin' : ('#' + (currentUser.token || 'Pending'));
-
       document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? 'flex' : 'none');
       
-      // അഡ്മിന് പേഴ്സണൽ Reports ടാബ് ആവശ്യമില്ലാത്തതിനാൽ ഹൈഡ് ചെയ്യുന്നു
       const userReportNav = document.getElementById('nav-report');
       if (userReportNav) {
         userReportNav.style.display = isAdmin ? 'none' : 'flex';
       }
 
-      await loadSubAdminsConfig();
+      await loadGuestTokensConfig();
       await loadPointRateConfig();
 
       const proxyContainer = document.getElementById('admin-proxy-container');
@@ -1711,7 +1660,6 @@
       await loadWeeklyMenuConfig();
       await loadAllDateConfigs();
 
-      // അഡ്മിൻ കയറുമ്പോൾ നേരിട്ട് Admin Dashboard-ലേക്കും, സാധാരണക്കാർ Booking-ലേക്കും പോകുന്നു
       if (isAdmin) {
         switchNav('admin', false);
       } else {
@@ -1719,30 +1667,10 @@
       }
     }
 
-    function switchSubAdminMode(mode) {
-      subAdminCurrentMode = mode;
-      document.getElementById('submode-btn-self').style.background = mode === 'self' ? '#fff' : 'transparent';
-      document.getElementById('submode-btn-self').style.color = mode === 'self' ? '#1e3c72' : '#475569';
-      document.getElementById('submode-btn-guest').style.background = mode === 'guest' ? '#fff' : 'transparent';
-      document.getElementById('submode-btn-guest').style.color = mode === 'guest' ? '#1e3c72' : '#475569';
-
-      if (mode === 'guest') {
-        document.getElementById('booking-section-title').textContent = `Manage Category Guests (${document.getElementById('subadmin-cat-name').textContent})`;
-      } else {
-        document.getElementById('booking-section-title').textContent = 'Weekly Booking Schedule & Menu';
-      }
-      renderBulkTable();
-      loadExistingBookings();
-    }
-
     async function loadWeeklyMenuConfig() {
       try {
         const docSnap = await window.fs.getDoc(window.fs.doc(window.db, 'settings', 'weekly_menu'));
-        if (docSnap.exists()) {
-          weeklyMenuConfig = docSnap.data();
-        } else {
-          weeklyMenuConfig = {};
-        }
+        weeklyMenuConfig = docSnap.exists() ? docSnap.data() : {};
       } catch (e) {
         console.error(e);
         weeklyMenuConfig = {};
@@ -1791,19 +1719,9 @@
       }
     }
 
-    async function loadSubAdminsConfig() {
-      subAdminsConfig = {};
-      subAdminPermissions = {};
+    async function loadGuestTokensConfig() {
       guestTokensConfig = {};
       try {
-        const docSnap = await window.fs.getDoc(window.fs.doc(window.db, 'settings', 'sub_admins'));
-        if (docSnap.exists()) {
-          subAdminsConfig = docSnap.data();
-        }
-        const permSnap = await window.fs.getDoc(window.fs.doc(window.db, 'settings', 'sub_admin_permissions'));
-        if (permSnap.exists()) {
-          subAdminPermissions = permSnap.data();
-        }
         const tokenSnap = await window.fs.getDoc(window.fs.doc(window.db, 'settings', 'guest_tokens'));
         if (tokenSnap.exists()) {
           guestTokensConfig = tokenSnap.data();
@@ -2046,67 +1964,32 @@
       }
     }
 
-    async function loadSubAdminManagerDropdowns() {
-      const memSelect = document.getElementById('subadmin-member-select');
-      if (!memSelect) return;
-      memSelect.innerHTML = `<option value="">-- Select Member --</option>`;
-      try {
-        const snap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
-        snap.forEach(docSnap => {
-          const u = docSnap.data();
-          if (u.status === 'active' && u.token && u.role === 'user') {
-            const opt = document.createElement('option');
-            opt.value = u.token;
-            opt.textContent = `#${u.token} - ${u.name} (${u.category})`;
-            memSelect.appendChild(opt);
-          }
-        });
-        loadCurrentSubAdminForCategory();
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    async function loadCurrentSubAdminForCategory() {
+    // Simplified Category Guest Tokens Logic
+    async function loadCurrentGuestTokenForCategory() {
       const catSelect = document.getElementById('subadmin-category-select');
-      const memSelect = document.getElementById('subadmin-member-select');
       const tokenInput = document.getElementById('subadmin-guest-token');
-      const permCb = document.getElementById('subadmin-guest-perm');
-      if (!catSelect || !memSelect || !tokenInput || !permCb) return;
+      if (!catSelect || !tokenInput) return;
       const cat = catSelect.value;
-      await loadSubAdminsConfig();
-      memSelect.value = subAdminsConfig[cat] || '';
+      await loadGuestTokensConfig();
       tokenInput.value = guestTokensConfig[cat] || '';
-      permCb.checked = subAdminPermissions[subAdminsConfig[cat]] || false;
     }
 
-    async function saveCategorySubAdmin() {
+    async function saveCategoryGuestToken() {
       const catSelect = document.getElementById('subadmin-category-select');
-      const memSelect = document.getElementById('subadmin-member-select');
       const tokenInput = document.getElementById('subadmin-guest-token');
-      const permCb = document.getElementById('subadmin-guest-perm');
-      if (!catSelect || !memSelect || !tokenInput || !permCb) return;
+      if (!catSelect || !tokenInput) return;
       const cat = catSelect.value;
-      const token = memSelect.value;
       const guestTokenVal = tokenInput.value.trim();
-      const allowGuest = permCb.checked;
 
       if (!guestTokenVal) {
         return showToast('Please enter a Guest Token Number', 'error');
       }
 
       try {
-        subAdminsConfig[cat] = token;
-        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admins'), subAdminsConfig);
-
         guestTokensConfig[cat] = guestTokenVal;
-        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'guest_tokens'), guestTokensConfig);
+        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'guest_tokens'), guestTokensConfig, { merge: true });
 
-        if (token) {
-          subAdminPermissions[token] = allowGuest;
-        }
-        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admin_permissions'), subAdminPermissions);
-
+        // ഗസ്റ്റ് അക്കൗണ്ട് പ്രൊഫൈൽ മാത്രം ക്രിയേറ്റ് ചെയ്യുന്നു
         const guestUserRef = window.fs.doc(window.db, 'users', guestTokenVal);
         await window.fs.setDoc(guestUserRef, {
           token: guestTokenVal,
@@ -2114,28 +1997,22 @@
           category: cat,
           phone: 'N/A',
           email: `${guestTokenVal.toLowerCase()}@mess.com`,
-          password: 'guest_secure_pass',
           role: 'user',
-          status: 'active',
-          createdAt: new Date().toISOString()
+          status: 'active'
         }, { merge: true });
 
-        showModal('Success', `Sub-Admin and Guest Token #${guestTokenVal} for ${cat} saved successfully!`, 'success');
+        showModal('Success', `Guest Token #${guestTokenVal} for ${cat} saved successfully!`, 'success');
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
     }
 
-    async function removeCategorySubAdmin() {
+    async function removeCategoryGuestToken() {
       const catSelect = document.getElementById('subadmin-category-select');
       if (!catSelect) return;
       const cat = catSelect.value;
 
       try {
-        const oldToken = subAdminsConfig[cat];
-        delete subAdminsConfig[cat];
-        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admins'), subAdminsConfig);
-
         const oldGuestToken = guestTokensConfig[cat];
         delete guestTokensConfig[cat];
         await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'guest_tokens'), guestTokensConfig);
@@ -2146,15 +2023,8 @@
           } catch(e) { console.error(e); }
         }
 
-        if (oldToken && subAdminPermissions[oldToken]) {
-          delete subAdminPermissions[oldToken];
-          await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'sub_admin_permissions'), subAdminPermissions);
-        }
-
-        document.getElementById('subadmin-member-select').value = '';
         document.getElementById('subadmin-guest-token').value = '';
-        document.getElementById('subadmin-guest-perm').checked = false;
-        showModal('Success', `Sub-Admin for ${cat} removed successfully!`, 'success');
+        showModal('Success', `Guest Token for ${cat} removed successfully!`, 'success');
       } catch (err) {
         showModal('Error', err.message, 'error');
       }
@@ -2168,32 +2038,23 @@
       try {
         await loadWeeklyMenuConfig();
         await loadAllDateConfigs();
-        await loadSubAdminsConfig();
-
-        const usersSnap = await window.fs.getDocs(window.fs.collection(window.db, 'users'));
-        const usersMap = {};
-        usersSnap.forEach(docSnap => {
-          const u = docSnap.data();
-          usersMap[u.token] = u;
-        });
+        await loadGuestTokensConfig();
 
         const bookingsSnap = await window.fs.getDocs(window.fs.collection(window.db, 'bookings'));
         const catStats = {};
 
         const categories = ['SNEC', 'E LEARNING', 'SUPRABHATHAM', 'MASJID', 'BOOK DEPOT', 'GUEST', 'OTHER'];
         categories.forEach(cat => {
-          const subAdminToken = subAdminsConfig[cat];
-          const subAdminUser = subAdminToken ? usersMap[subAdminToken] : null;
           const gToken = guestTokensConfig[cat] || `${cat}_GUEST`;
           catStats[cat] = {
             category: cat,
-            subAdminName: subAdminUser ? `#${subAdminUser.token} - ${subAdminUser.name}` : 'Not Assigned',
             guestToken: `#${gToken}`,
             breakfastGuests: 0,
             lunchGuests: 0,
             dinnerGuests: 0,
             totalGuests: 0,
-            totalGuestPts: 0
+            totalGuestPts: 0,
+            remarksList: []
           };
         });
 
@@ -2213,7 +2074,7 @@
 
             if (guestCount > 0) {
               if (!catStats[cat]) {
-                 catStats[cat] = { category: cat, subAdminName: 'Not Assigned', guestToken: `#${targetGToken}`, breakfastGuests: 0, lunchGuests: 0, dinnerGuests: 0, totalGuests: 0, totalGuestPts: 0 };
+                catStats[cat] = { category: cat, guestToken: `#${targetGToken}`, breakfastGuests: 0, lunchGuests: 0, dinnerGuests: 0, totalGuests: 0, totalGuestPts: 0, remarksList: [] };
               }
               const dateObj = new Date(b.date);
               const daysNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -2243,6 +2104,10 @@
                 catStats[cat].totalGuestPts += (guestCount * dPts);
               }
               catStats[cat].totalGuests += guestCount;
+
+              if (b.remarks && !catStats[cat].remarksList.includes(b.remarks)) {
+                catStats[cat].remarksList.push(b.remarks);
+              }
             }
           }
         });
@@ -2258,13 +2123,13 @@
           const tr = document.createElement('tr');
           tr.innerHTML = `
             <td><b>${stat.category}</b></td>
-            <td>${stat.subAdminName}</td>
             <td><b>${stat.guestToken}</b></td>
             <td style="text-align:center;">${stat.breakfastGuests}</td>
             <td style="text-align:center;">${stat.lunchGuests}</td>
             <td style="text-align:center;">${stat.dinnerGuests}</td>
             <td style="text-align:center; font-weight:600;">${stat.totalGuests}</td>
             <td style="text-align:right; font-weight:600; color:#1e3c72;">${stat.totalGuestPts} Pts</td>
+            <td style="font-size:0.75rem; color:#2563eb;">${stat.remarksList.join(', ') || '-'}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -2453,13 +2318,15 @@
         adminSelectedTargetUser = val;
         document.getElementById('booking-section-title').textContent = `Weekly Booking (For Token #${val})`;
       }
+      renderBulkTable();
       loadExistingBookings();
     }
-async function loadTodayHomeCounts() {
-  // Admin ആയതുകൊണ്ട് മാത്രം കാർഡ് സ്ക്രീനിൽ കാണിക്കുന്നു
+
+    async function loadTodayHomeCounts() {
       const cardEl = document.getElementById('home-today-counter-card');
       if (cardEl) cardEl.style.display = 'block';
-    const todayDate = getLocalDateString();
+
+      const todayDate = getLocalDateString();
       const dateEl = document.getElementById('home-today-date');
       if (dateEl) {
         dateEl.textContent = formatDateToDMY(todayDate);
@@ -2513,12 +2380,10 @@ async function loadTodayHomeCounts() {
         document.getElementById('view-home').style.display = 'block';
         document.getElementById('view-title').textContent = 'Suprabhatham Mess';
 
-        // Admin ആണെങ്കിൽ മാത്രം കൗണ്ട് ലോഡ് ചെയ്യുന്നു
         if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) {
           loadTodayHomeCounts();
         }
-      }
-        else if (name === 'booking') {
+      } else if (name === 'booking') {
         document.getElementById('nav-booking').classList.add('active');
         document.getElementById('view-booking').style.display = 'block';
         document.getElementById('view-title').textContent = 'Mess Booking Portal';
@@ -2552,7 +2417,7 @@ async function loadTodayHomeCounts() {
       if (sec === 'kitchen') loadKitchenReport();
       if (sec === 'menu') renderWeeklyMenuManagerTable();
       if (sec === 'holiday') loadHolidayConfigForAdmin();
-      if (sec === 'subadmin') loadSubAdminManagerDropdowns();
+      if (sec === 'subadmin') loadCurrentGuestTokenForCategory();
       if (sec === 'guestrep') loadCategoryGuestsReport();
       if (sec === 'pending') loadAdminPendingUsers();
       if (sec === 'members') loadAdminMembersRegister();
@@ -2560,7 +2425,6 @@ async function loadTodayHomeCounts() {
       if (sec === 'allbookings') loadAdminAllBookings();
     }
 
-    // Optimized: Only queries bookings for the selected date range
     async function loadPointsAndBookingsReport() {
       const startDate = document.getElementById('rep-start-date').value;
       const endDate = document.getElementById('rep-end-date').value;
@@ -2589,12 +2453,11 @@ async function loadTodayHomeCounts() {
       try {
         await loadWeeklyMenuConfig();
         await loadAllDateConfigs();
-        await loadSubAdminsConfig();
+        await loadGuestTokensConfig();
         await loadPointRateConfig();
 
         const usersMap = {};
         
-        // Optimized Firestore range query
         const bookingsQuery = window.fs.query(
           window.fs.collection(window.db, 'bookings'),
           window.fs.where('date', '>=', startDate),
@@ -2774,6 +2637,7 @@ async function loadTodayHomeCounts() {
       if (mealType === 'dinner') return currentHour >= 16;
       return false;
     }
+
     function renderBulkTable() {
       const container = document.getElementById('bulk-cards-body');
       if (!container) return;
@@ -2787,12 +2651,18 @@ async function loadTodayHomeCounts() {
       const sunday = new Date(baseDate);
       sunday.setDate(baseDate.getDate() - currentDay);
 
-      const isGuestAccount = currentUser && (
+      let targetToken = adminSelectedTargetUser || currentUser.token;
+      const isGuestAccount = (
         (currentUser.name && currentUser.name.toUpperCase().includes('GUEST')) || 
-        String(currentUser.token).toUpperCase().includes('GUEST') ||
-        currentUser.category === 'GUEST' ||
-        String(currentUser.token) === '89'
+        String(targetToken).toUpperCase().includes('GUEST') ||
+        (guestTokensConfig && Object.values(guestTokensConfig).map(String).includes(String(targetToken)))
       );
+
+      // ഗസ്റ്റ് ബുക്കിംഗിന് മാത്രം Remarks ഫീൽഡ് കാണിക്കുന്നു
+      const remarksBox = document.getElementById('guest-remarks-container');
+      if (remarksBox) {
+        remarksBox.style.display = isGuestAccount ? 'block' : 'none';
+      }
 
       for (let i = 0; i < 7; i++) {
         const dayDate = new Date(sunday);
@@ -2924,6 +2794,9 @@ async function loadTodayHomeCounts() {
           if (guestInp) {
             guestInp.value = d.guests || 0;
           }
+          if (d.remarks && document.getElementById('booking-remarks-input')) {
+            document.getElementById('booking-remarks-input').value = d.remarks;
+          }
         });
       } catch (err) {
         console.error("Booking load error:", err);
@@ -2939,7 +2812,6 @@ async function loadTodayHomeCounts() {
       const timestamp = new Date().toISOString();
 
       let activeUserToBook = currentUser;
-      const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
 
       if (adminSelectedTargetUser) {
         try {
@@ -2950,13 +2822,16 @@ async function loadTodayHomeCounts() {
         } catch(e) {}
       }
 
-      const isGuestAccount = (activeUserToBook.name && activeUserToBook.name.toUpperCase().includes('GUEST')) || 
-                             String(activeUserToBook.token).toUpperCase().includes('GUEST') || 
-                             (guestTokensConfig && Object.values(guestTokensConfig).map(String).includes(String(activeUserToBook.token)));
+      const isGuestAccount = (
+        (activeUserToBook.name && activeUserToBook.name.toUpperCase().includes('GUEST')) || 
+        String(activeUserToBook.token).toUpperCase().includes('GUEST') || 
+        (guestTokensConfig && Object.values(guestTokensConfig).map(String).includes(String(activeUserToBook.token)))
+      );
+
+      const remarksVal = document.getElementById('booking-remarks-input')?.value.trim() || '';
 
       try {
         if (isGuestAccount) {
-          // ഗസ്റ്റ് അക്കൗണ്ട് സേവ് ചെയ്യുന്ന രീതി
           const guestInputs = document.querySelectorAll('.guest-input:not(:disabled)');
           for (let inp of guestInputs) {
             const date = inp.dataset.date;
@@ -2975,6 +2850,7 @@ async function loadTodayHomeCounts() {
                 meal: meal,
                 action: 'book',
                 guests: guestCount,
+                remarks: remarksVal,
                 timestamp
               });
             } else {
@@ -2984,14 +2860,11 @@ async function loadTodayHomeCounts() {
             }
           }
         } else {
-          // സാധാരണ മെമ്പർമാർ സേവ് ചെയ്യുന്ന രീതി
           const cbs = document.querySelectorAll('.bulk-cb:not(:disabled)');
           for (let cb of cbs) {
             const date = cb.dataset.date;
             const meal = cb.dataset.meal;
             const isBooked = cb.checked;
-            const guestInput = document.querySelector(`.guest-input[data-date="${date}"][data-meal="${meal}"]`);
-            const guestCount = guestInput ? parseInt(guestInput.value) || 0 : 0;
 
             const docId = `${activeUserToBook.token}_${date}_${meal}`;
             const ref = window.fs.doc(window.db, 'bookings', docId);
@@ -3004,7 +2877,8 @@ async function loadTodayHomeCounts() {
                 date: date,
                 meal: meal,
                 action: 'book',
-                guests: guestCount,
+                guests: 0,
+                remarks: '',
                 timestamp
               });
             } else {
@@ -3023,7 +2897,6 @@ async function loadTodayHomeCounts() {
       }
     }
 
-    // Previous / Current month cycle selector
     function setUserBillingCycle(type) {
       const now = new Date();
       let year = now.getFullYear();
@@ -3039,33 +2912,22 @@ async function loadTodayHomeCounts() {
       const startDateObj = new Date(year, currentCycleStartMonth, 26);
       const endDateObj = new Date(year, currentCycleStartMonth + 1, 25);
 
-      const formatDateStr = (d) => {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const dt = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${dt}`;
-      };
-
-      document.getElementById('user-rep-start-date').value = formatDateStr(startDateObj);
-      document.getElementById('user-rep-end-date').value = formatDateStr(endDateObj);
+      document.getElementById('user-rep-start-date').value = getLocalDateString(startDateObj);
+      document.getElementById('user-rep-end-date').value = getLocalDateString(endDateObj);
 
       loadMonthlyReport();
     }
 
-    // Optimized User Report with date-range query
     async function loadMonthlyReport() {
       const tbody = document.getElementById('report-table-body');
       if (!tbody) return;
 
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading...</td></tr>';
 
-      const startDate = document.getElementById('user-rep-start-date')?.value || '';
-      const endDate = document.getElementById('user-rep-end-date')?.value || '';
-
       try {
         await loadWeeklyMenuConfig();
         await loadAllDateConfigs();
-        await loadSubAdminsConfig();
+        await loadGuestTokensConfig();
         await loadPointRateConfig();
 
         const q = window.fs.query(
@@ -3179,7 +3041,7 @@ async function loadTodayHomeCounts() {
       currentKitchenData = { 
         date, 
         breakfast: [], lunch: [], dinner: [],
-        countB: 0, countL: 0, countD: 0 // Athathu meal-inte yathartha total count
+        countB: 0, countL: 0, countD: 0
       };
       showToast('Loading Kitchen Report...', 'info');
 
@@ -3194,7 +3056,7 @@ async function loadTodayHomeCounts() {
         snap.forEach(docSnap => {
           const d = docSnap.data();
           let entry = '';
-          let foodPortions = 1; // Default 1 food
+          let foodPortions = 1;
 
           const isGuestToken = d.token && (String(d.token).includes('_GUEST') || Object.values(guestTokensConfig).map(String).includes(String(d.token)));
           const guestCount = parseInt(d.guests) || 0;
@@ -3222,7 +3084,6 @@ async function loadTodayHomeCounts() {
           }
         });
 
-        // Token number kramamayi sort cheyyunnu
         const sortTokens = (list) => {
           return list.sort((a, b) => {
             const numA = parseInt((a.match(/#(\d+)/) || [])[1]) || 99999;
@@ -3235,7 +3096,6 @@ async function loadTodayHomeCounts() {
         currentKitchenData.lunch = sortTokens(currentKitchenData.lunch);
         currentKitchenData.dinner = sortTokens(currentKitchenData.dinner);
 
-        // Box-ukalil yathartha food count update cheyyunnu
         document.getElementById('count-breakfast').textContent = currentKitchenData.countB;
         document.getElementById('count-lunch').textContent = currentKitchenData.countL;
         document.getElementById('count-dinner').textContent = currentKitchenData.countD;
@@ -3271,10 +3131,8 @@ async function loadTodayHomeCounts() {
       const formattedDate = formatDateToDMY(date);
       let text = `🍽️ *SUPRABHATHAM MESS REPORT*\n📅 *Date:* ${formattedDate}\n----------------------------\n`;
 
-      // # ഉം ബുള്ളറ്റ് ডോട്ടും ഒഴിവാക്കി, വലിയ പേരുകൾ ഒരു വരിയിൽ ഒതുക്കാൻ ചുരുക്കുന്ന ഫങ്ഷൻ
       const formatWaList = (list) => {
         return list.map(item => {
-          // # കളഞ്ഞ് ടോക്കൺ നമ്പറും പേരും മാത്രമെടുക്കുന്നു
           const cleaned = item.replace(/^#/, '');
           const match = cleaned.match(/^(\d+)\s*(.*)$/);
 
@@ -3283,7 +3141,6 @@ async function loadTodayHomeCounts() {
           const token = match[1];
           let name = match[2];
 
-          // വലിയ പേരുകൾ രണ്ടാമത്തെ വരിയിലേക്ക് പോകാതെ 16 അക്ഷരത്തിൽ ചുരുക്കുന്നു
           if (name.length > 12) {
             name = name.substring(0, 11).trim() + '..';
           }
@@ -3337,7 +3194,6 @@ async function loadTodayHomeCounts() {
         totalNos = (countB + countL + countD);
       }
 
-      // ടോക്കൺ നമ്പർ ക്രമത്തിൽ കൃത്യമായി സോർട്ട് ചെയ്യുന്നു (1, 2, 3...)
       list.sort((a, b) => {
         const numA = parseInt((a.match(/#(\d+)/) || [])[1]) || 0;
         const numB = parseInt((b.match(/#(\d+)/) || [])[1]) || 0;
@@ -3365,7 +3221,6 @@ async function loadTodayHomeCounts() {
             .header-area h2 { font-size: 16px; margin: 0; font-weight: 800; }
             .header-area h4 { font-size: 12px; margin: 0; color: #222; font-weight: 600; }
             
-            /* വെർട്ടിക്കൽ ക്രമത്തിൽ (മുകളിൽ നിന്ന് താഴേക്ക്) 3 കോളങ്ങളായി തിരിക്കുന്നു */
             .column-container {
               column-count: 3;
               column-gap: 16px;
@@ -3391,7 +3246,6 @@ async function loadTodayHomeCounts() {
               white-space: nowrap;
             }
 
-            /* ടോക്കൺ നമ്പർ വലുതും കട്ടിയുള്ളതുമായി കാണിക്കുന്നു */
             .token-badge {
               font-size: 15px;
               font-weight: 900;
@@ -3468,7 +3322,7 @@ async function loadTodayHomeCounts() {
       }
       
       const selectedDate = dateInput ? dateInput.value : '';
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Loading records...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Loading records...</td></tr>';
       
       try {
         let q;
@@ -3490,7 +3344,7 @@ async function loadTodayHomeCounts() {
         tbody.innerHTML = '';
         
         if (querySnapshot.empty) {
-          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#64748b;">No bookings found for ${selectedDate ? formatDateToDMY(selectedDate) : 'this selection'}.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#64748b;">No bookings found for ${selectedDate ? formatDateToDMY(selectedDate) : 'this selection'}.</td></tr>`;
           return;
         }
 
@@ -3513,7 +3367,6 @@ async function loadTodayHomeCounts() {
             guestsStr = ` (+${d.guests} Guest)`;
           }
 
-          // ബുക്ക് ചെയ്ത തീയതിയും സമയവും കൃത്യമായി ഫോർമാറ്റ് ചെയ്യുന്നു
           let bookedTimeStr = 'N/A';
           if (d.timestamp) {
             try {
@@ -3532,12 +3385,13 @@ async function loadTodayHomeCounts() {
             <td>${d.category || 'N/A'}</td>
             <td style="text-transform: capitalize;">${d.meal}</td>
             <td><span style="color:#10b981; font-weight:600;">Booked</span></td>
+            <td style="color:#2563eb; font-weight:600; font-size:0.8rem;">${d.remarks || '-'}</td>
             <td><small style="color:#64748b; font-weight:600;">${bookedTimeStr}</small></td>
           `;
           tbody.appendChild(tr);
         });
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="7" style="color:red;">${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" style="color:red;">${err.message}</td></tr>`;
       }
     }
 
@@ -3560,7 +3414,7 @@ async function loadTodayHomeCounts() {
     }
 
     function exportAdminTableToCSV() {
-      let csv = 'Date,Token,Name,Category,Meal,Status\n';
+      let csv = 'Date,Token,Name,Category,Meal,Status,Remarks\n';
       document.querySelectorAll('#admin-table-body tr').forEach(row => {
         const cols = Array.from(row.querySelectorAll('td')).map(td => `"${td.innerText}"`);
         csv += cols.join(',') + '\n';
@@ -3632,11 +3486,8 @@ async function loadTodayHomeCounts() {
       const { outcome } = await deferredInstallPrompt.userChoice;
       
       if (outcome === 'accepted') {
-        console.log('User accepted the install prompt');
         const banner = document.getElementById('install-banner');
         if (banner) banner.style.display = 'none';
-      } else {
-        console.log('User dismissed the install prompt');
       }
       
       deferredInstallPrompt = null;
