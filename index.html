@@ -1348,6 +1348,13 @@
     let subAdminCurrentMode = 'self';
     let currentConfirmAction = null;
     let currentBookingWeekBase = new Date();
+    // ഏത് ടൈംസോണിലും ലോക്കൽ തീയതി (YYYY-MM-DD) കൃത്യമായി നൽകുന്ന ഫങ്ഷൻ
+    function getLocalDateString(dateObj = new Date()) {
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
 
     function formatDateToDMY(dateStr) {
       if (!dateStr || dateStr === 'N/A') return 'N/A';
@@ -1809,7 +1816,7 @@
     function checkSpecialNotice() {
       const box = document.getElementById('user-special-notice-box');
       const txt = document.getElementById('user-special-notice-text');
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDateString();
       const dateCfg = dateConfigsCache[todayStr];
 
       let noticeText = '';
@@ -2449,12 +2456,7 @@
       loadExistingBookings();
     }
 async function loadTodayHomeCounts() {
-      // ഇന്ത്യൻ സമയം (IST) അനുസരിച്ചുള്ള തീയതി കൃത്യമായി എടുക്കുന്നു
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const todayDate = `${year}-${month}-${day}`;
+    const todayDate = getLocalDateString();
       const dateEl = document.getElementById('home-today-date');
       if (dateEl) {
         dateEl.textContent = formatDateToDMY(todayDate);
@@ -2566,7 +2568,7 @@ async function loadTodayHomeCounts() {
       let curr = new Date(startDate);
       const last = new Date(endDate);
       while (curr <= last) {
-        dateList.push(new Date(curr).toISOString().split('T')[0]);
+        dateList.push(getLocalDateString(curr));
         curr.setDate(curr.getDate() + 1);
       }
 
@@ -2755,7 +2757,7 @@ async function loadTodayHomeCounts() {
       if (isAdmin) return false;
 
       const now = new Date();
-      const todayStr = now.toISOString().split('T')[0];
+      const todayStr = getLocalDateString(now);
 
       if (dateStr < todayStr) return true;
       if (dateStr > todayStr) return false;
@@ -2789,7 +2791,7 @@ async function loadTodayHomeCounts() {
       for (let i = 0; i < 7; i++) {
         const dayDate = new Date(sunday);
         dayDate.setDate(sunday.getDate() + i);
-        const dateStr = dayDate.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(dayDate);
         const dayIndex = dayDate.getDay();
         const dayName = daysOfWeek[dayIndex];
 
@@ -3456,7 +3458,7 @@ async function loadTodayHomeCounts() {
       let dateInput = document.getElementById('allbookings-date-picker');
       
       if (dateInput && !dateInput.value) {
-        dateInput.value = new Date().toISOString().split('T')[0];
+        dateInput.value = getLocalDateString();
       }
       
       const selectedDate = dateInput ? dateInput.value : '';
@@ -3560,7 +3562,7 @@ async function loadTodayHomeCounts() {
       const blob = new Blob([csv], { type: 'text/csv' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `mess_bookings_${new Date().toISOString().split('T')[0]}.csv`;
+      link.download = `mess_bookings_${getLocalDateString()}.csv`;
       link.click();
     }
 
