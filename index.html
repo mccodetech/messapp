@@ -2919,8 +2919,6 @@ ${isGuestAccount ? `
               } catch(e) {}
             }
           }
-        }
-          }
         } else {
           const cbs = document.querySelectorAll('.bulk-cb:not(:disabled)');
           for (let cb of cbs) {
@@ -2958,7 +2956,6 @@ ${isGuestAccount ? `
         showModal('Error', err.message, 'error');
       }
     }
-
     function setUserBillingCycle(type) {
       const now = new Date();
       let year = now.getFullYear();
