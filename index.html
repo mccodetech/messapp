@@ -714,7 +714,7 @@
           <p>Easily plan and track your daily meals</p>
         </div>
         <!-- Today's Total Live Booking Counter -->
-        <div style="background:#ffffff; border-radius:18px; padding:14px; margin-bottom:18px; border:1px solid #e2e8f0; box-shadow:0 4px 15px rgba(0,0,0,0.04);">
+        <div id="home-today-counter-card" style="display:none; background:#ffffff; border-radius:18px; padding:14px; margin-bottom:18px; border:1px solid #e2e8f0; box-shadow:0 4px 15px rgba(0,0,0,0.04);">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
             <span style="font-size:0.85rem; font-weight:700; color:#1e293b; display:flex; align-items:center; gap:6px;">
               <i class="fa-solid fa-utensils" style="color:#f59e0b;"></i> Today's Total Meals
@@ -2456,6 +2456,9 @@
       loadExistingBookings();
     }
 async function loadTodayHomeCounts() {
+  // Admin ആയതുകൊണ്ട് മാത്രം കാർഡ് സ്ക്രീനിൽ കാണിക്കുന്നു
+      const cardEl = document.getElementById('home-today-counter-card');
+      if (cardEl) cardEl.style.display = 'block';
     const todayDate = getLocalDateString();
       const dateEl = document.getElementById('home-today-date');
       if (dateEl) {
@@ -2509,8 +2512,11 @@ async function loadTodayHomeCounts() {
         if (homeNav) homeNav.classList.add('active');
         document.getElementById('view-home').style.display = 'block';
         document.getElementById('view-title').textContent = 'Suprabhatham Mess';
-        // ഇന്നത്തെ കൗണ്ടുകൾ ലോഡ് ചെയ്യുന്നു
-        loadTodayHomeCounts();
+
+        // Admin ആണെങ്കിൽ മാത്രം കൗണ്ട് ലോഡ് ചെയ്യുന്നു
+        if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin')) {
+          loadTodayHomeCounts();
+        }
       }
         else if (name === 'booking') {
         document.getElementById('nav-booking').classList.add('active');
