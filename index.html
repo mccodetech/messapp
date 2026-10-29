@@ -38,7 +38,7 @@
   </script>
 
   <style>
-    /* Kitchen user login cheythaal mathram ellaa extra menu-sum hide aavum */
+    /* കുക്ക് ലോഗിൻ ചെയ്യുമ്പോൾ പ്രധാന സൈഡ്‌ബാറിലെ Home, Booking എന്നിവ മറയ്ക്കുന്നു */
 body.kitchen-view .nav-item:not([data-nav="admin"]),
 body.kitchen-view #nav-home,
 body.kitchen-view #nav-booking,
@@ -46,10 +46,8 @@ body.kitchen-view #nav-report {
   display: none !important;
 }
 
-body.kitchen-view [onclick*="switchAdminTab"]:not([onclick*="kitchen-report"]),
-body.kitchen-view #admin-sidebar-menu > *:not(:first-child),
-body.kitchen-view .admin-sidebar > *:not(:first-child),
-body.kitchen-view .admin-sidebar-nav > *:not(:first-child) {
+/* കുക്ക് ലോഗിൻ ചെയ്യുമ്പോൾ അഡ്മിൻ മെനുവിലെ ആദ്യത്തെ Kitchen Report ഒഴികെ ബാക്കി എല്ലാ ബട്ടണുകളും മറയ്ക്കുന്നു */
+body.kitchen-view .admin-sidebar-menu .admin-menu-btn:not(#atab-btn-kitchen) {
   display: none !important;
 }
     #home-today-counter-card {
@@ -1714,7 +1712,12 @@ body.kitchen-view .admin-sidebar-nav > *:not(:first-child) {
       if (userReportNav) {
         userReportNav.style.display = isAdmin ? 'none' : 'flex';
       }
-
+if (currentUser && currentUser.role === 'kitchen') {
+    document.body.classList.add('kitchen-view');
+  } else {
+    document.body.classList.remove('kitchen-view');
+  }
+      
       await loadGuestTokensConfig();
       await loadPointRateConfig();
 
@@ -1733,28 +1736,7 @@ body.kitchen-view .admin-sidebar-nav > *:not(:first-child) {
       switchNav('admin', false);
 
       if (currentUser.role === 'kitchen') {
-        // സൈഡ്ബാറിലെ മറ്റ് ടാബുകൾ മറയ്ക്കുന്നു
-        const navHome = document.querySelector('[data-nav="home"]');
-        const navBooking = document.querySelector('[data-nav="booking"]');
-        const navReport = document.getElementById('nav-report');
-        if (navHome) navHome.style.display = 'none';
-        if (navBooking) navBooking.style.display = 'none';
-        if (navReport) navReport.style.display = 'none';
-
-        // അഡ്മിൻ സബ് മെനുകളിൽ Kitchen Report അല്ലാത്ത ബാക്കിയെല്ലാം മറയ്ക്കുന്നു
-        setTimeout(() => {
-          document.querySelectorAll('#admin-sidebar-menu button, #admin-sidebar-menu li, .admin-nav-item').forEach(el => {
-            if (!el.textContent.includes('Kitchen Report')) {
-              el.style.display = 'none';
-            } else {
-              el.style.display = '';
-            }
-          });
-          // നേരിട്ട് കിച്ചൻ റിപ്പോർട്ട് തുറക്കുന്നു
-          if (typeof switchAdminTab === 'function') {
-            switchAdminTab('kitchen-report');
-          }
-        }, 50);
+        switchAdminSubTab('kitchen');
       }
     } else {
       switchNav('home', false);
