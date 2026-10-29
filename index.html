@@ -1601,13 +1601,8 @@ body.kitchen-view .admin-sidebar-menu .admin-menu-btn:not(#atab-btn-kitchen) {
   document.getElementById('auth-overlay').style.display = 'none';
 
   if (user.role === 'kitchen') {
-    document.body.classList.add('kitchen-view');
     renderAuthenticatedUI('admin');
-    if (typeof switchAdminTab === 'function') {
-      switchAdminTab('kitchen-report');
-    }
   } else {
-    document.body.classList.remove('kitchen-view');
     renderAuthenticatedUI('booking');
   }
 }
@@ -1732,15 +1727,10 @@ if (currentUser && currentUser.role === 'kitchen') {
       await loadWeeklyMenuConfig();
       await loadAllDateConfigs();
 
-      if (isAdmin) {
+     if (isAdmin) {
       switchNav('admin', false);
-
-      if (currentUser.role === 'kitchen') {
-        switchAdminSubTab('kitchen');
-      }
     } else {
       switchNav('home', false);
-    }
     }
 
     async function loadWeeklyMenuConfig() {
@@ -3128,24 +3118,26 @@ if (currentUser && currentUser.role === 'kitchen') {
 
       currentKitchenData = { 
         date, 
-        breakfast: [], lunch: [], dinner: [],
-        countB: 0, countL: 0, countD: 0
+        breakfast: [], lunch: [], dinner: [], 
+        countB: 0, countL: 0, countD: 0 
       };
+
+      const bList = document.getElementById('list-breakfast');
+      const lList = document.getElementById('list-lunch');
+      const dList = document.getElementById('list-dinner');
+      if (bList) bList.innerHTML = '';
+      if (lList) lList.innerHTML = '';
+      if (dList) dList.innerHTML = '';
+
+      const cB = document.getElementById('count-breakfast');
+      const cL = document.getElementById('count-lunch');
+      const cD = document.getElementById('count-dinner');
+      if (cB) cB.textContent = '0';
+      if (cL) cL.textContent = '0';
+      if (cD) cD.textContent = '0';
+
       showToast('Loading Kitchen Report...', 'info');
-// പഴയ ലിസ്റ്റുകൾ ക്ലിയർ ചെയ്ത് ഡ്യൂപ്ലിക്കേഷൻ ഒഴിവാക്കുന്നു
-  const bList = document.getElementById('list-breakfast');
-  const lList = document.getElementById('list-lunch');
-  const dList = document.getElementById('list-dinner');
-  if (bList) bList.innerHTML = '';
-  if (lList) lList.innerHTML = '';
-  if (dList) dList.innerHTML = '';
-const cB = document.getElementById('count-breakfast');
-  const cL = document.getElementById('count-lunch');
-  const cD = document.getElementById('count-dinner');
-  if (cB) cB.textContent = '0';
-  if (cL) cL.textContent = '0';
-  if (cD) cD.textContent = '0';
-      
+
       try {
         const q = window.fs.query(
           window.fs.collection(window.db, 'bookings'),
@@ -3153,6 +3145,13 @@ const cB = document.getElementById('count-breakfast');
           window.fs.where('action', '==', 'book')
         );
         const snap = await window.fs.getDocs(q);
+
+        let tempBreakfast = [];
+        let tempLunch = [];
+        let tempDinner = [];
+        let tempCountB = 0;
+        let tempCountL = 0;
+        let tempCountD = 0;
 
         snap.forEach(docSnap => {
           const d = docSnap.data();
@@ -3172,16 +3171,16 @@ const cB = document.getElementById('count-breakfast');
           }
 
           if (d.meal === 'breakfast') {
-            currentKitchenData.breakfast.push(entry);
-            currentKitchenData.countB += foodPortions;
+            tempBreakfast.push(entry);
+            tempCountB += foodPortions;
           }
           if (d.meal === 'lunch') {
-            currentKitchenData.lunch.push(entry);
-            currentKitchenData.countL += foodPortions;
+            tempLunch.push(entry);
+            tempCountL += foodPortions;
           }
           if (d.meal === 'dinner') {
-            currentKitchenData.dinner.push(entry);
-            currentKitchenData.countD += foodPortions;
+            tempDinner.push(entry);
+            tempCountD += foodPortions;
           }
         });
 
@@ -3193,13 +3192,16 @@ const cB = document.getElementById('count-breakfast');
           });
         };
 
-        currentKitchenData.breakfast = sortTokens(currentKitchenData.breakfast);
-        currentKitchenData.lunch = sortTokens(currentKitchenData.lunch);
-        currentKitchenData.dinner = sortTokens(currentKitchenData.dinner);
+        currentKitchenData.breakfast = sortTokens(tempBreakfast);
+        currentKitchenData.lunch = sortTokens(tempLunch);
+        currentKitchenData.dinner = sortTokens(tempDinner);
+        currentKitchenData.countB = tempCountB;
+        currentKitchenData.countL = tempCountL;
+        currentKitchenData.countD = tempCountD;
 
-        document.getElementById('count-breakfast').textContent = currentKitchenData.countB;
-        document.getElementById('count-lunch').textContent = currentKitchenData.countL;
-        document.getElementById('count-dinner').textContent = currentKitchenData.countD;
+        if (cB) cB.textContent = currentKitchenData.countB;
+        if (cL) cL.textContent = currentKitchenData.countL;
+        if (cD) cD.textContent = currentKitchenData.countD;
 
         renderKitchenList('list-breakfast', currentKitchenData.breakfast);
         renderKitchenList('list-lunch', currentKitchenData.lunch);
