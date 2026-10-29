@@ -3139,6 +3139,12 @@ if (currentUser && currentUser.role === 'kitchen') {
   if (bList) bList.innerHTML = '';
   if (lList) lList.innerHTML = '';
   if (dList) dList.innerHTML = '';
+const cB = document.getElementById('count-breakfast');
+  const cL = document.getElementById('count-lunch');
+  const cD = document.getElementById('count-dinner');
+  if (cB) cB.textContent = '0';
+  if (cL) cL.textContent = '0';
+  if (cD) cD.textContent = '0';
       
       try {
         const q = window.fs.query(
