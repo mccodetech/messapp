@@ -3366,15 +3366,10 @@
           </style>
         </head>
         <body>
-         <div class="header-area" style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #000; padding-bottom:6px; margin-bottom:12px;">
-        <h2 style="margin:0; font-size:22px; font-weight:800; color:#000;">Suprabhatham - ${title}</h2>
-        <div style="text-align:right;">
-          <div style="font-size:15px; font-weight:700; color:#111; margin-bottom:4px;">
-            Date: <span style="font-size:17px; font-weight:800; color:#000;">${formattedDate}</span>
-          </div>
-          <div style="display:inline-block; background:#000; color:#fff; padding:4px 12px; border-radius:4px; font-size:17px; font-weight:900; letter-spacing:0.5px;">
-            TOTAL: ${totalNos || list.length} NOS
-          </div>
+        <div class="header-area" style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #000; padding-bottom:8px; margin-bottom:12px;">
+        <h2 style="margin:0; font-size:22px; font-weight:900; color:#000;">Suprabhatham - ${title}</h2>
+        <div style="font-size:16px; font-weight:900; color:#000; white-space:nowrap;">
+          Date: ${formattedDate} &nbsp;|&nbsp; TOTAL: ${totalNos || list.length} NOS
         </div>
       </div>
           <div class="column-container">
