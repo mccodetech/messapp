@@ -3132,7 +3132,14 @@ if (currentUser && currentUser.role === 'kitchen') {
         countB: 0, countL: 0, countD: 0
       };
       showToast('Loading Kitchen Report...', 'info');
-
+// പഴയ ലിസ്റ്റുകൾ ക്ലിയർ ചെയ്ത് ഡ്യൂപ്ലിക്കേഷൻ ഒഴിവാക്കുന്നു
+  const bList = document.getElementById('list-breakfast');
+  const lList = document.getElementById('list-lunch');
+  const dList = document.getElementById('list-dinner');
+  if (bList) bList.innerHTML = '';
+  if (lList) lList.innerHTML = '';
+  if (dList) dList.innerHTML = '';
+      
       try {
         const q = window.fs.query(
           window.fs.collection(window.db, 'bookings'),
