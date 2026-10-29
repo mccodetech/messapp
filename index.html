@@ -46,9 +46,10 @@ body.kitchen-view #nav-report {
   display: none !important;
 }
 
-body.kitchen-view .admin-sidebar button:not(:first-child),
-body.kitchen-view .admin-sidebar li:not(:first-child),
-body.kitchen-view .admin-nav-item:not(:first-child) {
+body.kitchen-view [onclick*="switchAdminTab"]:not([onclick*="kitchen-report"]),
+body.kitchen-view #admin-sidebar-menu > *:not(:first-child),
+body.kitchen-view .admin-sidebar > *:not(:first-child),
+body.kitchen-view .admin-sidebar-nav > *:not(:first-child) {
   display: none !important;
 }
     #home-today-counter-card {
