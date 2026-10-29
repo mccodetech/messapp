@@ -1732,7 +1732,7 @@ if (currentUser && currentUser.role === 'kitchen') {
     } else {
       switchNav('home', false);
     }
-
+    }
     async function loadWeeklyMenuConfig() {
       try {
         const docSnap = await window.fs.getDoc(window.fs.doc(window.db, 'settings', 'weekly_menu'));
