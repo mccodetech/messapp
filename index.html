@@ -1712,7 +1712,7 @@
       document.getElementById('app-container').style.display = 'flex';
       document.getElementById('user-display-name').textContent = currentUser.name;
       
-      const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin';
+      const isAdmin = currentUser.role === 'admin' || currentUser.role === 'superadmin' || currentUser.role === 'kitchen';
       
       document.getElementById('user-display-token').textContent = isAdmin ? 'Admin' : ('#' + (currentUser.token || 'Pending'));
       document.querySelectorAll('.admin-only').forEach(el => el.style.display = isAdmin ? 'flex' : 'none');
@@ -1737,10 +1737,35 @@
       await loadAllDateConfigs();
 
       if (isAdmin) {
-        switchNav('admin', false);
-      } else {
-        switchNav('home', false);
+      switchNav('admin', false);
+
+      if (currentUser.role === 'kitchen') {
+        // സൈഡ്ബാറിലെ മറ്റ് ടാബുകൾ മറയ്ക്കുന്നു
+        const navHome = document.querySelector('[data-nav="home"]');
+        const navBooking = document.querySelector('[data-nav="booking"]');
+        const navReport = document.getElementById('nav-report');
+        if (navHome) navHome.style.display = 'none';
+        if (navBooking) navBooking.style.display = 'none';
+        if (navReport) navReport.style.display = 'none';
+
+        // അഡ്മിൻ സബ് മെനുകളിൽ Kitchen Report അല്ലാത്ത ബാക്കിയെല്ലാം മറയ്ക്കുന്നു
+        setTimeout(() => {
+          document.querySelectorAll('#admin-sidebar-menu button, #admin-sidebar-menu li, .admin-nav-item').forEach(el => {
+            if (!el.textContent.includes('Kitchen Report')) {
+              el.style.display = 'none';
+            } else {
+              el.style.display = '';
+            }
+          });
+          // നേരിട്ട് കിച്ചൻ റിപ്പോർട്ട് തുറക്കുന്നു
+          if (typeof switchAdminTab === 'function') {
+            switchAdminTab('kitchen-report');
+          }
+        }, 50);
       }
+    } else {
+      switchNav('home', false);
+    }
     }
 
     async function loadWeeklyMenuConfig() {
