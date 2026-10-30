@@ -3989,9 +3989,12 @@ let currentCategoryModalData = { category: '', guestToken: '', list: [] };
       const actionText = item.served ? 'Mark as Not Served (Cancel)?' : 'Confirm Food Served?';
       const statusText = item.served ? 'Already Served' : 'Pending Serving';
 
+      // HTML ടാഗുകൾക്ക് പകരം ക്ലീൻ ടെക്സ്റ്റ്
+      const msg = `Status: ${statusText} | Meal: ${item.meal.toUpperCase()} (${item.portions} portion)\n\n${actionText}`;
+
       showConfirmModal(
         `Token #${item.token} - ${item.name}`,
-        `Status: <b>${statusText}</b><br>Meal: <b>${item.meal.toUpperCase()}</b> (${item.portions} portion)<br><br>${actionText}`,
+        msg,
         async () => {
           try {
             const nextStatus = !item.served;
