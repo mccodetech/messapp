@@ -3986,10 +3986,17 @@ let currentCategoryModalData = { category: '', guestToken: '', list: [] };
     function onTokenCardClicked(item) {
       playServingClickSound();
 
+      const isRealAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'superadmin');
+
+      // കുക്കിന് ഒരിക്കൽ സെർവ് ചെയ്തത് വീണ്ടും ക്ലിക്ക് ചെയ്ത് ക്യാൻസൽ ചെയ്യാൻ കഴിയില്ല
+      if (item.served && !isRealAdmin) {
+        showToast(`Token #${item.token} already served! Only Admin can undo.`, 'warning');
+        return;
+      }
+
       const actionText = item.served ? 'Mark as Not Served (Cancel)?' : 'Confirm Food Served?';
       const statusText = item.served ? 'Already Served' : 'Pending Serving';
 
-      // HTML ടാഗുകൾക്ക് പകരം ക്ലീൻ ടെക്സ്റ്റ്
       const msg = `Status: ${statusText} | Meal: ${item.meal.toUpperCase()} (${item.portions} portion)\n\n${actionText}`;
 
       showConfirmModal(
@@ -4010,7 +4017,6 @@ let currentCategoryModalData = { category: '', guestToken: '', list: [] };
         }
       );
     }
-
     function filterLiveTokens() {
       const q = document.getElementById('token-quick-search').value.trim().toLowerCase();
       document.querySelectorAll('.token-card').forEach(card => {
