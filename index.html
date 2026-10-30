@@ -552,6 +552,80 @@ body.kitchen-view .admin-sidebar-menu .admin-menu-btn:not(#atab-btn-kitchen) {
       cursor: pointer;
       margin-bottom: 12px;
     }
+    /* Kitchen Serving Grid Styles */
+    .serving-stats-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+    .serving-stat-pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+    .stat-total { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+    .stat-pending { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .stat-served { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
+
+    .token-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(105px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .token-card {
+      background: #f0fdf4;
+      border: 2px solid #86efac;
+      border-radius: 14px;
+      padding: 12px 6px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .token-card:active {
+      transform: scale(0.95);
+    }
+    .token-card.served {
+      background: #fef9c3;
+      border-color: #facc15;
+      opacity: 0.85;
+    }
+    .token-card .t-num {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1.1;
+    }
+    .token-card .t-name {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #334155;
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90px;
+    }
+    .token-card .t-status {
+      font-size: 0.65rem;
+      font-weight: 700;
+      margin-top: 4px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      background: #bbf7d0;
+      color: #166534;
+    }
+    .token-card.served .t-status {
+      background: #fde047;
+      color: #854d0e;
+    }
   </style>
 </head>
 <body>
@@ -1034,6 +1108,26 @@ body.kitchen-view .admin-sidebar-menu .admin-menu-btn:not(#atab-btn-kitchen) {
                   </div>
                 </div>
 
+                <!-- Meal Switcher Tabs for Live Serving -->
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin: 16px 0 10px 0;">
+                  <div style="display:flex; gap:6px;">
+                    <button class="btn-pill btn-light active" id="btn-live-b" onclick="switchLiveServingMeal('breakfast')">🌅 Breakfast</button>
+                    <button class="btn-pill btn-light" id="btn-live-l" onclick="switchLiveServingMeal('lunch')">☀️ Lunch</button>
+                    <button class="btn-pill btn-light" id="btn-live-d" onclick="switchLiveServingMeal('dinner')">🌙 Dinner</button>
+                  </div>
+                  <input type="text" id="token-quick-search" placeholder="🔍 Search Token #" onkeyup="filterLiveTokens()" class="input-control" style="width:140px; padding:6px 10px; font-size:0.8rem;">
+                </div>
+
+                <!-- Live Counts Counter Bar -->
+                <div class="serving-stats-bar">
+                  <div class="serving-stat-pill stat-total">Total: <span id="live-stat-total">0</span></div>
+                  <div class="serving-stat-pill stat-pending">Pending: <span id="live-stat-pending">0</span></div>
+                  <div class="serving-stat-pill stat-served">Served: <span id="live-stat-served">0</span></div>
+                </div>
+
+                <!-- Big Number Cards Grid Container -->
+                <div id="kitchen-token-grid" class="token-grid"></div>
+                
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top:14px;">
                   <div style="border:1px solid #e2e8f0; border-radius:12px; padding:12px; background:#fff;">
                     <h4 style="font-size:0.9rem; color:#1e3c72; margin-bottom:8px; border-bottom:1px solid #f1f5f9; padding-bottom:4px;">🌅 Breakfast List</h4>
@@ -3121,7 +3215,8 @@ if (currentUser && currentUser.role === 'kitchen') {
         breakfast: [], lunch: [], dinner: [], 
         countB: 0, countL: 0, countD: 0 
       };
-
+      currentLiveBookingsList = [];
+      
       const bList = document.getElementById('list-breakfast');
       const lList = document.getElementById('list-lunch');
       const dList = document.getElementById('list-dinner');
@@ -3182,6 +3277,15 @@ if (currentUser && currentUser.role === 'kitchen') {
             tempDinner.push(entry);
             tempCountD += foodPortions;
           }
+          currentLiveBookingsList.push({
+            docId: docSnap.id,
+            token: d.token,
+            name: d.name,
+            meal: d.meal,
+            guests: guestCount,
+            portions: foodPortions,
+            served: d.served || false
+          });
         });
 
         const sortTokens = (list) => {
@@ -3206,6 +3310,12 @@ if (currentUser && currentUser.role === 'kitchen') {
         renderKitchenList('list-breakfast', currentKitchenData.breakfast);
         renderKitchenList('list-lunch', currentKitchenData.lunch);
         renderKitchenList('list-dinner', currentKitchenData.dinner);
+        currentLiveBookingsList.sort((a, b) => {
+          const numA = parseInt(String(a.token).replace(/\D/g, '')) || 99999;
+          const numB = parseInt(String(b.token).replace(/\D/g, '')) || 99999;
+          return numA - numB;
+        });
+        renderLiveServingCards();
       } catch (err) {
         console.error(err);
       }
@@ -3792,6 +3902,118 @@ let currentCategoryModalData = { category: '', guestToken: '', list: [] };
       printWindow.document.close();
       printWindow.focus();
       printWindow.print();
+    }
+    let currentServingMeal = 'breakfast';
+    let currentLiveBookingsList = [];
+
+    function playServingClickSound() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.15);
+      } catch (e) {
+        console.error("Audio error", e);
+      }
+    }
+
+    function switchLiveServingMeal(meal) {
+      currentServingMeal = meal;
+      ['b', 'l', 'd'].forEach(k => {
+        const btn = document.getElementById(`btn-live-${k}`);
+        if (btn) btn.classList.remove('active', 'btn-primary');
+      });
+      const keyMap = { breakfast: 'b', lunch: 'l', dinner: 'd' };
+      const activeBtn = document.getElementById(`btn-live-${keyMap[meal]}`);
+      if (activeBtn) activeBtn.classList.add('active', 'btn-primary');
+
+      renderLiveServingCards();
+    }
+
+    function renderLiveServingCards() {
+      const grid = document.getElementById('kitchen-token-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      const list = currentLiveBookingsList.filter(b => b.meal === currentServingMeal);
+
+      let total = 0;
+      let served = 0;
+
+      list.forEach(item => {
+        const portions = item.portions || 1;
+        total += portions;
+        if (item.served) served += portions;
+
+        const card = document.createElement('div');
+        card.className = `token-card ${item.served ? 'served' : ''}`;
+        card.id = `tcard-${item.docId}`;
+        card.setAttribute('data-token', item.token);
+        card.onclick = () => onTokenCardClicked(item);
+
+        const guestBadge = item.guests > 0 ? `<small style="color:#ef4444;">+${item.guests}G</small>` : '';
+
+        card.innerHTML = `
+          <div class="t-num">${item.token}</div>
+          <div class="t-name" title="${item.name}">${item.name}</div>
+          ${guestBadge}
+          <div class="t-status">${item.served ? 'Served ✓' : 'Pending'}</div>
+        `;
+        grid.appendChild(card);
+      });
+
+      const pending = total - served;
+      const elTotal = document.getElementById('live-stat-total');
+      const elPending = document.getElementById('live-stat-pending');
+      const elServed = document.getElementById('live-stat-served');
+
+      if (elTotal) elTotal.textContent = total;
+      if (elPending) elPending.textContent = pending;
+      if (elServed) elServed.textContent = served;
+
+      if (list.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:#94a3b8; padding:20px;">No bookings found for ${currentServingMeal}.</div>`;
+      }
+    }
+
+    function onTokenCardClicked(item) {
+      playServingClickSound();
+
+      const actionText = item.served ? 'Mark as Not Served (Cancel)?' : 'Confirm Food Served?';
+      const statusText = item.served ? 'Already Served' : 'Pending Serving';
+
+      showConfirmModal(
+        `Token #${item.token} - ${item.name}`,
+        `Status: <b>${statusText}</b><br>Meal: <b>${item.meal.toUpperCase()}</b> (${item.portions} portion)<br><br>${actionText}`,
+        async () => {
+          try {
+            const nextStatus = !item.served;
+            await window.fs.updateDoc(window.fs.doc(window.db, 'bookings', item.docId), {
+              served: nextStatus
+            });
+            item.served = nextStatus;
+            renderLiveServingCards();
+            showToast(`Token #${item.token} updated!`, 'info');
+          } catch (e) {
+            showModal('Error', e.message, 'error');
+          }
+        }
+      );
+    }
+
+    function filterLiveTokens() {
+      const q = document.getElementById('token-quick-search').value.trim().toLowerCase();
+      document.querySelectorAll('.token-card').forEach(card => {
+        const token = card.getAttribute('data-token').toLowerCase();
+        card.style.display = (!q || token.includes(q)) ? 'flex' : 'none';
+      });
     }
   </script>
 </body>
