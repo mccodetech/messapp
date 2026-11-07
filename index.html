@@ -195,29 +195,36 @@ body.kitchen-view .admin-sidebar-menu .admin-menu-btn:not(#atab-btn-kitchen) {
     .btn-light { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
     .sticky-save-bar {
-      position: sticky;
-      bottom: 68px;
-      z-index: 80;
+      position: fixed;
+      bottom: 65px; /* താഴെയുള്ള മൊബൈൽ നാവിഗേഷൻ ബാറിന് തൊട്ടുമുകളിൽ */
+      left: 12px;
+      right: 12px;
+      z-index: 999;
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(8px);
-      padding: 12px 16px;
+      padding: 10px 16px;
       border-radius: 16px;
       border: 1px solid #cbd5e1;
-      box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 14px;
+      max-width: 480px; /* ഫോണിലും ടാബിലും ഭംഗിയായി ഇരിക്കാൻ */
+      margin: 0 auto;
     }
+
+    /* സേവ് ബാർ അടിയിലുള്ള അവസാനത്തെ കാർഡിനെ മറയ്ക്കാതിരിക്കാൻ താഴെ കുറച്ച് സ്പേസ് നൽകുന്നു */
+    #bulk-cards-body {
+      padding-bottom: 70px;
+    }
+
     @media (min-width: 769px) {
       .sticky-save-bar {
         bottom: 15px;
+        left: 260px; /* കമ്പ്യൂട്ടറിലെ സൈഡ്‌ബാറിന് സ്ഥലം വിടാൻ */
+        right: 20px;
+        max-width: 600px;
       }
-    }
-
-    .bulk-table-container {
-      border: none !important;
-      background: transparent !important;
     }
 
     .day-card {
