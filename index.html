@@ -1429,6 +1429,9 @@ body.kitchen-view .admin-sidebar-menu .admin-menu-btn:not(#atab-btn-kitchen) {
                     <input type="date" id="rep-end-date" class="input-control" style="width:140px; padding:6px 10px;">
                     <button class="btn-pill btn-primary" onclick="loadPointsAndBookingsReport()">Load Report</button>
                     <button class="btn-pill btn-light" onclick="printPointsReport()"><i class="fa-solid fa-print"></i> Print / PDF</button>
+                    <button class="btn-pill btn-success" onclick="exportPointsReportToCSV()">
+                <i class="fa-solid fa-file-excel"></i> Export Excel
+                    </button>
                   </div>
                 </div>
 
@@ -2806,6 +2809,48 @@ if (currentUser && currentUser.role === 'kitchen') {
         </html>
       `);
       printWindow.document.close();
+    }
+
+    function exportPointsReportToCSV() {
+      const thead = document.getElementById('points-report-thead');
+      const tbody = document.getElementById('points-report-tbody');
+      if (!tbody || tbody.querySelectorAll('tr').length === 0) {
+        return showToast('No report data to export', 'error');
+      }
+
+      let csv = [];
+
+      // ഹെഡർ വരികൾ എടുക്കുന്നു
+      let headerCols = [];
+      thead.querySelectorAll('th').forEach(th => {
+        headerCols.push(`"${th.innerText.replace(/"/g, '""').trim()}"`);
+      });
+      csv.push(headerCols.join(','));
+
+      // ഓരോ വരിയിലെയും ഡാറ്റ എടുക്കുന്നു
+      tbody.querySelectorAll('tr').forEach(tr => {
+        let rowCols = [];
+        tr.querySelectorAll('td').forEach(td => {
+          // ഒന്നിലധികം വരികളുള്ള ടെക്സ്റ്റ് ഒരൊറ്റ വരിയായി മാറ്റുന്നു
+          let val = td.innerText.replace(/\n/g, ' ').replace(/"/g, '""').trim();
+          rowCols.push(`"${val}"`);
+        });
+        csv.push(rowCols.join(','));
+      });
+
+      // CSV ഫയൽ ക്രിയേറ്റ് ചെയ്ത് ഡൗൺലോഡ് ചെയ്യുന്നു
+      const csvString = '\uFEFF' + csv.join('\r\n'); // മലയാളം ഫോണ്ട് തെറ്റാതെ വരാൻ BOM ചേർത്തു
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const startDate = document.getElementById('rep-start-date').value || 'start';
+      const endDate = document.getElementById('rep-end-date').value || 'end';
+      
+      link.href = URL.createObjectURL(blob);
+      link.download = `Points_Report_${startDate}_to_${endDate}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Excel/CSV downloaded successfully!', 'success');
     }
 
     function isMealSlotLocked(dateStr, mealType) {
