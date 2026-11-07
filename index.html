@@ -194,6 +194,27 @@ body.kitchen-view .admin-sidebar-menu .admin-menu-btn:not(#atab-btn-kitchen) {
     .btn-whatsapp { background-color: var(--whatsapp-color); color: #fff; }
     .btn-light { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
 
+    .sticky-save-bar {
+      position: sticky;
+      bottom: 68px;
+      z-index: 80;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      padding: 12px 16px;
+      border-radius: 16px;
+      border: 1px solid #cbd5e1;
+      box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+    }
+    @media (min-width: 769px) {
+      .sticky-save-bar {
+        bottom: 15px;
+      }
+    }
+
     .bulk-table-container {
       border: none !important;
       background: transparent !important;
@@ -944,6 +965,17 @@ body.kitchen-view .admin-sidebar-menu .admin-menu-btn:not(#atab-btn-kitchen) {
 
           <div class="bulk-table-container">
             <div id="bulk-cards-body"></div>
+          </div>
+
+          <!-- താഴെ തങ്ങിനിൽക്കുന്ന സേവ് ബാർ -->
+          <div class="sticky-save-bar">
+            <div>
+              <span style="font-size: 0.85rem; font-weight: 700; color: #1e3c72; display:block;">ബുക്കിംഗ് പൂർത്തിയായെങ്കിൽ:</span>
+              <small style="color: #64748b; font-size: 0.74rem;">താഴെയുള്ള ബട്ടൺ ക്ലിക്ക് ചെയ്യുക</small>
+            </div>
+            <button class="btn-pill btn-success" onclick="saveBulkBookings()" style="padding: 10px 22px; font-size: 0.88rem; box-shadow: 0 4px 12px rgba(16,185,129,0.3);">
+              <i class="fa-solid fa-floppy-disk"></i> Save / Update
+            </button>
           </div>
         </div>
       </div>
