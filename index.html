@@ -2177,60 +2177,67 @@ if (currentUser && currentUser.role === 'kitchen') {
     }
 
     async function saveCategoryGuestToken() {
-      const catSelect = document.getElementById('subadmin-category-select');
-      const tokenInput = document.getElementById('subadmin-guest-token');
-      if (!catSelect || !tokenInput) return;
-      const cat = catSelect.value;
-      const guestTokenVal = tokenInput.value.trim();
+  const catSelect = document.getElementById('subadmin-category-select');
+  const tokenInput = document.getElementById('subadmin-guest-token');
+  if (!catSelect || !tokenInput) return;
+  const cat = catSelect.value;
+  const guestTokenVal = tokenInput.value.trim();
 
-      if (!guestTokenVal) {
-        return showToast('Please enter a Guest Token Number', 'error');
-      }
+  if (!guestTokenVal) return showToast('Please enter a Guest Token Number', 'error');
 
-      try {
-        guestTokensConfig[cat] = guestTokenVal;
-        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'guest_tokens'), guestTokensConfig, { merge: true });
+  try {
+    // ഈ ടോക്കൺ നിലവിൽ ഏതെങ്കിലും മെമ്പറുടെ പേരിലുണ്ടോ എന്ന് പരിശോധിക്കുന്നു
+    const existingSnap = await window.fs.getDoc(window.fs.doc(window.db, 'users', guestTokenVal));
+    if (existingSnap.exists() && !existingSnap.data().isGuestAccount) {
+      return showModal('Error', `Token #${guestTokenVal} is already assigned to member ${existingSnap.data().name}!`, 'error');
+    }
 
-        // ഗസ്റ്റ് അക്കൗണ്ട് പ്രൊഫൈൽ മാത്രം ക്രിയേറ്റ് ചെയ്യുന്നു
-        const guestUserRef = window.fs.doc(window.db, 'users', guestTokenVal);
-        await window.fs.setDoc(guestUserRef, {
-          token: guestTokenVal,
-          name: `${cat} GUEST`,
-          category: cat,
-          phone: 'N/A',
-          email: `${guestTokenVal.toLowerCase()}@mess.com`,
-          role: 'user',
-          status: 'active'
-        }, { merge: true });
+    guestTokensConfig[cat] = guestTokenVal;
+    await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'guest_tokens'), guestTokensConfig, { merge: true });
 
-        showModal('Success', `Guest Token #${guestTokenVal} for ${cat} saved successfully!`, 'success');
-      } catch (err) {
-        showModal('Error', err.message, 'error');
+    const guestUserRef = window.fs.doc(window.db, 'users', guestTokenVal);
+    await window.fs.setDoc(guestUserRef, {
+      token: guestTokenVal,
+      name: `${cat} GUEST`,
+      category: cat,
+      phone: 'N/A',
+      email: `${guestTokenVal.toLowerCase()}@mess.com`,
+      role: 'user',
+      status: 'active',
+      isGuestAccount: true // ഗസ്റ്റ് അക്കൗണ്ട് ആണെന്ന് തിരിച്ചറിയാനുള്ള അടയാളം
+    }, { merge: true });
+
+    showModal('Success', `Guest Token #${guestTokenVal} for ${cat} saved successfully!`, 'success');
+  } catch (err) {
+    showModal('Error', err.message, 'error');
+  }
+}
+
+async function removeCategoryGuestToken() {
+  const catSelect = document.getElementById('subadmin-category-select');
+  if (!catSelect) return;
+  const cat = catSelect.value;
+
+  try {
+    const oldGuestToken = guestTokensConfig[cat];
+    delete guestTokensConfig[cat];
+    await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'guest_tokens'), guestTokensConfig);
+
+    // isGuestAccount: true ആണെങ്കിൽ മാത്രമേ ഡിലീറ്റ് ചെയ്യാവൂ
+    if (oldGuestToken) {
+      const docRef = window.fs.doc(window.db, 'users', oldGuestToken);
+      const docSnap = await window.fs.getDoc(docRef);
+      if (docSnap.exists() && docSnap.data().isGuestAccount === true) {
+        await window.fs.deleteDoc(docRef);
       }
     }
 
-    async function removeCategoryGuestToken() {
-      const catSelect = document.getElementById('subadmin-category-select');
-      if (!catSelect) return;
-      const cat = catSelect.value;
-
-      try {
-        const oldGuestToken = guestTokensConfig[cat];
-        delete guestTokensConfig[cat];
-        await window.fs.setDoc(window.fs.doc(window.db, 'settings', 'guest_tokens'), guestTokensConfig);
-
-        if (oldGuestToken) {
-          try {
-            await window.fs.deleteDoc(window.fs.doc(window.db, 'users', oldGuestToken));
-          } catch(e) { console.error(e); }
-        }
-
-        document.getElementById('subadmin-guest-token').value = '';
-        showModal('Success', `Guest Token for ${cat} removed successfully!`, 'success');
-      } catch (err) {
-        showModal('Error', err.message, 'error');
-      }
-    }
+    document.getElementById('subadmin-guest-token').value = '';
+    showModal('Success', `Guest Token for ${cat} removed successfully!`, 'success');
+  } catch (err) {
+    showModal('Error', err.message, 'error');
+  }
+}
 
     async function loadCategoryGuestsReport() {
       const selectedCat = document.getElementById('guestrep-cat-select').value;
